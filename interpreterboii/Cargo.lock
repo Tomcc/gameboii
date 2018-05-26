@@ -4,7 +4,7 @@ version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
-name = "gameboii"
+name = "interpreterboii"
 version = "0.1.0"
 dependencies = [
  "serde 1.0.59 (registry+https://github.com/rust-lang/crates.io-index)",
