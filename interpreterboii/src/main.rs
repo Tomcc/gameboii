@@ -5,15 +5,9 @@ extern crate serde_json;
 extern crate serde_derive;
 
 use std::collections::BTreeMap;
+use std::fmt;
 use std::fs::File;
 use std::io::Write;
-use std::fmt;
-
-const HEADER: &str = r#"
-use cpu::CPU;
-
-pub unsafe fn interpret(cpu: &mut CPU, instr: usize) {{
-"#;
 
 #[derive(Deserialize, Debug)]
 #[allow(non_snake_case)]
@@ -52,6 +46,8 @@ enum HLMagic {
 enum ParameterType {
     U16,
     U8,
+    Bool,
+    I8,
 }
 
 impl fmt::Display for ParameterType {
@@ -59,7 +55,9 @@ impl fmt::Display for ParameterType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             ParameterType::U8 => write!(f, "u8"),
+            ParameterType::I8 => write!(f, "i8"),
             ParameterType::U16 => write!(f, "u16"),
+            ParameterType::Bool => write!(f, "bool"),
         }
     }
 }
@@ -93,37 +91,33 @@ impl Parameter {
             let len = operand.chars().count();
             let inner: String = operand.chars().skip(1).take(len - 2).collect();
             let param = Self::from_operand(&inner);
+
+            // when the inner parameter is 8-bit, we need to add it to 0xff00. 
+            // for reasons.
+            let post_offset_code = match param.param_type {
+                ParameterType::I8 | ParameterType::U8 => {
+                    param.fullcode + " as u16 + 0xff00"    
+                }
+                _ => param.fullcode,
+            };
+
             return Parameter {
-                fullcode: format!("cpu.address({})", param.fullcode),
+                fullcode: format!("cpu.address({})", post_offset_code),
                 hl: param.hl,
                 param_type: ParameterType::U8,
                 mutable: false,
             };
         } else if operand == "HL+" {
-            return Parameter {
-                fullcode: String::from("cpu.HL.HL"),
-                hl: Some(HLMagic::Inc),
-                param_type: ParameterType::U16,
-                mutable: false,
-            };
+            let mut param = Self::from_operand("HL");
+            param.hl = Some(HLMagic::Inc);
+            return param;
         } else if operand == "HL-" {
-            return Parameter {
-                fullcode: String::from("cpu.HL.HL"),
-                hl: Some(HLMagic::Dec),
-                param_type: ParameterType::U16,
-                mutable: false,
-            };
-        } else if operand.contains('+') {
-            let operands: Vec<&str> = operand.split('+').collect();
-            let param1 = Self::from_operand(&operands[0]);
-            let param2 = Self::from_operand(&operands[1]);
-
-            return Parameter {
-                fullcode: param1.fullcode + " + " + &param2.fullcode,
-                param_type: ParameterType::U8,
-                hl: None,
-                mutable: false,
-            };
+            let mut param = Self::from_operand("HL");
+            param.hl = Some(HLMagic::Dec);
+            return param;
+        } else if operand == "SP+r8" {
+            let param = Self::from_operand("r8");
+            return Parameter::new(format!("cpu.offset_sp({})", param.fullcode), ParameterType::U16);
         } else if operand == "d8" {
             return Parameter::new(format!("cpu.immediateU8()"), ParameterType::U8);
         } else if operand == "d16" {
@@ -133,7 +127,7 @@ impl Parameter {
         } else if operand == "a16" {
             return Parameter::new(format!("cpu.immediateU16()"), ParameterType::U16);
         } else if operand == "r8" {
-            return Parameter::new(format!("cpu.immediateI8()"), ParameterType::U8);
+            return Parameter::new(format!("cpu.immediateI8()"), ParameterType::I8);
         } else if let Ok(num) = operand.parse::<usize>() {
             return Parameter::new(format!("{}", num), ParameterType::U8);
         } else if operand.ends_with("H") && operand.len() == 3 {
@@ -155,6 +149,16 @@ impl Parameter {
             return Parameter::new(String::from("cpu.HL.r8.0"), ParameterType::U8);
         } else if operand == "L" {
             return Parameter::new(String::from("cpu.HL.r8.1"), ParameterType::U8);
+        } else if operand == "L" {
+            return Parameter::new(String::from("cpu.HL.r8.1"), ParameterType::U8);
+        } else if operand == "Z" {
+            return Parameter::new(String::from("cpu.z()"), ParameterType::Bool);
+        } else if operand == "NZ" {
+            return Parameter::new(String::from("!cpu.z()"), ParameterType::Bool);
+        } else if operand == "C" {
+            return Parameter::new(String::from("cpu.c()"), ParameterType::Bool);
+        } else if operand == "NC" {
+            return Parameter::new(String::from("!cpu.c()"), ParameterType::Bool);
         } else if operand == "SP" {
             return Parameter::new(String::from("cpu.SP"), ParameterType::U16);
         } else if operand == "PC" {
@@ -176,6 +180,10 @@ impl FunctionDesc {
         let mut code = String::from("\t\t\tcpu.");
         let mut name = String::new();
         let mut parameters = vec![];
+        
+        for operand in &opcode.operands {
+            parameters.push(Parameter::from_operand(operand));
+        }
 
         name += &opcode.mnemonic;
         name += &maybe_flag("z", &opcode.flagsZNHC[0]);
@@ -183,19 +191,22 @@ impl FunctionDesc {
         name += &maybe_flag("h", &opcode.flagsZNHC[2]);
         name += &maybe_flag("c", &opcode.flagsZNHC[3]);
 
+        //append the types to do overloading
+        for parameter in &parameters {
+            name += &format!("_{}", parameter.param_type);
+        }
+
         code += &name;
         code += "(";
 
         let mut first = true;
-        for operand in &opcode.operands {
+        for parameter in &parameters {
             if !first {
                 code += ", ";
             } else {
                 first = false;
             }
-            let param = Parameter::from_operand(operand);
-            code += &param.fullcode;
-            parameters.push(param);
+            code += &parameter.fullcode;
         }
 
         //write the parameters
@@ -218,12 +229,20 @@ impl FunctionDesc {
     }
 }
 
+const HEADER: &str = r#"
+use cpu::CPU;
+
+pub unsafe fn interpret(cpu: &mut CPU, instr: usize) {
+    match instr {
+        _ => panic!("Invalid instruction"),
+"#;
+
+
 fn write_rust_opcodes(opcodes: &[OpCodeDesc]) -> std::io::Result<Vec<FunctionDesc>> {
     let outfile = &mut File::create("../src/interpreter.rs")?;
     let mut function_list = vec![];
 
     writeln!(outfile, "{}", HEADER)?;
-    writeln!(outfile, "\tmatch instr {{")?;
 
     for opcode in opcodes {
         if let Some(_) = opcode.prefix {
@@ -282,7 +301,6 @@ fn write_rust_opcodes(opcodes: &[OpCodeDesc]) -> std::io::Result<Vec<FunctionDes
 }
 
 fn write_function_stub(outfile: &mut File, function: &FunctionDesc) -> std::io::Result<()> {
-
     //compose the parameters
     let mut paramcode = String::new();
     for idx in 0..function.parameters.len() {
@@ -297,8 +315,7 @@ fn write_function_stub(outfile: &mut File, function: &FunctionDesc) -> std::io::
     pub fn {}(&mut self{}) {{
         panic!("not implemented");
     }}"#,
-        function.name,
-        paramcode,
+        function.name, paramcode,
     )?;
 
     Ok(())
