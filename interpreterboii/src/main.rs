@@ -4,10 +4,18 @@ extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
 
+use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::Write;
 
+const HEADER: &str = r#"
+use cpu::CPU;
+
+pub unsafe fn interpret(cpu: &mut CPU, instr: usize) {{
+"#;
+
 #[derive(Deserialize, Debug)]
+#[allow(non_snake_case)]
 struct OpCodeDesc {
     prefix: Option<String>,
     opcode: String,
@@ -27,11 +35,11 @@ fn write_flag_handler(outfile: &mut File, name: &str, value: &str) -> std::io::R
     Ok(())
 }
 
-fn write_flag_overload(outfile: &mut File, name: &str, value: &str) -> std::io::Result<()> {
+fn maybe_flag(name: &str, value: &str) -> String {
     if value != "0" && value != "1" && value != "-" {
-        write!(outfile, "_{}", name)?;
+        return String::from("_") + name;
     }
-    Ok(())
+    String::new()
 }
 
 enum HLMagic {
@@ -39,11 +47,11 @@ enum HLMagic {
     Dec,
 }
 
-fn parse_operand(operand: &str) -> (String, Option<HLMagic>) {
+fn make_operand(operand: &str) -> (String, Option<HLMagic>) {
     if operand.starts_with("(") {
         let len = operand.chars().count();
         let inner: String = operand.chars().skip(1).take(len - 2).collect();
-        let (op, hl) = parse_operand(&inner);
+        let (op, hl) = make_operand(&inner);
         return (format!("cpu.address({})", op), hl);
     } else if operand == "HL+" {
         return (String::from("cpu.HL.HL"), Some(HLMagic::Inc));
@@ -51,8 +59,8 @@ fn parse_operand(operand: &str) -> (String, Option<HLMagic>) {
         return (String::from("cpu.HL.HL"), Some(HLMagic::Dec));
     } else if operand.contains('+') {
         let operands: Vec<&str> = operand.split('+').collect();
-        let (mut op1, hl1) = parse_operand(&operands[0]);
-        let (op2, _) = parse_operand(&operands[1]);
+        let (mut op1, hl1) = make_operand(&operands[0]);
+        let (op2, _) = make_operand(&operands[1]);
 
         op1 += " + ";
         op1 += &op2;
@@ -97,19 +105,69 @@ fn parse_operand(operand: &str) -> (String, Option<HLMagic>) {
     }
 }
 
-fn write_operand(outfile: &mut File, operand: &str) -> std::io::Result<Option<HLMagic>> {
-    let (op, hl) = parse_operand(operand);
-    write!(outfile, "{}", op)?;
-    Ok(hl)
+enum ParameterType {
+    u16,
+    u8,
 }
 
-fn write_rust_opcodes(opcodes: &[OpCodeDesc]) -> std::io::Result<()> {
-    let outfile = &mut File::create("../src/interpreter.rs")?;
+struct FunctionParameter {
+    mutable: bool,
+    param_type: ParameterType,
+}
 
-    writeln!(
-        outfile,
-        "fn interpret(cpu: &mut CPU, instr: usize) unsafe {{"
-    )?;
+struct FunctionDesc {
+    name: String,
+    hl: Option<HLMagic>,
+    parameters: Vec<FunctionParameter>,
+    fullcode: String,
+}
+
+impl FunctionDesc {
+    pub fn from_opcode(opcode: &OpCodeDesc) -> Self {
+        let mut res = String::from("\t\t\tcpu.");
+        let mut name = String::new();
+
+        name += &opcode.mnemonic;
+        name += &maybe_flag("z", &opcode.flagsZNHC[0]);
+        name += &maybe_flag("n", &opcode.flagsZNHC[1]);
+        name += &maybe_flag("h", &opcode.flagsZNHC[2]);
+        name += &maybe_flag("c", &opcode.flagsZNHC[3]);
+
+        res += &name;
+        res += "(";
+
+        let mut first = true;
+        let mut hl_magic: Option<HLMagic> = None;
+        for operand in &opcode.operands {
+            if !first {
+                res += ", ";
+            } else {
+                first = false;
+            }
+            let (op, maybe_hl) = make_operand(operand);
+            res += &op;
+            if let Some(hl) = maybe_hl {
+                hl_magic = Some(hl);
+            }
+        }
+
+        //write the parameters
+        res += ");";
+
+        FunctionDesc {
+            name: name,
+            hl: hl_magic,
+            fullcode: res,
+            parameters: vec![],
+        }
+    }
+}
+
+fn write_rust_opcodes(opcodes: &[OpCodeDesc]) -> std::io::Result<Vec<FunctionDesc>> {
+    let outfile = &mut File::create("../src/interpreter.rs")?;
+    let mut function_list = vec![];
+
+    writeln!(outfile, "{}", HEADER)?;
     writeln!(outfile, "\tmatch instr {{")?;
 
     for opcode in opcodes {
@@ -119,42 +177,25 @@ fn write_rust_opcodes(opcodes: &[OpCodeDesc]) -> std::io::Result<()> {
         } else {
             writeln!(outfile, "\t\t{} => {{", opcode.opcode)?;
         }
-        write!(outfile, "\t\t\tcpu.{}", opcode.mnemonic)?;
 
-        write_flag_overload(outfile, "z", &opcode.flagsZNHC[0])?;
-        write_flag_overload(outfile, "n", &opcode.flagsZNHC[1])?;
-        write_flag_overload(outfile, "h", &opcode.flagsZNHC[2])?;
-        write_flag_overload(outfile, "c", &opcode.flagsZNHC[3])?;
+        let function = FunctionDesc::from_opcode(opcode);
 
-        write!(outfile, "(")?;
-
-        let mut first = true;
-        let mut hl_magic: Option<HLMagic> = None;
-        for operand in &opcode.operands {
-            if !first {
-                write!(outfile, ", ")?;
-            } else {
-                first = false;
-            }
-            if let Some(hl) = write_operand(outfile, operand)? {
-                hl_magic = Some(hl);
-            }
-        }
-
-        //write the parameters
-        writeln!(outfile, ");")?;
+        writeln!(outfile, "{}", &function.fullcode)?;
 
         //do the HL magic
-        if let Some(hl) = hl_magic {
+        if let Some(hl) = &function.hl {
             match hl {
                 HLMagic::Inc => {
-                    writeln!(outfile, "\t\t\t{} += 1;", parse_operand("HL").0)?;
+                    writeln!(outfile, "\t\t\t{} += 1;", make_operand("HL").0)?;
                 }
                 HLMagic::Dec => {
-                    writeln!(outfile, "\t\t\t{} -= 1;", parse_operand("HL").0)?;
+                    writeln!(outfile, "\t\t\t{} -= 1;", make_operand("HL").0)?;
                 }
             }
         }
+
+        //add the function to the list
+        function_list.push(function);
 
         //set known flags
         write_flag_handler(outfile, "z", &opcode.flagsZNHC[0])?;
@@ -174,11 +215,52 @@ fn write_rust_opcodes(opcodes: &[OpCodeDesc]) -> std::io::Result<()> {
     writeln!(outfile, "    }}")?;
     writeln!(outfile, "}}")?;
 
+    Ok(function_list)
+}
+
+fn write_function_stub(outfile: &mut File, function: &FunctionDesc) -> std::io::Result<()> {
+    writeln!(
+        outfile,
+        r#"
+    pub fn {}() {{
+        panic!("not implemented");
+    }}"#,
+        function.name
+    )?;
+
+    Ok(())
+}
+
+fn write_function_stubs(functions: &[FunctionDesc]) -> std::io::Result<()> {
+    //write out stubs for the functions that were found
+    let mut dedupd = BTreeMap::new();
+
+    for func in functions {
+        dedupd.insert(func.name.clone(), func);
+    }
+
+    //open the output file
+    let outfile = &mut File::create("../src/function_stubs.rs")?;
+
+    //write out all the remaining functions in alphabetical order
+    for func in dedupd.values() {
+        write_function_stub(outfile, func);
+    }
+
     Ok(())
 }
 
 fn main() {
     let opcodes: Vec<OpCodeDesc> =
         serde_json::from_reader(File::open("opcodes.json").unwrap()).unwrap();
-    write_rust_opcodes(&opcodes);
+    match write_rust_opcodes(&opcodes) {
+        Ok(functions) => {
+            write_function_stubs(&functions).unwrap();
+            std::process::exit(0);
+        }
+        Err(e) => {
+            println!("Error: {}", e);
+            std::process::exit(1);
+        }
+    }
 }

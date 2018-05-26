@@ -1,3 +1,8 @@
+mod cpu;
+mod interpreter;
+
+use cpu::CPU;
+
 fn main() {
-    println!("Hello, world!");
+    let cpu = CPU::new();
 }
