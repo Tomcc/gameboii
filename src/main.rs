@@ -1,5 +1,6 @@
 mod cpu;
 mod interpreter;
+mod function_stubs;
 
 use cpu::CPU;
 

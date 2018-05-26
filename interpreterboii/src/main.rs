@@ -81,27 +81,27 @@ fn make_operand(operand: &str) -> (String, Option<HLMagic>) {
         let num: String = operand.chars().take(2).collect();
         return (format!("0x{}", num), None);
     } else if operand == "A" {
-        return (String::from("cpu.AF.A"), None);
+        return (String::from("cpu.AF.r8.0"), None);
     } else if operand == "F" {
-        return (String::from("cpu.AF.F"), None);
+        return (String::from("cpu.AF.r8.1"), None);
     } else if operand == "B" {
-        return (String::from("cpu.BC.B"), None);
+        return (String::from("cpu.BC.r8.0"), None);
     } else if operand == "C" {
-        return (String::from("cpu.BC.C"), None);
+        return (String::from("cpu.BC.r8.1"), None);
     } else if operand == "D" {
-        return (String::from("cpu.DE.D"), None);
+        return (String::from("cpu.DE.r8.0"), None);
     } else if operand == "E" {
-        return (String::from("cpu.DE.E"), None);
+        return (String::from("cpu.DE.r8.1"), None);
     } else if operand == "H" {
-        return (String::from("cpu.HL.H"), None);
+        return (String::from("cpu.HL.r8.0"), None);
     } else if operand == "L" {
-        return (String::from("cpu.HL.L"), None);
+        return (String::from("cpu.HL.r8.1"), None);
     } else if operand == "SP" {
         return (String::from("cpu.SP"), None);
     } else if operand == "PC" {
         return (String::from("cpu.PC"), None);
     } else {
-        return (format!("cpu.{0}.{0}", operand), None);
+        return (format!("cpu.{0}.r16", operand), None);
     }
 }
 
@@ -222,7 +222,7 @@ fn write_function_stub(outfile: &mut File, function: &FunctionDesc) -> std::io::
     writeln!(
         outfile,
         r#"
-    pub fn {}() {{
+    pub fn {}(&mut self) {{
         panic!("not implemented");
     }}"#,
         function.name
@@ -242,10 +242,20 @@ fn write_function_stubs(functions: &[FunctionDesc]) -> std::io::Result<()> {
     //open the output file
     let outfile = &mut File::create("../src/function_stubs.rs")?;
 
+    write!(
+        outfile,
+        r#"
+use cpu::CPU;
+
+impl CPU {{
+"#
+    )?;
+
     //write out all the remaining functions in alphabetical order
     for func in dedupd.values() {
         write_function_stub(outfile, func);
     }
+    writeln!(outfile, "}}")?;
 
     Ok(())
 }
