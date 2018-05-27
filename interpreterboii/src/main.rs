@@ -179,7 +179,7 @@ struct FunctionDesc {
 
 impl FunctionDesc {
     pub fn from_opcode(opcode: &OpCodeDesc) -> Self {
-        let mut code = String::from("\t\t\tcpu.");
+        let mut code = String::new();
         let mut name = String::new();
         let mut parameters = vec![];
 
@@ -187,7 +187,12 @@ impl FunctionDesc {
             parameters.push(Parameter::from_operand(operand));
         }
 
-        name += &opcode.mnemonic;
+        //get the parameters in their own line to help borrowck not confuse itself and die
+        for idx in 0..parameters.len() {
+            code += &format!("\t\t\tlet reg{} = {};\n", idx, parameters[idx].fullcode);
+        }
+
+        name += &format!("\t\t\tcpu.{}", opcode.mnemonic);
         name += &maybe_flag("z", &opcode.flagsZNHC[0]);
         name += &maybe_flag("n", &opcode.flagsZNHC[1]);
         name += &maybe_flag("h", &opcode.flagsZNHC[2]);
@@ -201,14 +206,11 @@ impl FunctionDesc {
         code += &name;
         code += "(";
 
-        let mut first = true;
-        for parameter in &parameters {
-            if !first {
+        for idx in 0..parameters.len() {
+            if idx > 0 {
                 code += ", ";
-            } else {
-                first = false;
             }
-            code += &parameter.fullcode;
+            code += &format!("reg{}", idx);
         }
 
         //write the parameters
