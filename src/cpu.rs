@@ -25,6 +25,10 @@ impl CPU {
         }
     }
 
+    pub fn peek_instruction(&self) -> u8 {
+        panic!("not implemented");
+    }
+
     pub fn immediateU16(&self) -> u16 {
         panic!("not implemented");
     }

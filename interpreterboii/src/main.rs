@@ -1,3 +1,4 @@
+extern crate itertools;
 extern crate serde;
 extern crate serde_json;
 
@@ -92,12 +93,10 @@ impl Parameter {
             let inner: String = operand.chars().skip(1).take(len - 2).collect();
             let param = Self::from_operand(&inner);
 
-            // when the inner parameter is 8-bit, we need to add it to 0xff00. 
+            // when the inner parameter is 8-bit, we need to add it to 0xff00.
             // for reasons.
             let post_offset_code = match param.param_type {
-                ParameterType::I8 | ParameterType::U8 => {
-                    param.fullcode + " as u16 + 0xff00"    
-                }
+                ParameterType::I8 | ParameterType::U8 => param.fullcode + " as u16 + 0xff00",
                 _ => param.fullcode,
             };
 
@@ -117,7 +116,10 @@ impl Parameter {
             return param;
         } else if operand == "SP+r8" {
             let param = Self::from_operand("r8");
-            return Parameter::new(format!("cpu.offset_sp({})", param.fullcode), ParameterType::U16);
+            return Parameter::new(
+                format!("cpu.offset_sp({})", param.fullcode),
+                ParameterType::U16,
+            );
         } else if operand == "d8" {
             return Parameter::new(format!("cpu.immediateU8()"), ParameterType::U8);
         } else if operand == "d16" {
@@ -180,7 +182,7 @@ impl FunctionDesc {
         let mut code = String::from("\t\t\tcpu.");
         let mut name = String::new();
         let mut parameters = vec![];
-        
+
         for operand in &opcode.operands {
             parameters.push(Parameter::from_operand(operand));
         }
@@ -232,25 +234,29 @@ impl FunctionDesc {
 const HEADER: &str = r#"
 use cpu::CPU;
 
-pub unsafe fn interpret(cpu: &mut CPU, instr: usize) {
-    match instr {
-        _ => panic!("Invalid instruction"),
+pub unsafe fn interpret(cpu: &mut CPU) {
+    match cpu.peek_instruction() {
 "#;
 
+const FUNC_SPLIT: &str = r#"
+        _ => panic!("instruction not known")
+    }
+}
 
-fn write_rust_opcodes(opcodes: &[OpCodeDesc]) -> std::io::Result<Vec<FunctionDesc>> {
-    let outfile = &mut File::create("../src/interpreter.rs")?;
+pub unsafe fn interpret_cb(cpu: &mut CPU, instr: u8) {
+    match cpu.peek_instruction() {
+"#;
+
+const FOOTER: &str = r#"
+        _ => panic!("instruction not known")
+    }
+}"#;
+
+fn write_opcodes(outfile: &mut File, opcodes: &[OpCodeDesc]) -> std::io::Result<Vec<FunctionDesc>> {
     let mut function_list = vec![];
 
-    writeln!(outfile, "{}", HEADER)?;
-
     for opcode in opcodes {
-        if let Some(_) = opcode.prefix {
-            let truncated: String = opcode.opcode.chars().skip(2).collect();
-            writeln!(outfile, "\t\t0xcb{} => {{", truncated)?;
-        } else {
-            writeln!(outfile, "\t\t{} => {{", opcode.opcode)?;
-        }
+        writeln!(outfile, "\t\t{} => {{", opcode.opcode)?;
 
         let function = FunctionDesc::from_opcode(opcode);
 
@@ -293,9 +299,24 @@ fn write_rust_opcodes(opcodes: &[OpCodeDesc]) -> std::io::Result<Vec<FunctionDes
 
         writeln!(outfile, "\t\t}},")?;
     }
+    Ok(function_list)
+}
 
-    writeln!(outfile, "    }}")?;
-    writeln!(outfile, "}}")?;
+fn write_interpreter(mut opcodes: Vec<OpCodeDesc>) -> std::io::Result<Vec<FunctionDesc>> {
+    let outfile = &mut File::create("../src/interpreter.rs")?;
+    
+    //sort the opcodes between cb and non cb
+    let splitpoint = itertools::partition(&mut opcodes, |opcode| opcode.prefix.is_none());
+
+    writeln!(outfile, "{}", HEADER)?;
+
+    let mut function_list = write_opcodes(outfile, &opcodes[..splitpoint])?;
+
+    writeln!(outfile, "{}", FUNC_SPLIT)?;
+
+    function_list.append(&mut write_opcodes(outfile, &opcodes[splitpoint..])?);
+
+    writeln!(outfile, "{}", FOOTER)?;
 
     Ok(function_list)
 }
@@ -353,7 +374,7 @@ impl CPU {{
 fn main() {
     let opcodes: Vec<OpCodeDesc> =
         serde_json::from_reader(File::open("opcodes.json").unwrap()).unwrap();
-    match write_rust_opcodes(&opcodes) {
+    match write_interpreter(opcodes) {
         Ok(functions) => {
             write_function_stubs(&functions).unwrap();
             std::process::exit(0);

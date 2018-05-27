@@ -7,3 +7,4 @@ authors = ["Tommaso Checchi <tommaso.checchi1@gmail.com>"]
 serde = "*"
 serde_json = "*"
 serde_derive = "*"
+itertools = "*"

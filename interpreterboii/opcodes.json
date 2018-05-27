@@ -3143,6 +3143,19 @@
         ]
     },
     {
+        "opcode": "0xcb",
+        "mnemonic": "PREFIX",
+        "operands": [],
+        "bytes": 1,
+        "cycles": 4,
+        "flagsZNHC": [
+            "-",
+            "-",
+            "-",
+            "-"
+        ]
+    },
+    {
         "opcode": "0xcc",
         "mnemonic": "CALL",
         "operands": [
