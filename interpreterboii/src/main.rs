@@ -191,8 +191,9 @@ impl FunctionDesc {
         for idx in 0..parameters.len() {
             code += &format!("\t\t\tlet reg{} = {};\n", idx, parameters[idx].fullcode);
         }
-
-        name += &format!("\t\t\tcpu.{}", opcode.mnemonic);
+        code += "\t\t\tcpu.";
+        
+        name += &opcode.mnemonic;
         name += &maybe_flag("z", &opcode.flagsZNHC[0]);
         name += &maybe_flag("n", &opcode.flagsZNHC[1]);
         name += &maybe_flag("h", &opcode.flagsZNHC[2]);
@@ -245,7 +246,7 @@ const FUNC_SPLIT: &str = r#"
     }
 }
 
-pub unsafe fn interpret_cb(cpu: &mut CPU, instr: u8) {
+pub unsafe fn interpret_cb(cpu: &mut CPU) {
     match cpu.peek_instruction() {
 "#;
 

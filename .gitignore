@@ -3,3 +3,4 @@
 
 /src/interpreter.rs
 /src/function_stubs.rs
+.DS_Store

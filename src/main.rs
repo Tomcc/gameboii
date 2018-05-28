@@ -5,5 +5,8 @@ mod function_stubs;
 use cpu::CPU;
 
 fn main() {
-    let cpu = CPU::new();
+    let mut cpu = CPU::new();
+
+    let ROM = &[0 as u8; 1];
+    cpu.run(ROM);
 }
