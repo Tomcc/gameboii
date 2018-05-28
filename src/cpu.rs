@@ -9,7 +9,8 @@ pub union Register {
     pub r16: u16,
 }
 
-const RAM_SIZE: usize = 32 * 1024;
+//the RAM size is max addr + 1
+const RAM_SIZE: usize = 0xFFFF + 1;
 
 pub struct CPU {
     pub PC : u16,
@@ -88,7 +89,7 @@ impl CPU {
         let b1 = self.address(addr) as u16;
         let b2 = self.address(addr + 1) as u16;
 
-        (b1 << 8) | b2 
+        (b2 << 8) | b1 
     }
 
     pub fn offset_sp(&self, off: i8) -> u16 {

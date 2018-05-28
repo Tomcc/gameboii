@@ -16,7 +16,7 @@
         "opcode": "0x1",
         "mnemonic": "LD",
         "operands": [
-            "BC",
+            "out BC",
             "d16"
         ],
         "bytes": 3,
@@ -502,7 +502,7 @@
         "opcode": "0x21",
         "mnemonic": "LD",
         "operands": [
-            "HL",
+            "out HL",
             "d16"
         ],
         "bytes": 3,
@@ -746,7 +746,7 @@
         "opcode": "0x31",
         "mnemonic": "LD",
         "operands": [
-            "SP",
+            "out SP",
             "d16"
         ],
         "bytes": 3,

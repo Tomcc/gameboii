@@ -64,7 +64,7 @@ impl fmt::Display for ParameterType {
 }
 
 struct Parameter {
-    mutable: bool,
+    output: bool,
     param_type: ParameterType,
     hl: Option<HLMagic>,
     fullcode: String,
@@ -83,12 +83,17 @@ impl Parameter {
             fullcode: code,
             param_type: t,
             hl: None,
-            mutable: false,
+            output: false,
         }
     }
 
     fn from_operand(operand: &str) -> Self {
-        if operand.starts_with("(") {
+        if operand.starts_with("out ") {
+            let inner: String = operand.chars().skip(4).collect();
+            let mut param = Self::from_operand(&inner);
+            param.output = true;
+            return param;
+        } else if operand.starts_with("(") {
             let len = operand.chars().count();
             let inner: String = operand.chars().skip(1).take(len - 2).collect();
             let param = Self::from_operand(&inner);
@@ -104,7 +109,7 @@ impl Parameter {
                 fullcode: format!("cpu.address({})", post_offset_code),
                 hl: param.hl,
                 param_type: ParameterType::U8,
-                mutable: false,
+                output: false,
             };
         } else if operand == "HL+" {
             let mut param = Self::from_operand("HL");
@@ -173,59 +178,67 @@ impl Parameter {
 
 struct FunctionDesc {
     name: String,
-    parameters: Vec<Parameter>,
-    fullcode: String,
+    inputs: Vec<Parameter>,
+    output: Option<Parameter>,
 }
 
 impl FunctionDesc {
     pub fn from_opcode(opcode: &OpCodeDesc) -> Self {
-        let mut code = String::new();
         let mut name = String::new();
-        let mut parameters = vec![];
+        let mut inputs = vec![];
+        let mut output: Option<Parameter> = None;
 
         for operand in &opcode.operands {
-            parameters.push(Parameter::from_operand(operand));
+            let param = Parameter::from_operand(operand);
+            if param.output {
+                assert!(output.is_none(), "This function has 2 outputs. NANI????");
+                output = Some(param);
+            } else {
+                inputs.push(param);
+            }
         }
 
-        //get the parameters in their own line to help borrowck not confuse itself and die
-        for idx in 0..parameters.len() {
-            code += &format!("\t\t\tlet reg{} = {};\n", idx, parameters[idx].fullcode);
-        }
-        code += "\t\t\tcpu.";
-        
         name += &opcode.mnemonic;
         name += &maybe_flag("z", &opcode.flagsZNHC[0]);
         name += &maybe_flag("n", &opcode.flagsZNHC[1]);
         name += &maybe_flag("h", &opcode.flagsZNHC[2]);
         name += &maybe_flag("c", &opcode.flagsZNHC[3]);
 
-        //append the types to do overloading
-        for parameter in &parameters {
+        //append the types (including outputs) to do overloading
+        for parameter in &inputs {
             name += &format!("_{}", parameter.param_type);
         }
-
-        code += &name;
-        code += "(";
-
-        for idx in 0..parameters.len() {
-            if idx > 0 {
-                code += ", ";
-            }
-            code += &format!("reg{}", idx);
+        if let Some(parameter) = &output {
+            name += &format!("_out_{}", parameter.param_type);
         }
-
-        //write the parameters
-        code += ");";
 
         FunctionDesc {
             name: name,
-            fullcode: code,
-            parameters: parameters,
+            inputs: inputs,
+            output: output,
         }
     }
 
+    fn write_pre( &self, outfile:&mut File) -> std::io::Result<()> {
+        //get the parameters in their own line to help borrowck not confuse itself and die
+        for idx in 0..self.inputs.len() {
+            &writeln!(outfile, "\t\t\tlet reg{} = {};", idx, self.inputs[idx].fullcode)?;
+        }
+        if let Some(parameter) = &self.output {
+            &writeln!(outfile, "\t\t\tlet out;")?;
+        }
+        Ok(())
+    }
+
+    fn write_post(&self, outfile:&mut File) -> std::io::Result<()> {
+        if let Some(parameter) = &self.output {
+            writeln!(outfile, "\t\t\t{} = out;", parameter.fullcode)?;
+        }
+        Ok(())
+    }
+
     fn hl_mode(&self) -> Option<HLMagic> {
-        for param in &self.parameters {
+        for param in &self.inputs {
             if param.hl.is_some() {
                 return param.hl;
             }
@@ -263,7 +276,9 @@ fn write_opcodes(outfile: &mut File, opcodes: &[OpCodeDesc]) -> std::io::Result<
 
         let function = FunctionDesc::from_opcode(opcode);
 
-        writeln!(outfile, "{}", &function.fullcode)?;
+        function.write_pre(outfile)?;
+
+        function.write_post(outfile)?;
 
         //do the HL magic
         if let Some(hl) = &function.hl_mode() {
@@ -307,7 +322,7 @@ fn write_opcodes(outfile: &mut File, opcodes: &[OpCodeDesc]) -> std::io::Result<
 
 fn write_interpreter(mut opcodes: Vec<OpCodeDesc>) -> std::io::Result<Vec<FunctionDesc>> {
     let outfile = &mut File::create("../src/interpreter.rs")?;
-    
+
     //sort the opcodes between cb and non cb
     let splitpoint = itertools::partition(&mut opcodes, |opcode| opcode.prefix.is_none());
 
@@ -326,26 +341,16 @@ fn write_interpreter(mut opcodes: Vec<OpCodeDesc>) -> std::io::Result<Vec<Functi
 
 fn write_function_stub(outfile: &mut File, function: &FunctionDesc) -> std::io::Result<()> {
     //compose the parameters
-    let mut paramcode = String::new();
-    for idx in 0..function.parameters.len() {
-        let param = &function.parameters[idx];
-
-        paramcode += &format!(", reg{}: {}", idx, param);
-    }
-
     writeln!(
-        outfile,
-        r#"
-    pub fn {}(&mut self{}) {{
-        panic!("not implemented");
-    }}"#,
-        function.name, paramcode,
+        outfile, "\t\t//***{}",
+        function.name
     )?;
 
     Ok(())
 }
 
 fn write_function_stubs(functions: &[FunctionDesc]) -> std::io::Result<()> {
+    
     //write out stubs for the functions that were found
     let mut dedupd = BTreeMap::new();
 
@@ -361,7 +366,7 @@ fn write_function_stubs(functions: &[FunctionDesc]) -> std::io::Result<()> {
         r#"
 use cpu::CPU;
 
-impl CPU {{
+fn stubs(cpu: &mut CPU) {{
 "#
     )?;
 
@@ -369,7 +374,8 @@ impl CPU {{
     for func in dedupd.values() {
         write_function_stub(outfile, func);
     }
-    writeln!(outfile, "}}")?;
+    writeln!(outfile, r#"
+}}"#)?;
 
     Ok(())
 }
