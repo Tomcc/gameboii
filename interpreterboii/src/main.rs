@@ -341,10 +341,20 @@ fn write_interpreter(mut opcodes: Vec<OpCodeDesc>) -> std::io::Result<Vec<Functi
 
 fn write_function_stub(outfile: &mut File, function: &FunctionDesc) -> std::io::Result<()> {
     //compose the parameters
+    writeln!(outfile)?;
+    writeln!(outfile)?;
     writeln!(
-        outfile, "\t\t//***{}",
+        outfile, "\t// NAME: {}",
         function.name
     )?;
+    function.write_pre(outfile)?;
+    
+    writeln!(outfile, "\t// /AUTOGEN")?;
+    writeln!(outfile)?;
+    writeln!(outfile)?;
+
+    writeln!(outfile, "\t// AUTOGEN")?;
+    function.write_post(outfile)?;
 
     Ok(())
 }
@@ -366,7 +376,7 @@ fn write_function_stubs(functions: &[FunctionDesc]) -> std::io::Result<()> {
         r#"
 use cpu::CPU;
 
-fn stubs(cpu: &mut CPU) {{
+unsafe fn stubs(cpu: &mut CPU) {{
 "#
     )?;
 
