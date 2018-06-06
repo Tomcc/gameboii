@@ -77,7 +77,7 @@ impl CPU {
     }
 
     pub fn run_cycles(&mut self, count: usize) {
-        panic!("not implemented");
+        //TODO
     }
 
     pub fn address(&self, addr: u16) -> u8 {
@@ -100,6 +100,9 @@ impl CPU {
         panic!("not implemented");
     }
     pub fn reset_n(&mut self) {
+        panic!("not implemented");
+    }
+    pub fn assign_z(&mut self, state: bool) {
         panic!("not implemented");
     }
     pub fn set_z(&mut self) {

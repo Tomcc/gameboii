@@ -217,7 +217,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let reg0 = cpu.immediateU16();
 			let out;
 	//----------------
-		panic!("LD_u16_out_u16 not implemented");
+		out = reg0;
 	//----------------
 			cpu.SP = out;
 	}
@@ -446,7 +446,9 @@ unsafe fn stubs(cpu: &mut CPU) {
 	// NAME: XOR_z_u8
 			let reg0 = cpu.immediateU8();
 	//----------------
-		panic!("XOR_z_u8 not implemented");
+		cpu.AF.r8.0 = cpu.AF.r8.0 ^ reg0;
+		let z = cpu.AF.r8.0 == 0;
+		cpu.assign_z(z);
 	//----------------
 	}
 
