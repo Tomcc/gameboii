@@ -1,18 +1,18 @@
-extern crate regex;
 extern crate itertools;
+extern crate regex;
 extern crate serde;
 extern crate serde_json;
 
 #[macro_use]
 extern crate serde_derive;
 
+use regex::Regex;
 use std::collections::BTreeMap;
 use std::fmt;
 use std::fs::File;
-use std::io::Write;
-use std::io::BufReader;
 use std::io::prelude::*;
-use regex::Regex;
+use std::io::BufReader;
+use std::io::Write;
 
 #[derive(Deserialize, Debug)]
 #[allow(non_snake_case)]
@@ -32,14 +32,12 @@ struct FunctionCode {
 
 impl FunctionCode {
     fn new() -> Self {
-        FunctionCode {
-            lines: vec![],
-        }
+        FunctionCode { lines: vec![] }
     }
 
-    fn not_found() -> Self {
+    fn not_found(opcode: &str) -> Self {
         FunctionCode {
-            lines: vec!["\t\t\tpanic!(\"instruction not implemented\");".to_owned()],
+            lines: vec![format!("\t\tpanic!(\"{} not implemented\");", opcode)],
         }
     }
 }
@@ -303,13 +301,17 @@ fn write_opcodes(
 ) -> std::io::Result<Vec<FunctionDesc>> {
     let mut function_list = vec![];
 
-    let not_found_code = FunctionCode::not_found();
-
     for opcode in opcodes {
         writeln!(outfile, "\t\t{} => {{", opcode.opcode)?;
 
         let function = FunctionDesc::from_opcode(opcode);
-        let code = codes.get(&function.name).unwrap_or(&not_found_code);
+
+        let not_found = FunctionCode::not_found(&function.name);
+        let code = codes
+            .get(&function.name)
+            .unwrap_or(&not_found);
+
+        writeln!(outfile, "\t\t\t// {}", function.name)?;
 
         function.write_pre(outfile)?;
 
@@ -420,14 +422,15 @@ fn parse_function_stubs() -> std::io::Result<FunctionCodeMap> {
             autogen = !autogen;
             continue;
         }
-        
+
         if let Some(new_name) = name_regex.captures(&line) {
             name = new_name.get(1).unwrap().as_str().to_owned();
+
+            stubs.insert(name.clone(), FunctionCode::new());
         }
-        
+
         if !autogen {
-            let entry = stubs.entry(name.clone()).or_insert(FunctionCode::new());
-            (*entry).lines.push(line);
+            stubs.get_mut(&name).unwrap().lines.push(line);
         }
     }
 
@@ -458,12 +461,13 @@ unsafe fn stubs(cpu: &mut CPU) {{
     )?;
 
     //write out all the remaining functions in alphabetical order
-    let not_found_code = FunctionCode::not_found();
     for func in dedupd.values() {
         write_function_stub(
             outfile,
             func,
-            already_defined.get(&func.name).unwrap_or(&not_found_code),
+            already_defined
+                .get(&func.name)
+                .unwrap_or(&FunctionCode::not_found(&func.name)),
         );
     }
     writeln!(
