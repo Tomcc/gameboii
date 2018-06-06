@@ -314,7 +314,7 @@ fn write_opcodes(
         function.write_pre(outfile)?;
 
         for line in &code.lines {
-            write!(outfile, "{}", line);
+            writeln!(outfile, "\t{}", line);
         }
 
         function.write_post(outfile)?;
@@ -392,12 +392,9 @@ fn write_function_stub(
     function.write_pre(outfile)?;
 
     writeln!(outfile, "\t//----------------")?;
-    writeln!(outfile)?;
     for line in &code.lines {
         writeln!(outfile, "{}", line)?;
     }
-    writeln!(outfile)?;
-
     writeln!(outfile, "\t//----------------")?;
     function.write_post(outfile)?;
     writeln!(outfile, "\t}}")?;
