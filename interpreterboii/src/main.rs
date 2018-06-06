@@ -1,3 +1,4 @@
+extern crate regex;
 extern crate itertools;
 extern crate serde;
 extern crate serde_json;
@@ -9,6 +10,9 @@ use std::collections::BTreeMap;
 use std::fmt;
 use std::fs::File;
 use std::io::Write;
+use std::io::BufReader;
+use std::io::prelude::*;
+use regex::Regex;
 
 #[derive(Deserialize, Debug)]
 #[allow(non_snake_case)]
@@ -21,6 +25,26 @@ struct OpCodeDesc {
     cycles: usize,
     flagsZNHC: Vec<String>,
 }
+
+struct FunctionCode {
+    lines: Vec<String>,
+}
+
+impl FunctionCode {
+    fn new() -> Self {
+        FunctionCode {
+            lines: vec![],
+        }
+    }
+
+    fn not_found() -> Self {
+        FunctionCode {
+            lines: vec!["\t\t\tpanic!(\"instruction not implemented\");".to_owned()],
+        }
+    }
+}
+
+type FunctionCodeMap = BTreeMap<String, FunctionCode>;
 
 fn write_flag_handler(outfile: &mut File, name: &str, value: &str) -> std::io::Result<()> {
     if value == "0" {
@@ -219,10 +243,14 @@ impl FunctionDesc {
         }
     }
 
-    fn write_pre( &self, outfile:&mut File) -> std::io::Result<()> {
+    fn write_pre(&self, outfile: &mut File) -> std::io::Result<()> {
         //get the parameters in their own line to help borrowck not confuse itself and die
         for idx in 0..self.inputs.len() {
-            &writeln!(outfile, "\t\t\tlet reg{} = {};", idx, self.inputs[idx].fullcode)?;
+            &writeln!(
+                outfile,
+                "\t\t\tlet reg{} = {};",
+                idx, self.inputs[idx].fullcode
+            )?;
         }
         if let Some(parameter) = &self.output {
             &writeln!(outfile, "\t\t\tlet out;")?;
@@ -230,7 +258,7 @@ impl FunctionDesc {
         Ok(())
     }
 
-    fn write_post(&self, outfile:&mut File) -> std::io::Result<()> {
+    fn write_post(&self, outfile: &mut File) -> std::io::Result<()> {
         if let Some(parameter) = &self.output {
             writeln!(outfile, "\t\t\t{} = out;", parameter.fullcode)?;
         }
@@ -268,15 +296,26 @@ const FOOTER: &str = r#"
     }
 }"#;
 
-fn write_opcodes(outfile: &mut File, opcodes: &[OpCodeDesc]) -> std::io::Result<Vec<FunctionDesc>> {
+fn write_opcodes(
+    outfile: &mut File,
+    opcodes: &[OpCodeDesc],
+    codes: &FunctionCodeMap,
+) -> std::io::Result<Vec<FunctionDesc>> {
     let mut function_list = vec![];
+
+    let not_found_code = FunctionCode::not_found();
 
     for opcode in opcodes {
         writeln!(outfile, "\t\t{} => {{", opcode.opcode)?;
 
         let function = FunctionDesc::from_opcode(opcode);
+        let code = codes.get(&function.name).unwrap_or(&not_found_code);
 
         function.write_pre(outfile)?;
+
+        for line in &code.lines {
+            write!(outfile, "{}", line);
+        }
 
         function.write_post(outfile)?;
 
@@ -320,7 +359,10 @@ fn write_opcodes(outfile: &mut File, opcodes: &[OpCodeDesc]) -> std::io::Result<
     Ok(function_list)
 }
 
-fn write_interpreter(mut opcodes: Vec<OpCodeDesc>) -> std::io::Result<Vec<FunctionDesc>> {
+fn write_interpreter(
+    mut opcodes: Vec<OpCodeDesc>,
+    codes: &FunctionCodeMap,
+) -> std::io::Result<Vec<FunctionDesc>> {
     let outfile = &mut File::create("../src/interpreter.rs")?;
 
     //sort the opcodes between cb and non cb
@@ -328,38 +370,77 @@ fn write_interpreter(mut opcodes: Vec<OpCodeDesc>) -> std::io::Result<Vec<Functi
 
     writeln!(outfile, "{}", HEADER)?;
 
-    let mut function_list = write_opcodes(outfile, &opcodes[..splitpoint])?;
+    let mut function_list = write_opcodes(outfile, &opcodes[..splitpoint], codes)?;
 
     writeln!(outfile, "{}", FUNC_SPLIT)?;
 
-    function_list.append(&mut write_opcodes(outfile, &opcodes[splitpoint..])?);
+    function_list.append(&mut write_opcodes(outfile, &opcodes[splitpoint..], codes)?);
 
     writeln!(outfile, "{}", FOOTER)?;
 
     Ok(function_list)
 }
 
-fn write_function_stub(outfile: &mut File, function: &FunctionDesc) -> std::io::Result<()> {
+fn write_function_stub(
+    outfile: &mut File,
+    function: &FunctionDesc,
+    code: &FunctionCode,
+) -> std::io::Result<()> {
     //compose the parameters
-    writeln!(
-        outfile, "\t// NAME: {}",
-        function.name
-    )?;
+    writeln!(outfile, "\t{{")?;
+    writeln!(outfile, "\t// NAME: {}", function.name)?;
     function.write_pre(outfile)?;
-    
-    writeln!(outfile, "\t// /AUTOGEN")?;
+
+    writeln!(outfile, "\t//----------------")?;
     writeln!(outfile)?;
-    writeln!(outfile, "\tpanic!(\"instruction not implemented\");")?;
+    for line in &code.lines {
+        writeln!(outfile, "{}", line)?;
+    }
     writeln!(outfile)?;
 
-    writeln!(outfile, "\t// AUTOGEN")?;
+    writeln!(outfile, "\t//----------------")?;
     function.write_post(outfile)?;
+    writeln!(outfile, "\t}}")?;
 
     Ok(())
 }
 
-fn write_function_stubs(functions: &[FunctionDesc]) -> std::io::Result<()> {
-    
+const STUBS_PATH: &str = "../src/function_stubs.rs";
+
+fn parse_function_stubs() -> std::io::Result<FunctionCodeMap> {
+    let name_regex = Regex::new(".*// NAME: (.*)").unwrap();
+
+    let mut stubs = BTreeMap::new();
+
+    let file = BufReader::new(File::open(STUBS_PATH)?);
+
+    let mut autogen = true;
+    let mut name = String::new();
+
+    for line_err in file.lines() {
+        let line = line_err?;
+        if line.contains("//----------------") {
+            autogen = !autogen;
+            continue;
+        }
+        
+        if let Some(new_name) = name_regex.captures(&line) {
+            name = new_name.get(1).unwrap().as_str().to_owned();
+        }
+        
+        if !autogen {
+            let entry = stubs.entry(name.clone()).or_insert(FunctionCode::new());
+            (*entry).lines.push(line);
+        }
+    }
+
+    Ok(stubs)
+}
+
+fn write_function_stubs(
+    functions: &[FunctionDesc],
+    already_defined: &FunctionCodeMap,
+) -> std::io::Result<()> {
     //write out stubs for the functions that were found
     let mut dedupd = BTreeMap::new();
 
@@ -368,7 +449,7 @@ fn write_function_stubs(functions: &[FunctionDesc]) -> std::io::Result<()> {
     }
 
     //open the output file
-    let outfile = &mut File::create("../src/function_stubs.rs")?;
+    let outfile = &mut File::create(STUBS_PATH)?;
 
     write!(
         outfile,
@@ -376,31 +457,34 @@ fn write_function_stubs(functions: &[FunctionDesc]) -> std::io::Result<()> {
 use cpu::CPU;
 
 unsafe fn stubs(cpu: &mut CPU) {{
-    // AUTOGEN
 "#
     )?;
 
     //write out all the remaining functions in alphabetical order
+    let not_found_code = FunctionCode::not_found();
     for func in dedupd.values() {
-        write_function_stub(outfile, func);
+        write_function_stub(
+            outfile,
+            func,
+            already_defined.get(&func.name).unwrap_or(&not_found_code),
+        );
     }
-    writeln!(outfile, r#"
-}}"#)?;
+    writeln!(
+        outfile,
+        r#"
+}}"#
+    )?;
 
     Ok(())
 }
 
 fn main() {
+    let codes = &parse_function_stubs().unwrap();
+
     let opcodes: Vec<OpCodeDesc> =
         serde_json::from_reader(File::open("opcodes.json").unwrap()).unwrap();
-    match write_interpreter(opcodes) {
-        Ok(functions) => {
-            write_function_stubs(&functions).unwrap();
-            std::process::exit(0);
-        }
-        Err(e) => {
-            println!("Error: {}", e);
-            std::process::exit(1);
-        }
-    }
+
+    let functions = write_interpreter(opcodes, codes).unwrap();
+
+    write_function_stubs(&functions, codes).unwrap();
 }
