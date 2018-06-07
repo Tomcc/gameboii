@@ -46,9 +46,9 @@ type FunctionCodeMap = BTreeMap<String, FunctionCode>;
 
 fn write_flag_handler(outfile: &mut File, name: &str, value: &str) -> std::io::Result<()> {
     if value == "0" {
-        writeln!(outfile, "\t\t\tcpu.set_{}();", name)?;
+        writeln!(outfile, "\t\t\tcpu.set_{}(true);", name)?;
     } else if value == "1" {
-        writeln!(outfile, "\t\t\tcpu.reset_{}();", name)?;
+        writeln!(outfile, "\t\t\tcpu.set_{}(false);", name)?;
     }
     Ok(())
 }

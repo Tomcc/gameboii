@@ -3,6 +3,7 @@ extern crate std;
 use std::fs::File;
 use std::io::Read;
 use interpreter;
+use bit_field::BitField;
 
 pub union Register {
     pub r8: (u8, u8),
@@ -96,38 +97,23 @@ impl CPU {
         panic!("not implemented");
     }
 
-    pub fn set_n(&mut self) {
-        panic!("not implemented");
+    pub unsafe fn set_z(&mut self, val: bool) {
+        self.AF.r8.1.set_bit(7, val);
     }
-    pub fn reset_n(&mut self) {
-        panic!("not implemented");
+    pub unsafe fn set_n(&mut self, val: bool) {
+        self.AF.r8.1.set_bit(6, val);
     }
-    pub fn assign_z(&mut self, state: bool) {
-        panic!("not implemented");
+    pub unsafe fn set_h(&mut self, val: bool) {
+        self.AF.r8.1.set_bit(5, val);
     }
-    pub fn set_z(&mut self) {
-        panic!("not implemented");
+    pub unsafe fn set_c(&mut self, val: bool) {
+        self.AF.r8.1.set_bit(4, val);
     }
-    pub fn reset_z(&mut self) {
-        panic!("not implemented");
+
+    pub unsafe fn z(&self) -> bool{
+        self.AF.r8.1.get_bit(7)
     }
-    pub fn z(&self) -> bool{
-        panic!("not implemented");
+    pub unsafe fn c(&self) -> bool{
+        self.AF.r8.1.get_bit(4)
     }
-    pub fn c(&self) -> bool{
-        panic!("not implemented");
-    }
-    pub fn set_h(&mut self) {
-        panic!("not implemented");
-    }
-    pub fn reset_h(&mut self) {
-        panic!("not implemented");
-    }
-    pub fn set_c(&mut self) {
-        panic!("not implemented");
-    }
-    pub fn reset_c(&mut self) {
-        panic!("not implemented");
-    }
-    
 }

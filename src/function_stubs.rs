@@ -448,7 +448,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	//----------------
 		cpu.AF.r8.0 = cpu.AF.r8.0 ^ reg0;
 		let z = cpu.AF.r8.0 == 0;
-		cpu.assign_z(z);
+		cpu.set_z(z);
 	//----------------
 	}
 

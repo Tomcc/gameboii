@@ -1,3 +1,5 @@
+extern crate bit_field;
+
 mod cpu;
 mod interpreter;
 mod function_stubs;
