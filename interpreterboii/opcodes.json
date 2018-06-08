@@ -3451,7 +3451,7 @@
             "out (C)",
             "A"
         ],
-        "bytes": 2,
+        "bytes": 1,
         "cycles": 8,
         "flagsZNHC": [
             "-",
@@ -3620,7 +3620,7 @@
             "out A",
             "(C)"
         ],
-        "bytes": 2,
+        "bytes": 1,
         "cycles": 8,
         "flagsZNHC": [
             "-",
