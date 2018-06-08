@@ -126,7 +126,7 @@ impl Parameter {
             // for reasons.
             inner_param.fullcode = match inner_param.param_type {
                 ParameterType::I8 | ParameterType::U8 => {
-                    inner_param.fullcode.clone() + " as u16 + 0xff00"
+                    String::new() + "(" + &inner_param.fullcode + " as u32 + 0xff00) as u16"
                 }
                 _ => inner_param.fullcode.clone(),
             };
@@ -216,6 +216,16 @@ impl Parameter {
 
         Ok(())
     }
+
+    fn hl_mode(&self) -> Option<HLMagic> {
+        if self.hl.is_some() {
+            return self.hl;
+        }
+        if let Some(ref inner) = self.inner {
+            return inner.hl_mode();
+        }
+        None
+    }
 }
 
 struct FunctionDesc {
@@ -286,8 +296,13 @@ impl FunctionDesc {
 
     fn hl_mode(&self) -> Option<HLMagic> {
         for param in &self.inputs {
-            if param.hl.is_some() {
-                return param.hl;
+            if let Some(hl) = param.hl_mode() {
+                return Some(hl);
+            }
+        }
+        if let Some(ref param) = self.output {
+            if let Some(hl) = param.hl_mode() {
+                return Some(hl);
             }
         }
         None
@@ -370,13 +385,17 @@ fn write_opcodes(
         write_flag_handler(outfile, "h", &opcode.flagsZNHC[2])?;
         write_flag_handler(outfile, "c", &opcode.flagsZNHC[3])?;
 
-        //cycle
         if let Some(mut bytes) = opcode.bytes {
             if opcode.prefix.is_some() {
                 bytes -= 1;
             }
 
             writeln!(outfile, "\t\t\tcpu.PC += {};", bytes)?;
+        }
+
+        //cycle
+        if let Some(cycles) = opcode.cycles {
+            writeln!(outfile, "\t\t\tcpu.run_cycles({});", cycles)?;
         }
 
         writeln!(outfile, "\t\t}},")?;

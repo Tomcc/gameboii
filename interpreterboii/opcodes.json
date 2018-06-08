@@ -3417,7 +3417,7 @@
         "opcode": "0xe0",
         "mnemonic": "LDH",
         "operands": [
-            "(a8)",
+            "out (a8)",
             "A"
         ],
         "bytes": 2,
@@ -3586,7 +3586,7 @@
         "opcode": "0xf0",
         "mnemonic": "LDH",
         "operands": [
-            "A",
+            "out A",
             "(a8)"
         ],
         "bytes": 2,

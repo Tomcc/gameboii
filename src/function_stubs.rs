@@ -201,12 +201,13 @@ unsafe fn stubs(cpu: &mut CPU) {
 	//----------------
 	}
 	{
-	// NAME: LDH_u8_u8
-			let reg0 = cpu.AF.r8.0;
-			let reg1 = cpu.address(cpu.immediateU8() as u16 + 0xff00);
+	// NAME: LDH_u8_out_u8
+			let reg0 = cpu.address((cpu.immediateU8() as u32 + 0xff00) as u16);
+			let out;
 	//----------------
-		panic!("LDH_u8_u8 not implemented");
+		out = reg0;
 	//----------------
+			cpu.AF.r8.0 = out;
 	}
 	{
 	// NAME: LD_h_c_u16_out_u16
