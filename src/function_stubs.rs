@@ -1,7 +1,9 @@
 
 use cpu::CPU;
+use bit_field::BitField;
 
 unsafe fn stubs(cpu: &mut CPU) {
+    let mut next_PC: u16 = 0;
 	{
 	// NAME: ADC_z_h_c_u8_u8
 			let reg0 = cpu.AF.r8.0;
@@ -46,7 +48,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let reg0 = 7;
 			let reg1 = cpu.AF.r8.0;
 	//----------------
-		panic!("BIT_z_u8_u8 not implemented");
+		cpu.set_z(reg1.get_bit(reg0));
 	//----------------
 	}
 	{
@@ -178,7 +180,9 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let reg0 = !cpu.c();
 			let reg1 = cpu.immediateI8();
 	//----------------
-		panic!("JR_bool_i8 not implemented");
+		if reg0 {
+			next_PC = (cpu.PC as i32 + reg1 as i32) as u16;
+		}
 	//----------------
 	}
 	{
@@ -271,7 +275,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: PREFIX
 	//----------------
-		panic!("PREFIX not implemented");
+		
 	//----------------
 	}
 	{

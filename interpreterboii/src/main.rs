@@ -296,6 +296,7 @@ impl FunctionDesc {
 
 const HEADER: &str = r#"
 use cpu::CPU;
+use bit_field::BitField;
 
 pub unsafe fn interpret(cpu: &mut CPU) {
     match cpu.peek_instruction() {
@@ -334,6 +335,9 @@ fn write_opcodes(
 
         function.write_pre(outfile)?;
 
+        //write this as mutable so it can be changed by jumps and stuff
+        writeln!(outfile, "\t\t\tlet mut next_PC = cpu.PC + {};", opcode.bytes)?;
+
         for line in &code.lines {
             writeln!(outfile, "\t{}", line);
         }
@@ -370,7 +374,7 @@ fn write_opcodes(
         write_flag_handler(outfile, "c", &opcode.flagsZNHC[3])?;
 
         //advance the program counter
-        writeln!(outfile, "\t\t\tcpu.PC += {};", opcode.bytes)?;
+        writeln!(outfile, "\t\t\tcpu.PC = next_PC;")?;
 
         //cycle
         writeln!(outfile, "\t\t\tcpu.run_cycles({});", opcode.cycles)?;
@@ -474,8 +478,10 @@ fn write_function_stubs(
         outfile,
         r#"
 use cpu::CPU;
+use bit_field::BitField;
 
 unsafe fn stubs(cpu: &mut CPU) {{
+    let mut next_PC: u16 = 0;
 "#
     )?;
 
