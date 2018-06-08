@@ -93,6 +93,15 @@ impl CPU {
         (b2 << 8) | b1 
     }
 
+    pub fn set_address(&mut self, addr: u16, val: u8) {
+        self.RAM[addr as usize] = val;
+    }
+
+    pub fn set_address16(&mut self, addr: u16, val: u16) {
+        self.RAM[addr as usize] = val as u8;
+        self.RAM[addr as usize + 1] = (val >> 8) as u8;
+    }
+
     pub fn offset_sp(&self, off: i8) -> u16 {
         panic!("not implemented");
     }

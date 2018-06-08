@@ -205,16 +205,17 @@ unsafe fn stubs(cpu: &mut CPU) {
 	//----------------
 	}
 	{
-	// NAME: LD_h_c_u16_u16
-			let reg0 = cpu.HL.r16;
-			let reg1 = cpu.offset_sp(cpu.immediateI8());
+	// NAME: LD_h_c_u16_out_u16
+			let reg0 = cpu.offset_sp(cpu.immediateI8());
+			let out;
 	//----------------
-		panic!("LD_h_c_u16_u16 not implemented");
+		panic!("LD_h_c_u16_out_u16 not implemented");
 	//----------------
+			cpu.HL.r16 = out;
 	}
 	{
 	// NAME: LD_u16_out_u16
-			let reg0 = cpu.immediateU16();
+			let reg0 = cpu.HL.r16;
 			let out;
 	//----------------
 		out = reg0;
@@ -222,28 +223,23 @@ unsafe fn stubs(cpu: &mut CPU) {
 			cpu.SP = out;
 	}
 	{
-	// NAME: LD_u16_u16
+	// NAME: LD_u16_out_u8
 			let reg0 = cpu.SP;
-			let reg1 = cpu.HL.r16;
+			let out;
 	//----------------
-		panic!("LD_u16_u16 not implemented");
+		out = reg0;
 	//----------------
+			let addr = cpu.immediateU16();
+			cpu.set_address16(addr, out);
 	}
 	{
-	// NAME: LD_u8_u16
+	// NAME: LD_u8_out_u8
 			let reg0 = cpu.address(cpu.immediateU16());
-			let reg1 = cpu.SP;
+			let out;
 	//----------------
-		panic!("LD_u8_u16 not implemented");
+		out = reg0;
 	//----------------
-	}
-	{
-	// NAME: LD_u8_u8
-			let reg0 = cpu.AF.r8.0;
-			let reg1 = cpu.address(cpu.immediateU16());
-	//----------------
-		panic!("LD_u8_u8 not implemented");
-	//----------------
+			cpu.AF.r8.0 = out;
 	}
 	{
 	// NAME: NOP

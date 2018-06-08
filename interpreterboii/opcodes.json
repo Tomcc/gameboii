@@ -32,7 +32,7 @@
         "opcode": "0x2",
         "mnemonic": "LD",
         "operands": [
-            "(BC)",
+            "out (BC)",
             "A"
         ],
         "bytes": 1,
@@ -93,7 +93,7 @@
         "opcode": "0x6",
         "mnemonic": "LD",
         "operands": [
-            "B",
+            "out B",
             "d8"
         ],
         "bytes": 2,
@@ -122,7 +122,7 @@
         "opcode": "0x8",
         "mnemonic": "LD",
         "operands": [
-            "(a16)",
+            "out (a16)",
             "SP"
         ],
         "bytes": 3,
@@ -154,7 +154,7 @@
         "opcode": "0xa",
         "mnemonic": "LD",
         "operands": [
-            "A",
+            "out A",
             "(BC)"
         ],
         "bytes": 1,
@@ -215,7 +215,7 @@
         "opcode": "0xe",
         "mnemonic": "LD",
         "operands": [
-            "C",
+            "out C",
             "d8"
         ],
         "bytes": 2,
@@ -259,7 +259,7 @@
         "opcode": "0x11",
         "mnemonic": "LD",
         "operands": [
-            "DE",
+            "out DE",
             "d16"
         ],
         "bytes": 3,
@@ -275,7 +275,7 @@
         "opcode": "0x12",
         "mnemonic": "LD",
         "operands": [
-            "(DE)",
+            "out (DE)",
             "A"
         ],
         "bytes": 1,
@@ -336,7 +336,7 @@
         "opcode": "0x16",
         "mnemonic": "LD",
         "operands": [
-            "D",
+            "out D",
             "d8"
         ],
         "bytes": 2,
@@ -396,7 +396,7 @@
         "opcode": "0x1a",
         "mnemonic": "LD",
         "operands": [
-            "A",
+            "out A",
             "(DE)"
         ],
         "bytes": 1,
@@ -457,7 +457,7 @@
         "opcode": "0x1e",
         "mnemonic": "LD",
         "operands": [
-            "E",
+            "out E",
             "d8"
         ],
         "bytes": 2,
@@ -518,7 +518,7 @@
         "opcode": "0x22",
         "mnemonic": "LD",
         "operands": [
-            "(HL+)",
+            "out (HL+)",
             "A"
         ],
         "bytes": 1,
@@ -579,7 +579,7 @@
         "opcode": "0x26",
         "mnemonic": "LD",
         "operands": [
-            "H",
+            "out H",
             "d8"
         ],
         "bytes": 2,
@@ -640,7 +640,7 @@
         "opcode": "0x2a",
         "mnemonic": "LD",
         "operands": [
-            "A",
+            "out A",
             "(HL+)"
         ],
         "bytes": 1,
@@ -701,7 +701,7 @@
         "opcode": "0x2e",
         "mnemonic": "LD",
         "operands": [
-            "L",
+            "out L",
             "d8"
         ],
         "bytes": 2,
@@ -762,7 +762,7 @@
         "opcode": "0x32",
         "mnemonic": "LD",
         "operands": [
-            "(HL-)",
+            "out (HL-)",
             "A"
         ],
         "bytes": 1,
@@ -823,7 +823,7 @@
         "opcode": "0x36",
         "mnemonic": "LD",
         "operands": [
-            "(HL)",
+            "out (HL)",
             "d8"
         ],
         "bytes": 2,
@@ -884,7 +884,7 @@
         "opcode": "0x3a",
         "mnemonic": "LD",
         "operands": [
-            "A",
+            "out A",
             "(HL-)"
         ],
         "bytes": 1,
@@ -945,7 +945,7 @@
         "opcode": "0x3e",
         "mnemonic": "LD",
         "operands": [
-            "A",
+            "out A",
             "d8"
         ],
         "bytes": 2,
@@ -974,7 +974,7 @@
         "opcode": "0x40",
         "mnemonic": "LD",
         "operands": [
-            "B",
+            "out B",
             "B"
         ],
         "bytes": 1,
@@ -990,7 +990,7 @@
         "opcode": "0x41",
         "mnemonic": "LD",
         "operands": [
-            "B",
+            "out B",
             "C"
         ],
         "bytes": 1,
@@ -1006,7 +1006,7 @@
         "opcode": "0x42",
         "mnemonic": "LD",
         "operands": [
-            "B",
+            "out B",
             "D"
         ],
         "bytes": 1,
@@ -1022,7 +1022,7 @@
         "opcode": "0x43",
         "mnemonic": "LD",
         "operands": [
-            "B",
+            "out B",
             "E"
         ],
         "bytes": 1,
@@ -1038,7 +1038,7 @@
         "opcode": "0x44",
         "mnemonic": "LD",
         "operands": [
-            "B",
+            "out B",
             "H"
         ],
         "bytes": 1,
@@ -1054,7 +1054,7 @@
         "opcode": "0x45",
         "mnemonic": "LD",
         "operands": [
-            "B",
+            "out B",
             "L"
         ],
         "bytes": 1,
@@ -1070,7 +1070,7 @@
         "opcode": "0x46",
         "mnemonic": "LD",
         "operands": [
-            "B",
+            "out B",
             "(HL)"
         ],
         "bytes": 1,
@@ -1086,7 +1086,7 @@
         "opcode": "0x47",
         "mnemonic": "LD",
         "operands": [
-            "B",
+            "out B",
             "A"
         ],
         "bytes": 1,
@@ -1102,7 +1102,7 @@
         "opcode": "0x48",
         "mnemonic": "LD",
         "operands": [
-            "C",
+            "out C",
             "B"
         ],
         "bytes": 1,
@@ -1118,7 +1118,7 @@
         "opcode": "0x49",
         "mnemonic": "LD",
         "operands": [
-            "C",
+            "out C",
             "C"
         ],
         "bytes": 1,
@@ -1134,7 +1134,7 @@
         "opcode": "0x4a",
         "mnemonic": "LD",
         "operands": [
-            "C",
+            "out C",
             "D"
         ],
         "bytes": 1,
@@ -1150,7 +1150,7 @@
         "opcode": "0x4b",
         "mnemonic": "LD",
         "operands": [
-            "C",
+            "out C",
             "E"
         ],
         "bytes": 1,
@@ -1166,7 +1166,7 @@
         "opcode": "0x4c",
         "mnemonic": "LD",
         "operands": [
-            "C",
+            "out C",
             "H"
         ],
         "bytes": 1,
@@ -1182,7 +1182,7 @@
         "opcode": "0x4d",
         "mnemonic": "LD",
         "operands": [
-            "C",
+            "out C",
             "L"
         ],
         "bytes": 1,
@@ -1198,7 +1198,7 @@
         "opcode": "0x4e",
         "mnemonic": "LD",
         "operands": [
-            "C",
+            "out C",
             "(HL)"
         ],
         "bytes": 1,
@@ -1214,7 +1214,7 @@
         "opcode": "0x4f",
         "mnemonic": "LD",
         "operands": [
-            "C",
+            "out C",
             "A"
         ],
         "bytes": 1,
@@ -1230,7 +1230,7 @@
         "opcode": "0x50",
         "mnemonic": "LD",
         "operands": [
-            "D",
+            "out D",
             "B"
         ],
         "bytes": 1,
@@ -1246,7 +1246,7 @@
         "opcode": "0x51",
         "mnemonic": "LD",
         "operands": [
-            "D",
+            "out D",
             "C"
         ],
         "bytes": 1,
@@ -1262,7 +1262,7 @@
         "opcode": "0x52",
         "mnemonic": "LD",
         "operands": [
-            "D",
+            "out D",
             "D"
         ],
         "bytes": 1,
@@ -1278,7 +1278,7 @@
         "opcode": "0x53",
         "mnemonic": "LD",
         "operands": [
-            "D",
+            "out D",
             "E"
         ],
         "bytes": 1,
@@ -1294,7 +1294,7 @@
         "opcode": "0x54",
         "mnemonic": "LD",
         "operands": [
-            "D",
+            "out D",
             "H"
         ],
         "bytes": 1,
@@ -1310,7 +1310,7 @@
         "opcode": "0x55",
         "mnemonic": "LD",
         "operands": [
-            "D",
+            "out D",
             "L"
         ],
         "bytes": 1,
@@ -1326,7 +1326,7 @@
         "opcode": "0x56",
         "mnemonic": "LD",
         "operands": [
-            "D",
+            "out D",
             "(HL)"
         ],
         "bytes": 1,
@@ -1342,7 +1342,7 @@
         "opcode": "0x57",
         "mnemonic": "LD",
         "operands": [
-            "D",
+            "out D",
             "A"
         ],
         "bytes": 1,
@@ -1358,7 +1358,7 @@
         "opcode": "0x58",
         "mnemonic": "LD",
         "operands": [
-            "E",
+            "out E",
             "B"
         ],
         "bytes": 1,
@@ -1374,7 +1374,7 @@
         "opcode": "0x59",
         "mnemonic": "LD",
         "operands": [
-            "E",
+            "out E",
             "C"
         ],
         "bytes": 1,
@@ -1390,7 +1390,7 @@
         "opcode": "0x5a",
         "mnemonic": "LD",
         "operands": [
-            "E",
+            "out E",
             "D"
         ],
         "bytes": 1,
@@ -1406,7 +1406,7 @@
         "opcode": "0x5b",
         "mnemonic": "LD",
         "operands": [
-            "E",
+            "out E",
             "E"
         ],
         "bytes": 1,
@@ -1422,7 +1422,7 @@
         "opcode": "0x5c",
         "mnemonic": "LD",
         "operands": [
-            "E",
+            "out E",
             "H"
         ],
         "bytes": 1,
@@ -1438,7 +1438,7 @@
         "opcode": "0x5d",
         "mnemonic": "LD",
         "operands": [
-            "E",
+            "out E",
             "L"
         ],
         "bytes": 1,
@@ -1454,7 +1454,7 @@
         "opcode": "0x5e",
         "mnemonic": "LD",
         "operands": [
-            "E",
+            "out E",
             "(HL)"
         ],
         "bytes": 1,
@@ -1470,7 +1470,7 @@
         "opcode": "0x5f",
         "mnemonic": "LD",
         "operands": [
-            "E",
+            "out E",
             "A"
         ],
         "bytes": 1,
@@ -1486,7 +1486,7 @@
         "opcode": "0x60",
         "mnemonic": "LD",
         "operands": [
-            "H",
+            "out H",
             "B"
         ],
         "bytes": 1,
@@ -1502,7 +1502,7 @@
         "opcode": "0x61",
         "mnemonic": "LD",
         "operands": [
-            "H",
+            "out H",
             "C"
         ],
         "bytes": 1,
@@ -1518,7 +1518,7 @@
         "opcode": "0x62",
         "mnemonic": "LD",
         "operands": [
-            "H",
+            "out H",
             "D"
         ],
         "bytes": 1,
@@ -1534,7 +1534,7 @@
         "opcode": "0x63",
         "mnemonic": "LD",
         "operands": [
-            "H",
+            "out H",
             "E"
         ],
         "bytes": 1,
@@ -1550,7 +1550,7 @@
         "opcode": "0x64",
         "mnemonic": "LD",
         "operands": [
-            "H",
+            "out H",
             "H"
         ],
         "bytes": 1,
@@ -1566,7 +1566,7 @@
         "opcode": "0x65",
         "mnemonic": "LD",
         "operands": [
-            "H",
+            "out H",
             "L"
         ],
         "bytes": 1,
@@ -1582,7 +1582,7 @@
         "opcode": "0x66",
         "mnemonic": "LD",
         "operands": [
-            "H",
+            "out H",
             "(HL)"
         ],
         "bytes": 1,
@@ -1598,7 +1598,7 @@
         "opcode": "0x67",
         "mnemonic": "LD",
         "operands": [
-            "H",
+            "out H",
             "A"
         ],
         "bytes": 1,
@@ -1614,7 +1614,7 @@
         "opcode": "0x68",
         "mnemonic": "LD",
         "operands": [
-            "L",
+            "out L",
             "B"
         ],
         "bytes": 1,
@@ -1630,7 +1630,7 @@
         "opcode": "0x69",
         "mnemonic": "LD",
         "operands": [
-            "L",
+            "out L",
             "C"
         ],
         "bytes": 1,
@@ -1646,7 +1646,7 @@
         "opcode": "0x6a",
         "mnemonic": "LD",
         "operands": [
-            "L",
+            "out L",
             "D"
         ],
         "bytes": 1,
@@ -1662,7 +1662,7 @@
         "opcode": "0x6b",
         "mnemonic": "LD",
         "operands": [
-            "L",
+            "out L",
             "E"
         ],
         "bytes": 1,
@@ -1678,7 +1678,7 @@
         "opcode": "0x6c",
         "mnemonic": "LD",
         "operands": [
-            "L",
+            "out L",
             "H"
         ],
         "bytes": 1,
@@ -1694,7 +1694,7 @@
         "opcode": "0x6d",
         "mnemonic": "LD",
         "operands": [
-            "L",
+            "out L",
             "L"
         ],
         "bytes": 1,
@@ -1710,7 +1710,7 @@
         "opcode": "0x6e",
         "mnemonic": "LD",
         "operands": [
-            "L",
+            "out L",
             "(HL)"
         ],
         "bytes": 1,
@@ -1726,7 +1726,7 @@
         "opcode": "0x6f",
         "mnemonic": "LD",
         "operands": [
-            "L",
+            "out L",
             "A"
         ],
         "bytes": 1,
@@ -1742,7 +1742,7 @@
         "opcode": "0x70",
         "mnemonic": "LD",
         "operands": [
-            "(HL)",
+            "out (HL)",
             "B"
         ],
         "bytes": 1,
@@ -1758,7 +1758,7 @@
         "opcode": "0x71",
         "mnemonic": "LD",
         "operands": [
-            "(HL)",
+            "out (HL)",
             "C"
         ],
         "bytes": 1,
@@ -1774,7 +1774,7 @@
         "opcode": "0x72",
         "mnemonic": "LD",
         "operands": [
-            "(HL)",
+            "out (HL)",
             "D"
         ],
         "bytes": 1,
@@ -1790,7 +1790,7 @@
         "opcode": "0x73",
         "mnemonic": "LD",
         "operands": [
-            "(HL)",
+            "out (HL)",
             "E"
         ],
         "bytes": 1,
@@ -1806,7 +1806,7 @@
         "opcode": "0x74",
         "mnemonic": "LD",
         "operands": [
-            "(HL)",
+            "out (HL)",
             "H"
         ],
         "bytes": 1,
@@ -1822,7 +1822,7 @@
         "opcode": "0x75",
         "mnemonic": "LD",
         "operands": [
-            "(HL)",
+            "out (HL)",
             "L"
         ],
         "bytes": 1,
@@ -1851,7 +1851,7 @@
         "opcode": "0x77",
         "mnemonic": "LD",
         "operands": [
-            "(HL)",
+            "out (HL)",
             "A"
         ],
         "bytes": 1,
@@ -1867,7 +1867,7 @@
         "opcode": "0x78",
         "mnemonic": "LD",
         "operands": [
-            "A",
+            "out A",
             "B"
         ],
         "bytes": 1,
@@ -1883,7 +1883,7 @@
         "opcode": "0x79",
         "mnemonic": "LD",
         "operands": [
-            "A",
+            "out A",
             "C"
         ],
         "bytes": 1,
@@ -1899,7 +1899,7 @@
         "opcode": "0x7a",
         "mnemonic": "LD",
         "operands": [
-            "A",
+            "out A",
             "D"
         ],
         "bytes": 1,
@@ -1915,7 +1915,7 @@
         "opcode": "0x7b",
         "mnemonic": "LD",
         "operands": [
-            "A",
+            "out A",
             "E"
         ],
         "bytes": 1,
@@ -1931,7 +1931,7 @@
         "opcode": "0x7c",
         "mnemonic": "LD",
         "operands": [
-            "A",
+            "out A",
             "H"
         ],
         "bytes": 1,
@@ -1947,7 +1947,7 @@
         "opcode": "0x7d",
         "mnemonic": "LD",
         "operands": [
-            "A",
+            "out A",
             "L"
         ],
         "bytes": 1,
@@ -1963,7 +1963,7 @@
         "opcode": "0x7e",
         "mnemonic": "LD",
         "operands": [
-            "A",
+            "out A",
             "(HL)"
         ],
         "bytes": 1,
@@ -1979,7 +1979,7 @@
         "opcode": "0x7f",
         "mnemonic": "LD",
         "operands": [
-            "A",
+            "out A",
             "A"
         ],
         "bytes": 1,
@@ -3450,7 +3450,7 @@
         "opcode": "0xe2",
         "mnemonic": "LD",
         "operands": [
-            "(C)",
+            "out (C)",
             "A"
         ],
         "bytes": 2,
@@ -3542,7 +3542,7 @@
         "opcode": "0xea",
         "mnemonic": "LD",
         "operands": [
-            "(a16)",
+            "out (a16)",
             "A"
         ],
         "bytes": 3,
@@ -3619,7 +3619,7 @@
         "opcode": "0xf2",
         "mnemonic": "LD",
         "operands": [
-            "A",
+            "out A",
             "(C)"
         ],
         "bytes": 2,
@@ -3693,7 +3693,7 @@
         "opcode": "0xf8",
         "mnemonic": "LD",
         "operands": [
-            "HL",
+            "out HL",
             "SP+r8"
         ],
         "bytes": 2,
@@ -3709,7 +3709,7 @@
         "opcode": "0xf9",
         "mnemonic": "LD",
         "operands": [
-            "SP",
+            "out SP",
             "HL"
         ],
         "bytes": 1,
@@ -3725,7 +3725,7 @@
         "opcode": "0xfa",
         "mnemonic": "LD",
         "operands": [
-            "A",
+            "out A",
             "(a16)"
         ],
         "bytes": 3,

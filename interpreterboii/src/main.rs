@@ -90,6 +90,7 @@ struct Parameter {
     param_type: ParameterType,
     hl: Option<HLMagic>,
     fullcode: String,
+    inner: Option<Box<Parameter>>,
 }
 
 impl fmt::Display for Parameter {
@@ -106,6 +107,7 @@ impl Parameter {
             param_type: t,
             hl: None,
             output: false,
+            inner: None,
         }
     }
 
@@ -118,18 +120,21 @@ impl Parameter {
         } else if operand.starts_with("(") {
             let len = operand.chars().count();
             let inner: String = operand.chars().skip(1).take(len - 2).collect();
-            let param = Self::from_operand(&inner);
+            let mut inner_param = Self::from_operand(&inner);
 
             // when the inner parameter is 8-bit, we need to add it to 0xff00.
             // for reasons.
-            let post_offset_code = match param.param_type {
-                ParameterType::I8 | ParameterType::U8 => param.fullcode + " as u16 + 0xff00",
-                _ => param.fullcode,
+            inner_param.fullcode = match inner_param.param_type {
+                ParameterType::I8 | ParameterType::U8 => {
+                    inner_param.fullcode.clone() + " as u16 + 0xff00"
+                }
+                _ => inner_param.fullcode.clone(),
             };
 
             return Parameter {
-                fullcode: format!("cpu.address({})", post_offset_code),
-                hl: param.hl,
+                fullcode: format!("cpu.address({})", inner_param.fullcode),
+                hl: None,
+                inner: Some(Box::new(inner_param)),
                 param_type: ParameterType::U8,
                 output: false,
             };
@@ -196,6 +201,21 @@ impl Parameter {
             return Parameter::new(format!("cpu.{0}.r16", operand), ParameterType::U16);
         }
     }
+
+    fn write_for_post(&self, outfile: &mut File, input: &Parameter) -> std::io::Result<()> {
+        if let Some(ref inner) = self.inner {
+            writeln!(outfile, "\t\t\tlet addr = {};", inner.fullcode)?;
+
+            match input.param_type {
+                ParameterType::U16 => writeln!(outfile, "\t\t\tcpu.set_address16(addr, out);")?,
+                _ => writeln!(outfile, "\t\t\tcpu.set_address(addr, out);")?,
+            }
+        } else {
+            writeln!(outfile, "\t\t\t{} = out;", self.fullcode)?;
+        }
+
+        Ok(())
+    }
 }
 
 struct FunctionDesc {
@@ -258,7 +278,8 @@ impl FunctionDesc {
 
     fn write_post(&self, outfile: &mut File) -> std::io::Result<()> {
         if let Some(parameter) = &self.output {
-            writeln!(outfile, "\t\t\t{} = out;", parameter.fullcode)?;
+            //let's assume that if there is an output there is an input?
+            parameter.write_for_post(outfile, &self.inputs[0])?;
         }
         Ok(())
     }
@@ -307,9 +328,7 @@ fn write_opcodes(
         let function = FunctionDesc::from_opcode(opcode);
 
         let not_found = FunctionCode::not_found(&function.name);
-        let code = codes
-            .get(&function.name)
-            .unwrap_or(&not_found);
+        let code = codes.get(&function.name).unwrap_or(&not_found);
 
         writeln!(outfile, "\t\t\t// {}", function.name)?;
 
