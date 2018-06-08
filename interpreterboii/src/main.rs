@@ -168,15 +168,15 @@ impl Parameter {
                 ParameterType::U16,
             );
         } else if operand == "d8" {
-            return Parameter::new(format!("cpu.immediateU8()"), ParameterType::U8);
+            return Parameter::new(format!("cpu.immediate_u8()"), ParameterType::U8);
         } else if operand == "d16" {
-            return Parameter::new(format!("cpu.immediateU16()"), ParameterType::U16);
+            return Parameter::new(format!("cpu.immediate_u16()"), ParameterType::U16);
         } else if operand == "a8" {
-            return Parameter::new(format!("cpu.immediateU8()"), ParameterType::U8);
+            return Parameter::new(format!("cpu.immediate_u8()"), ParameterType::U8);
         } else if operand == "a16" {
-            return Parameter::new(format!("cpu.immediateU16()"), ParameterType::U16);
+            return Parameter::new(format!("cpu.immediate_u16()"), ParameterType::U16);
         } else if operand == "r8" {
-            return Parameter::new(format!("cpu.immediateI8()"), ParameterType::I8);
+            return Parameter::new(format!("cpu.immediate_i8()"), ParameterType::I8);
         } else if let Ok(num) = operand.parse::<usize>() {
             return Parameter::new(format!("{}", num), ParameterType::U8);
         } else if operand.ends_with("H") && operand.len() == 3 {
@@ -335,6 +335,7 @@ const HEADER: &str = r#"
 use cpu::CPU;
 use bit_field::BitField;
 
+#[allow(unused, unreachable_code)]
 pub unsafe fn interpret(cpu: &mut CPU) {
     match cpu.peek_instruction() {
 "#;
@@ -344,6 +345,7 @@ const FUNC_SPLIT: &str = r#"
     }
 }
 
+#[allow(unused, unreachable_code)]
 pub unsafe fn interpret_cb(cpu: &mut CPU) {
     match cpu.peek_instruction() {
 "#;
@@ -521,6 +523,7 @@ fn write_function_stubs(
 use cpu::CPU;
 use bit_field::BitField;
 
+#[allow(unused, unreachable_code)]
 unsafe fn stubs(cpu: &mut CPU) {{
 "#
     )?;

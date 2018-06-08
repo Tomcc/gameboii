@@ -9,6 +9,6 @@ use cpu::CPU;
 fn main() {
     let mut cpu = CPU::new();
 
-    let ROM = &[0 as u8; 1];
-    cpu.run(ROM);
+    let rom = &[0 as u8; 1];
+    cpu.run(rom);
 }

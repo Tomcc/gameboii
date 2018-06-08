@@ -13,6 +13,7 @@ pub union Register {
 //the RAM size is max addr + 1
 const RAM_SIZE: usize = 0xFFFF + 1;
 
+#[allow(non_snake_case)]
 pub struct CPU {
     pub PC : u16,
     pub SP : u16,
@@ -45,7 +46,7 @@ impl CPU {
         cpu   
     }
 
-    pub fn run(&mut self, ROM: &[u8]) {
+    pub fn run(&mut self, _rom: &[u8]) {
         loop {
             unsafe {
                 if self.cb_mode {
@@ -63,22 +64,22 @@ impl CPU {
         self.address(self.PC)
     }
 
-    pub fn immediateU16(&self) -> u16 {
+    pub fn immediate_u16(&self) -> u16 {
         //assuming that the PC is at the start of the instruction
         self.address16(self.PC + 1)
     }
-    pub fn immediateU8(&self) -> u8 {
+    pub fn immediate_u8(&self) -> u8 {
         //assuming that the PC is at the start of the instruction
         self.address(self.PC + 1)
     }
-    pub fn immediateI8(&self) -> i8 {
+    pub fn immediate_i8(&self) -> i8 {
         //assuming that the PC is at the start of the instruction
         unsafe {
             std::mem::transmute::<u8, i8>(self.address(self.PC + 1))
         }
     }
 
-    pub fn run_cycles(&mut self, count: usize) {
+    pub fn run_cycles(&mut self, _count: usize) {
         //TODO
     }
 
@@ -103,7 +104,7 @@ impl CPU {
         self.RAM[addr as usize + 1] = (val >> 8) as u8;
     }
 
-    pub fn offset_sp(&self, off: i8) -> u16 {
+    pub fn offset_sp(&self, _off: i8) -> u16 {
         panic!("not implemented");
     }
 
