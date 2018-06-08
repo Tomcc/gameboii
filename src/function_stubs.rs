@@ -48,7 +48,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let reg0 = 7;
 			let reg1 = cpu.AF.r8.0;
 	//----------------
-		cpu.set_z(reg1.get_bit(reg0));
+		cpu.set_z(!reg1.get_bit(reg0));
 	//----------------
 	}
 	{
@@ -275,7 +275,8 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: PREFIX
 	//----------------
-		
+		cpu.cb_mode = true;
+		cpu.PC += 1;
 	//----------------
 	}
 	{

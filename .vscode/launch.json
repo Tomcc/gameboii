@@ -5,31 +5,15 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "lldb",
+            "name": "(Windows) Launch",
+            "type": "cppvsdbg",
             "request": "launch",
-            "name": "Debug gameboii",
-            "cargo": {
-                "args": [
-                    "build",
-                    "--bin=gameboii"
-                ]
-            },
+            "program": "${workspaceFolder}/target/debug/gameboii.exe",
             "args": [],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug tests in gameboii",
-            "cargo": {
-                "args": [
-                    "test",
-                    "--no-run",
-                    "--bin=gameboii"
-                ]
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}"
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": true
         }
     ]
 }

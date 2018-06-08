@@ -50,6 +50,7 @@ impl CPU {
             unsafe {
                 if self.cb_mode {
                     interpreter::interpret_cb(self);
+                    self.cb_mode = false;
                 }
                 else {
                     interpreter::interpret(self);

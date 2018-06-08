@@ -3146,8 +3146,6 @@
         "opcode": "0xcb",
         "mnemonic": "PREFIX",
         "operands": [],
-        "bytes": 1,
-        "cycles": 4,
         "flagsZNHC": [
             "-",
             "-",
