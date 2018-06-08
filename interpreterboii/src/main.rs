@@ -66,6 +66,7 @@ enum HLMagic {
     Dec,
 }
 
+#[derive(Clone)]
 enum ParameterType {
     U16,
     U8,
@@ -85,8 +86,16 @@ impl fmt::Display for ParameterType {
     }
 }
 
+#[derive(Clone)]
+enum OutputMode {
+    None,
+    Out,
+    Inout,
+}
+
+#[derive(Clone)]
 struct Parameter {
-    output: bool,
+    output: OutputMode,
     param_type: ParameterType,
     hl: Option<HLMagic>,
     fullcode: String,
@@ -106,7 +115,7 @@ impl Parameter {
             fullcode: code,
             param_type: t,
             hl: None,
-            output: false,
+            output: OutputMode::None,
             inner: None,
         }
     }
@@ -115,7 +124,13 @@ impl Parameter {
         if operand.starts_with("out ") {
             let inner: String = operand.chars().skip(4).collect();
             let mut param = Self::from_operand(&inner);
-            param.output = true;
+            param.output = OutputMode::Out;
+            return param;
+        }
+        if operand.starts_with("inout ") {
+            let inner: String = operand.chars().skip(6).collect();
+            let mut param = Self::from_operand(&inner);
+            param.output = OutputMode::Inout;
             return param;
         } else if operand.starts_with("(") {
             let len = operand.chars().count();
@@ -136,7 +151,7 @@ impl Parameter {
                 hl: None,
                 inner: Some(Box::new(inner_param)),
                 param_type: ParameterType::U8,
-                output: false,
+                output: OutputMode::None,
             };
         } else if operand == "HL+" {
             let mut param = Self::from_operand("HL");
@@ -242,11 +257,18 @@ impl FunctionDesc {
 
         for operand in &opcode.operands {
             let param = Parameter::from_operand(operand);
-            if param.output {
-                assert!(output.is_none(), "This function has 2 outputs. NANI????");
-                output = Some(param);
-            } else {
-                inputs.push(param);
+
+            match param.output {
+                OutputMode::None => inputs.push(param),
+                OutputMode::Out => {
+                    assert!(output.is_none(), "This function has 2 outputs. NANI????");
+                    output = Some(param);
+                }
+                OutputMode::Inout => {
+                    assert!(output.is_none(), "This function has 2 outputs. NANI????");
+                    output = Some(param.clone());
+                    inputs.push(param);
+                }
             }
         }
 
@@ -500,7 +522,6 @@ use cpu::CPU;
 use bit_field::BitField;
 
 unsafe fn stubs(cpu: &mut CPU) {{
-    let mut next_PC: u16 = 0;
 "#
     )?;
 

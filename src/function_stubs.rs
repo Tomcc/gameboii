@@ -3,7 +3,6 @@ use cpu::CPU;
 use bit_field::BitField;
 
 unsafe fn stubs(cpu: &mut CPU) {
-    let mut next_PC: u16 = 0;
 	{
 	// NAME: ADC_z_h_c_u8_u8
 			let reg0 = cpu.AF.r8.0;
@@ -132,18 +131,26 @@ unsafe fn stubs(cpu: &mut CPU) {
 	//----------------
 	}
 	{
-	// NAME: INC_u16
+	// NAME: INC_u16_out_u16
 			let reg0 = cpu.SP;
+			let out;
 	//----------------
-		panic!("INC_u16 not implemented");
+		panic!("INC_u16_out_u16 not implemented");
 	//----------------
+			cpu.SP = out;
 	}
 	{
-	// NAME: INC_z_h_u8
+	// NAME: INC_z_h_u8_out_u8
 			let reg0 = cpu.AF.r8.0;
+			let out;
 	//----------------
-		panic!("INC_z_h_u8 not implemented");
+		out = reg0 + 1;
+		cpu.set_z(out == 0);
+
+		// TODO H - Set if carry from bit 3.
+
 	//----------------
+			cpu.AF.r8.0 = out;
 	}
 	{
 	// NAME: JP_bool_u16

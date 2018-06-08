@@ -48,7 +48,7 @@
         "opcode": "0x3",
         "mnemonic": "INC",
         "operands": [
-            "BC"
+            "inout BC"
         ],
         "bytes": 1,
         "cycles": 8,
@@ -63,7 +63,7 @@
         "opcode": "0x4",
         "mnemonic": "INC",
         "operands": [
-            "B"
+            "inout B"
         ],
         "bytes": 1,
         "cycles": 4,
@@ -185,7 +185,7 @@
         "opcode": "0xc",
         "mnemonic": "INC",
         "operands": [
-            "C"
+            "inout C"
         ],
         "bytes": 1,
         "cycles": 4,
@@ -291,7 +291,7 @@
         "opcode": "0x13",
         "mnemonic": "INC",
         "operands": [
-            "DE"
+            "inout DE"
         ],
         "bytes": 1,
         "cycles": 8,
@@ -306,7 +306,7 @@
         "opcode": "0x14",
         "mnemonic": "INC",
         "operands": [
-            "D"
+            "inout D"
         ],
         "bytes": 1,
         "cycles": 4,
@@ -427,7 +427,7 @@
         "opcode": "0x1c",
         "mnemonic": "INC",
         "operands": [
-            "E"
+            "inout E"
         ],
         "bytes": 1,
         "cycles": 4,
@@ -534,7 +534,7 @@
         "opcode": "0x23",
         "mnemonic": "INC",
         "operands": [
-            "HL"
+            "inout HL"
         ],
         "bytes": 1,
         "cycles": 8,
@@ -549,7 +549,7 @@
         "opcode": "0x24",
         "mnemonic": "INC",
         "operands": [
-            "H"
+            "inout H"
         ],
         "bytes": 1,
         "cycles": 4,
@@ -671,7 +671,7 @@
         "opcode": "0x2c",
         "mnemonic": "INC",
         "operands": [
-            "L"
+            "inout L"
         ],
         "bytes": 1,
         "cycles": 4,
@@ -778,7 +778,7 @@
         "opcode": "0x33",
         "mnemonic": "INC",
         "operands": [
-            "SP"
+            "inout SP"
         ],
         "bytes": 1,
         "cycles": 8,
@@ -793,7 +793,7 @@
         "opcode": "0x34",
         "mnemonic": "INC",
         "operands": [
-            "(HL)"
+            "inout (HL)"
         ],
         "bytes": 1,
         "cycles": 12,
@@ -915,7 +915,7 @@
         "opcode": "0x3c",
         "mnemonic": "INC",
         "operands": [
-            "A"
+            "inout A"
         ],
         "bytes": 1,
         "cycles": 4,
