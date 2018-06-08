@@ -335,15 +335,6 @@ fn write_opcodes(
 
         function.write_pre(outfile)?;
 
-        //write this as mutable so it can be changed by jumps and stuff
-        if let Some(mut bytes) = opcode.bytes {
-            if opcode.prefix.is_some() {
-                bytes -= 1;
-            }
-
-            writeln!(outfile, "\t\t\tlet mut next_PC = cpu.PC + {};", bytes)?;
-        }
-
         for line in &code.lines {
             writeln!(outfile, "\t{}", line);
         }
@@ -379,14 +370,13 @@ fn write_opcodes(
         write_flag_handler(outfile, "h", &opcode.flagsZNHC[2])?;
         write_flag_handler(outfile, "c", &opcode.flagsZNHC[3])?;
 
-        if opcode.bytes.is_some() {
-            //advance the program counter
-            writeln!(outfile, "\t\t\tcpu.PC = next_PC;")?;
-        }
-
         //cycle
-        if let Some(cycles) = opcode.cycles {
-            writeln!(outfile, "\t\t\tcpu.run_cycles({});", cycles)?;
+        if let Some(mut bytes) = opcode.bytes {
+            if opcode.prefix.is_some() {
+                bytes -= 1;
+            }
+
+            writeln!(outfile, "\t\t\tcpu.PC += {};", bytes)?;
         }
 
         writeln!(outfile, "\t\t}},")?;

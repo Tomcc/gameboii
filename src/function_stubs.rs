@@ -181,7 +181,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let reg1 = cpu.immediateI8();
 	//----------------
 		if reg0 {
-			next_PC = (cpu.PC as i32 + reg1 as i32) as u16;
+			cpu.PC = (cpu.PC as i32 + reg1 as i32) as u16;
 		}
 	//----------------
 	}
