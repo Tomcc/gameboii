@@ -3,10 +3,31 @@
         {
             "type": "shell",
             "label": "cargo build",
+            "dependsOn":"interpreterboii",
             "command": "cargo",
             "args": [
                 "build"
             ],
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+
+        {
+            "type": "shell",
+            "label": "interpreterboii",
+            "command": "cargo",
+            "args": [
+                "run",
+                "--release"
+            ],
+            "options": {
+                "cwd": "interpreterboii"
+            },
             "problemMatcher": [
                 "$rustc"
             ],
