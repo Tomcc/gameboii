@@ -27,8 +27,10 @@ const MACHINE_HZ: u64 = 4194304;
 
 #[allow(unused)]
 const HORIZONTAL_SYNC_HZ: u64 = 9198000;
-#[allow(unused)]
-const VERTICAL_SYNC_HZ: f32 = 59.73;
+
+const VERTICAL_SYNC_HZ: f64 = 59.73;
+const VERTICAL_SYNC_INTERVAL: Duration =
+    Duration::from_nanos((1000000000.0 / VERTICAL_SYNC_HZ) as u64);
 
 #[allow(unused)]
 const VERTICAL_BLANK_INTERRUPT_START_ADDRESS: u16 = 0x40;
@@ -140,8 +142,9 @@ const SCY_REGISTER_ADDRESS: u16 = 0xff42;
 #[allow(unused)]
 const SCX_REGISTER_ADDRESS: u16 = 0xff43;
 
-#[allow(unused)]
+const LY_VALUES_COUNT: u8 = 153 + 1;
 const LY_REGISTER_ADDRESS: u16 = 0xff44;
+
 #[allow(unused)]
 const LYC_REGISTER_ADDRESS: u16 = 0xff45;
 
@@ -222,6 +225,9 @@ pub struct CPU<'a> {
     next_clock_time: Instant,
     cartridge_ROM: &'a [u8],
     log: Log,
+
+    //TODO GPU?
+    next_ly_update_time: Instant,
 }
 
 impl<'a> CPU<'a> {
@@ -237,6 +243,7 @@ impl<'a> CPU<'a> {
             cb_mode: false,
 
             next_clock_time: Instant::now(),
+            next_ly_update_time: Instant::now(),
             cartridge_ROM: rom,
             log: Log::new(),
         };
@@ -292,7 +299,20 @@ impl<'a> CPU<'a> {
 
     pub fn run_cycles(&mut self, count: usize) {
         for _ in 0..count {
+            let now = Instant::now();
             //TODO GPU
+            {
+                if now >= self.next_ly_update_time {
+                    //increment the LY line every fixed time
+                    //TODO actually use this value to copy a line to the screen
+
+                    let ly = &mut self.RAM[LY_REGISTER_ADDRESS as usize];
+                    *ly = (*ly + 1) % LY_VALUES_COUNT;
+
+                    let ly_update_interval = VERTICAL_SYNC_INTERVAL / (LY_VALUES_COUNT as u32);
+                    self.next_ly_update_time += ly_update_interval;
+                }
+            }
             //TODO sound
             //TODO increment the TIMA register and throw interrupts
 
