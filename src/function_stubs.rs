@@ -226,7 +226,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let imm0 = cpu.immediate_i8();
 			let reg0 = imm0;
 	//----------------
-		panic!("JR_i8 not implemented");
+		cpu.PC = (cpu.PC as i32 + reg0 as i32) as u16;
 	//----------------
 	}
 	{
