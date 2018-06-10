@@ -35,13 +35,13 @@ impl Log {
         }
     }
 
-    pub fn log_instruction(&mut self, instr: u8, PC: u16) -> std::io::Result<()> {
+    pub fn log_instruction(&mut self, instr: u8, pc: u16) -> std::io::Result<()> {
         if instr == 0xcb {
             return Ok(()); //avoid the prefix
         }
 
         //compose the line
-        let mut line = format!("{:04x}\t", PC);
+        let mut line = format!("{:04x}\t", pc);
 
         let mnemonic = &self.opcodes[instr as usize].mnemonic;
         line += mnemonic;
@@ -51,8 +51,8 @@ impl Log {
         }
         line += "\n";
 
-        let line_index = PC as u64 * line.len() as u64;
-        let line_end = PC as u64 * (line.len() + 1) as u64;
+        let line_index = pc as u64 * line.len() as u64;
+        let line_end = pc as u64 * (line.len() + 1) as u64;
 
         //expand the file as needed
         while self.map_log.metadata()?.len() < line_end {

@@ -104,7 +104,10 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let imm0 = cpu.immediate_u8();
 			let reg0 = imm0;
 	//----------------
-		panic!("CP_z_h_c_u8 not implemented");
+		//TODO H
+		let a = cpu.AF.r8.0;
+		cpu.set_z(reg0 == a);
+		cpu.set_c(reg0 < a);
 	//----------------
 	}
 	{
@@ -340,7 +343,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: RET
 	//----------------
-		panic!("RET not implemented");
+		cpu.PC = cpu.pop16();
 	//----------------
 	}
 	{
