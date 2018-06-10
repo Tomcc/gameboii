@@ -4,17 +4,17 @@ extern crate regex;
 
 #[macro_use]
 extern crate serde_derive;
-extern crate serde_json;
 extern crate serde;
+extern crate serde_json;
 
 mod cpu;
+mod debug_log;
 mod function_stubs;
 mod interpreter;
-mod debug_log;
 
-use std::fs::File;
 use clap::{App, Arg};
 use cpu::CPU;
+use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 
@@ -38,21 +38,28 @@ fn main() {
                 .value_name("FILE")
                 .help("Set the cartridge ROM to load")
                 .takes_value(true)
-                .required(true)
+                .required(true),
+        )
+        .arg(
+            Arg::with_name("debug_log")
+                .long("log")
+                .help("Write the executable map and the log to file. Very slow")
         )
         .get_matches();
 
     //load the file from command line
     let rom_path = matches.value_of("ROMFILE").unwrap();
-    
+
     let rom = open_rom(&rom_path).unwrap_or_else(|error| {
         println!("Cannot open file: {}", rom_path);
         println!("An error occurred:");
         println!("{}", error);
         std::process::exit(1);
     });
-    
-    let mut cpu = CPU::new(&rom);
+
+    let do_log = matches.is_present("debug_log");
+
+    let mut cpu = CPU::new(&rom, do_log);
 
     cpu.run();
 }

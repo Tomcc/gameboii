@@ -224,14 +224,14 @@ pub struct CPU<'a> {
 
     next_clock_time: Instant,
     cartridge_ROM: &'a [u8],
-    log: Log,
+    log: Option<Log>,
 
     //TODO GPU?
     next_ly_update_time: Instant,
 }
 
 impl<'a> CPU<'a> {
-    pub fn new(rom: &'a [u8]) -> CPU<'a> {
+    pub fn new(rom: &'a [u8], do_log: bool) -> CPU<'a> {
         let mut cpu = CPU {
             PC: 0,
             SP: 0,
@@ -245,7 +245,7 @@ impl<'a> CPU<'a> {
             next_clock_time: Instant::now(),
             next_ly_update_time: Instant::now(),
             cartridge_ROM: rom,
-            log: Log::new(),
+            log: if do_log { Some(Log::new()) } else { None },
         };
 
         //copy the ROM in memory
@@ -268,9 +268,14 @@ impl<'a> CPU<'a> {
 
     pub fn run(&mut self) {
         loop {
-            let pc = self.PC;
-            let instr = self.peek_instruction();
-            self.log.log_instruction(instr, pc).unwrap();
+            let has_log = self.log.is_some();
+            if has_log {
+                let pc = self.PC;
+                let instr = self.peek_instruction();
+                if let Some(ref mut log) = self.log {
+                    log.log_instruction(instr, pc).unwrap();
+                }
+            }
 
             unsafe {
                 if self.cb_mode {
@@ -370,6 +375,7 @@ impl<'a> CPU<'a> {
     }
 
     pub fn set_address(&mut self, addr: u16, val: u8) {
+        //TODO how to not check this for every set ever?
         if addr == INTERNAL_ROM_TURN_OFF_ADDRESS && val == 1 {
             //replace the Nintendo boot ROM with the first 256 bytes of the cart
             self.RAM[0..0x100].copy_from_slice(&self.cartridge_ROM[0..0x100]);
