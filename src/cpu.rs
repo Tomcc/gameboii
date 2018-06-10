@@ -1,9 +1,9 @@
 extern crate std;
 
+use bit_field::BitField;
+use interpreter;
 use std::fs::File;
 use std::io::Read;
-use interpreter;
-use bit_field::BitField;
 use std::time::Duration;
 use std::time::Instant;
 
@@ -14,13 +14,41 @@ pub union Register {
 
 //the RAM size is max addr + 1
 const RAM_SIZE: usize = 0xFFFF + 1;
-const MACHINE_HZ: f64 = 4194.304;
-const TICK_DURATION: Duration = Duration::from_nanos((1000000000.0 / MACHINE_HZ) as u64);
+const MACHINE_HZ: u64 = 4194304;
+
+#[allow(unused)]
+const HORIZONTAL_SYNC_HZ: u64 = 9198000;
+#[allow(unused)]
+const VERTICAL_SYNC_HZ: f32 = 59.73;
+
+//derived data
+const TICK_DURATION: Duration = Duration::from_nanos(1000000000 / MACHINE_HZ);
+
+//TODO move to screen
+#[allow(unused)]
+const RESOLUTION_W: u32 = 160;
+#[allow(unused)]
+const RESOLUTION_H: u32 = 144;
+#[allow(unused)]
+const MAX_SPRITES: u32 = 40;
+#[allow(unused)]
+const MAX_SPRITES_PER_LINE: u32 = 10;
+#[allow(unused)]
+const MAX_SPRITE_SIZE_W: u32 = 8;
+#[allow(unused)]
+const MAX_SPRITE_SIZE_H: u32 = 16;
+#[allow(unused)]
+const MIN_SPRITE_SIZE_W: u32 = 8;
+#[allow(unused)]
+const MIN_SPRITE_SIZE_H: u32 = 8;
+
+#[allow(unused)]
+const SOUND_CHANNELS:u32 = 4;
 
 #[allow(non_snake_case)]
 pub struct CPU {
-    pub PC : u16,
-    pub SP : u16,
+    pub PC: u16,
+    pub SP: u16,
     pub AF: Register,
     pub BC: Register,
     pub DE: Register,
@@ -48,9 +76,12 @@ impl CPU {
         };
 
         // try to load the "bios" rom into the start of the buffer
-        File::open("DMG_ROM.bin").unwrap().read_exact(&mut cpu.RAM[0..100]).unwrap();
+        File::open("DMG_ROM.bin")
+            .unwrap()
+            .read_exact(&mut cpu.RAM[0..100])
+            .unwrap();
 
-        cpu   
+        cpu
     }
 
     pub fn run(&mut self, _rom: &[u8]) {
@@ -59,8 +90,7 @@ impl CPU {
                 if self.cb_mode {
                     interpreter::interpret_cb(self);
                     self.cb_mode = false;
-                }
-                else {
+                } else {
                     interpreter::interpret(self);
                 }
             }
@@ -81,9 +111,7 @@ impl CPU {
     }
     pub fn immediate_i8(&self) -> i8 {
         //assuming that the PC is at the start of the instruction
-        unsafe {
-            std::mem::transmute::<u8, i8>(self.address(self.PC + 1))
-        }
+        unsafe { std::mem::transmute::<u8, i8>(self.address(self.PC + 1)) }
     }
 
     pub fn run_cycles(&mut self, count: usize) {
@@ -110,7 +138,7 @@ impl CPU {
         let b1 = self.address(addr) as u16;
         let b2 = self.address(addr + 1) as u16;
 
-        (b2 << 8) | b1 
+        (b2 << 8) | b1
     }
 
     pub fn set_address(&mut self, addr: u16, val: u8) {
@@ -139,10 +167,10 @@ impl CPU {
         self.AF.r8.1.set_bit(4, val);
     }
 
-    pub unsafe fn z(&self) -> bool{
+    pub unsafe fn z(&self) -> bool {
         self.AF.r8.1.get_bit(7)
     }
-    pub unsafe fn c(&self) -> bool{
+    pub unsafe fn c(&self) -> bool {
         self.AF.r8.1.get_bit(4)
     }
 }
