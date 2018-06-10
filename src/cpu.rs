@@ -359,7 +359,7 @@ impl<'a> CPU<'a> {
     pub fn push16(&mut self, val: u16) {
         let sp = self.SP;
         self.set_address16(sp, val);
-        self.SP = self.SP.wrapping_add(2);
+        self.SP = self.SP.wrapping_sub(2);
     }
 
     pub unsafe fn set_z(&mut self, val: bool) {

@@ -281,7 +281,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: NOP
 	//----------------
-	
+
 	//----------------
 	}
 	{
@@ -317,7 +317,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	// NAME: PUSH_u16
 			let reg0 = cpu.AF.r16;
 	//----------------
-		panic!("PUSH_u16 not implemented");
+		cpu.push16(reg0);
 	//----------------
 	}
 	{
@@ -357,7 +357,11 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: RLA_c
 	//----------------
-		panic!("RLA_c not implemented");
+		let mut a = cpu.AF.r8.0;
+		cpu.set_c(a.get_bit(7));
+		a = a << 1;
+		cpu.set_z(a == 0);
+		cpu.AF.r8.0 = a;
 	//----------------
 	}
 	{
@@ -374,11 +378,15 @@ unsafe fn stubs(cpu: &mut CPU) {
 	//----------------
 	}
 	{
-	// NAME: RL_z_c_u8
+	// NAME: RL_z_c_u8_out_u8
 			let reg0 = cpu.AF.r8.0;
+			let out;
 	//----------------
-		panic!("RL_z_c_u8 not implemented");
+		cpu.set_c(reg0.get_bit(7));
+		out = reg0 << 1;
+		cpu.set_z(out == 0);
 	//----------------
+			cpu.AF.r8.0 = out;
 	}
 	{
 	// NAME: RRA_c
