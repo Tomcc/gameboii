@@ -244,11 +244,11 @@ impl Parameter {
         }
     }
 
-    fn write_for_post(&self, outfile: &mut File, input: &Parameter) -> std::io::Result<()> {
+    fn write_for_post(&self, outfile: &mut File, input: Option<&Parameter>) -> std::io::Result<()> {
         if let Some(ref inner) = self.inner {
             writeln!(outfile, "\t\t\tlet addr = {};", inner.fullcode)?;
 
-            match input.param_type {
+            match input.unwrap().param_type {
                 ParameterType::U16 => writeln!(outfile, "\t\t\tcpu.set_address16(addr, out);")?,
                 _ => writeln!(outfile, "\t\t\tcpu.set_address(addr, out);")?,
             }
@@ -338,7 +338,7 @@ impl FunctionDesc {
                 idx, self.inputs[idx].fullcode
             )?;
         }
-        if let Some(parameter) = &self.output {
+        if let Some(_) = &self.output {
             &writeln!(outfile, "\t\t\tlet out;")?;
         }
         Ok(())
@@ -346,8 +346,12 @@ impl FunctionDesc {
 
     fn write_post(&self, outfile: &mut File) -> std::io::Result<()> {
         if let Some(parameter) = &self.output {
-            //let's assume that if there is an output there is an input?
-            parameter.write_for_post(outfile, &self.inputs[0])?;
+            if self.inputs.len() > 0 {
+                parameter.write_for_post(outfile, Some(&self.inputs[0]))?;
+            }
+            else {
+                parameter.write_for_post(outfile, None)?;
+            }
         }
         Ok(())
     }
@@ -572,7 +576,7 @@ unsafe fn stubs(cpu: &mut CPU) {{
             already_defined
                 .get(&func.name)
                 .unwrap_or(&FunctionCode::not_found(&func.name)),
-        );
+        )?;
     }
     writeln!(
         outfile,

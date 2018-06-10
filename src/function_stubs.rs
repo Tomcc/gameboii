@@ -293,18 +293,20 @@ unsafe fn stubs(cpu: &mut CPU) {
 	//----------------
 	}
 	{
-	// NAME: POP_u16
-			let reg0 = cpu.HL.r16;
+	// NAME: POP_out_u16
+			let out;
 	//----------------
-		panic!("POP_u16 not implemented");
+		out = cpu.pop16();
 	//----------------
+			cpu.HL.r16 = out;
 	}
 	{
-	// NAME: POP_z_n_h_c_u16
-			let reg0 = cpu.AF.r16;
+	// NAME: POP_z_n_h_c_out_u16
+			let out;
 	//----------------
-		panic!("POP_z_n_h_c_u16 not implemented");
+		out = cpu.pop16();
 	//----------------
+			cpu.AF.r16 = out;
 	}
 	{
 	// NAME: PREFIX

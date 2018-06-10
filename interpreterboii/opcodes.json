@@ -2994,7 +2994,7 @@
         "opcode": "0xc1",
         "mnemonic": "POP",
         "operands": [
-            "BC"
+            "out BC"
         ],
         "bytes": 1,
         "cycles": 12,
@@ -3234,7 +3234,7 @@
         "opcode": "0xd1",
         "mnemonic": "POP",
         "operands": [
-            "DE"
+            "out DE"
         ],
         "bytes": 1,
         "cycles": 12,
@@ -3433,7 +3433,7 @@
         "opcode": "0xe1",
         "mnemonic": "POP",
         "operands": [
-            "HL"
+            "out HL"
         ],
         "bytes": 1,
         "cycles": 12,
@@ -3602,7 +3602,7 @@
         "opcode": "0xf1",
         "mnemonic": "POP",
         "operands": [
-            "AF"
+            "out AF"
         ],
         "bytes": 1,
         "cycles": 12,

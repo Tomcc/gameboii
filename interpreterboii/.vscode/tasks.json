@@ -2,11 +2,10 @@
     "tasks": [
         {
             "type": "shell",
-            "label": "cargo run",
+            "label": "cargo build",
             "command": "cargo",
             "args": [
-                "run",
-                "--release"
+                "build"
             ],
             "problemMatcher": [
                 "$rustc"
