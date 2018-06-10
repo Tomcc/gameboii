@@ -120,6 +120,29 @@ impl Parameter {
         }
     }
 
+    fn immediate(t: ParameterType) -> Self {
+        Parameter {
+            fullcode: String::from("imm0"),
+            param_type: t,
+            hl: None,
+            output: OutputMode::None,
+            inner: None,
+        }
+    }
+
+    fn write_immediate_load(&self, outfile: &mut File) -> std::io::Result<()> {
+        if let Some(ref inner) = self.inner {
+            return inner.write_immediate_load(outfile);
+        }
+    
+        //a bit hacky to check if immediate like this, but yeah...
+        if self.fullcode == "imm0" {
+            return writeln!(outfile, "\t\t\tlet imm0 = cpu.immediate_{}();", self.param_type);
+        }
+
+        Ok(())
+    }
+
     fn from_operand(operand: &str) -> Self {
         if operand.starts_with("out ") {
             let inner: String = operand.chars().skip(4).collect();
@@ -135,21 +158,23 @@ impl Parameter {
         } else if operand.starts_with("(") {
             let len = operand.chars().count();
             let inner: String = operand.chars().skip(1).take(len - 2).collect();
-            let mut inner_param = Self::from_operand(&inner);
+            let leaf_node = Self::from_operand(&inner);
 
+            let mut offset_node = leaf_node.clone();
             // when the inner parameter is 8-bit, we need to add it to 0xff00.
             // for reasons.
-            inner_param.fullcode = match inner_param.param_type {
+            match offset_node.param_type {
                 ParameterType::I8 | ParameterType::U8 => {
-                    String::new() + "(" + &inner_param.fullcode + " as u32 + 0xff00) as u16"
+                    offset_node.fullcode = String::new() + "(" + &leaf_node.fullcode + " as u32 + 0xff00) as u16"
                 }
-                _ => inner_param.fullcode.clone(),
+                _ => {},
             };
+            offset_node.inner = Some(Box::new(leaf_node));
 
             return Parameter {
-                fullcode: format!("cpu.address({})", inner_param.fullcode),
+                fullcode: format!("cpu.address({})", offset_node.fullcode),
                 hl: None,
-                inner: Some(Box::new(inner_param)),
+                inner: Some(Box::new(offset_node)),
                 param_type: ParameterType::U8,
                 output: OutputMode::None,
             };
@@ -163,20 +188,22 @@ impl Parameter {
             return param;
         } else if operand == "SP+r8" {
             let param = Self::from_operand("r8");
-            return Parameter::new(
+            let mut outer = Parameter::new(
                 format!("cpu.offset_sp({})", param.fullcode),
                 ParameterType::U16,
             );
+            outer.inner = Some(Box::new(param));
+            return outer;
         } else if operand == "d8" {
-            return Parameter::new(format!("cpu.immediate_u8()"), ParameterType::U8);
+            return Parameter::immediate(ParameterType::U8);
         } else if operand == "d16" {
-            return Parameter::new(format!("cpu.immediate_u16()"), ParameterType::U16);
+            return Parameter::immediate(ParameterType::U16);
         } else if operand == "a8" {
-            return Parameter::new(format!("cpu.immediate_u8()"), ParameterType::U8);
+            return Parameter::immediate(ParameterType::U8);
         } else if operand == "a16" {
-            return Parameter::new(format!("cpu.immediate_u16()"), ParameterType::U16);
+            return Parameter::immediate(ParameterType::U16);
         } else if operand == "r8" {
-            return Parameter::new(format!("cpu.immediate_i8()"), ParameterType::I8);
+            return Parameter::immediate(ParameterType::I8);
         } else if let Ok(num) = operand.parse::<usize>() {
             return Parameter::new(format!("{}", num), ParameterType::U8);
         } else if operand.ends_with("H") && operand.len() == 3 {
@@ -294,6 +321,15 @@ impl FunctionDesc {
     }
 
     fn write_pre(&self, outfile: &mut File) -> std::io::Result<()> {
+        
+        //load the immediate first to use the old PC value
+        for input in &self.inputs {
+            input.write_immediate_load(outfile)?;
+        }
+        if let Some(out) = &self.output {
+            out.write_immediate_load(outfile)?;
+        }
+
         //get the parameters in their own line to help borrowck not confuse itself and die
         for idx in 0..self.inputs.len() {
             &writeln!(
@@ -374,6 +410,14 @@ fn write_opcodes(
 
         function.write_pre(outfile)?;
 
+        if let Some(mut bytes) = opcode.bytes {
+            if opcode.prefix.is_some() {
+                bytes -= 1;
+            }
+
+            writeln!(outfile, "\t\t\tcpu.PC += {};", bytes)?;
+        }
+
         for line in &code.lines {
             writeln!(outfile, "\t{}", line);
         }
@@ -408,14 +452,6 @@ fn write_opcodes(
         write_flag_handler(outfile, "n", &opcode.flagsZNHC[1])?;
         write_flag_handler(outfile, "h", &opcode.flagsZNHC[2])?;
         write_flag_handler(outfile, "c", &opcode.flagsZNHC[3])?;
-
-        if let Some(mut bytes) = opcode.bytes {
-            if opcode.prefix.is_some() {
-                bytes -= 1;
-            }
-
-            writeln!(outfile, "\t\t\tcpu.PC += {};", bytes)?;
-        }
 
         //cycle
         if let Some(cycles) = opcode.cycles {

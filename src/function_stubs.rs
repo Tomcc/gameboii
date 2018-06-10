@@ -6,16 +6,18 @@ use bit_field::BitField;
 unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: ADC_z_h_c_u8_u8
+			let imm0 = cpu.immediate_u8();
 			let reg0 = cpu.AF.r8.0;
-			let reg1 = cpu.immediate_u8();
+			let reg1 = imm0;
 	//----------------
 		panic!("ADC_z_h_c_u8_u8 not implemented");
 	//----------------
 	}
 	{
 	// NAME: ADD_h_c_u16_i8
+			let imm0 = cpu.immediate_i8();
 			let reg0 = cpu.SP;
-			let reg1 = cpu.immediate_i8();
+			let reg1 = imm0;
 	//----------------
 		panic!("ADD_h_c_u16_i8 not implemented");
 	//----------------
@@ -30,15 +32,17 @@ unsafe fn stubs(cpu: &mut CPU) {
 	}
 	{
 	// NAME: ADD_z_h_c_u8_u8
+			let imm0 = cpu.immediate_u8();
 			let reg0 = cpu.AF.r8.0;
-			let reg1 = cpu.immediate_u8();
+			let reg1 = imm0;
 	//----------------
 		panic!("ADD_z_h_c_u8_u8 not implemented");
 	//----------------
 	}
 	{
 	// NAME: AND_z_u8
-			let reg0 = cpu.immediate_u8();
+			let imm0 = cpu.immediate_u8();
+			let reg0 = imm0;
 	//----------------
 		panic!("AND_z_u8 not implemented");
 	//----------------
@@ -53,23 +57,26 @@ unsafe fn stubs(cpu: &mut CPU) {
 	}
 	{
 	// NAME: CALL_bool_u16
+			let imm0 = cpu.immediate_u16();
 			let reg0 = !cpu.c();
-			let reg1 = cpu.immediate_u16();
+			let reg1 = imm0;
 	//----------------
 		panic!("CALL_bool_u16 not implemented");
 	//----------------
 	}
 	{
 	// NAME: CALL_u16
-			let reg0 = cpu.immediate_u16();
+			let imm0 = cpu.immediate_u16();
+			let reg0 = imm0;
 	//----------------
 		panic!("CALL_u16 not implemented");
 	//----------------
 	}
 	{
 	// NAME: CALL_u8_u16
+			let imm0 = cpu.immediate_u16();
 			let reg0 = cpu.BC.r8.1;
-			let reg1 = cpu.immediate_u16();
+			let reg1 = imm0;
 	//----------------
 		panic!("CALL_u8_u16 not implemented");
 	//----------------
@@ -88,7 +95,8 @@ unsafe fn stubs(cpu: &mut CPU) {
 	}
 	{
 	// NAME: CP_z_h_c_u8
-			let reg0 = cpu.immediate_u8();
+			let imm0 = cpu.immediate_u8();
+			let reg0 = imm0;
 	//----------------
 		panic!("CP_z_h_c_u8 not implemented");
 	//----------------
@@ -155,15 +163,17 @@ unsafe fn stubs(cpu: &mut CPU) {
 	}
 	{
 	// NAME: JP_bool_u16
+			let imm0 = cpu.immediate_u16();
 			let reg0 = !cpu.c();
-			let reg1 = cpu.immediate_u16();
+			let reg1 = imm0;
 	//----------------
 		panic!("JP_bool_u16 not implemented");
 	//----------------
 	}
 	{
 	// NAME: JP_u16
-			let reg0 = cpu.immediate_u16();
+			let imm0 = cpu.immediate_u16();
+			let reg0 = imm0;
 	//----------------
 		panic!("JP_u16 not implemented");
 	//----------------
@@ -177,16 +187,18 @@ unsafe fn stubs(cpu: &mut CPU) {
 	}
 	{
 	// NAME: JP_u8_u16
+			let imm0 = cpu.immediate_u16();
 			let reg0 = cpu.BC.r8.1;
-			let reg1 = cpu.immediate_u16();
+			let reg1 = imm0;
 	//----------------
 		panic!("JP_u8_u16 not implemented");
 	//----------------
 	}
 	{
 	// NAME: JR_bool_i8
+			let imm0 = cpu.immediate_i8();
 			let reg0 = !cpu.c();
-			let reg1 = cpu.immediate_i8();
+			let reg1 = imm0;
 	//----------------
 		if reg0 {
 			cpu.PC = (cpu.PC as i32 + reg1 as i32) as u16;
@@ -195,22 +207,25 @@ unsafe fn stubs(cpu: &mut CPU) {
 	}
 	{
 	// NAME: JR_i8
-			let reg0 = cpu.immediate_i8();
+			let imm0 = cpu.immediate_i8();
+			let reg0 = imm0;
 	//----------------
 		panic!("JR_i8 not implemented");
 	//----------------
 	}
 	{
 	// NAME: JR_u8_i8
+			let imm0 = cpu.immediate_i8();
 			let reg0 = cpu.BC.r8.1;
-			let reg1 = cpu.immediate_i8();
+			let reg1 = imm0;
 	//----------------
 		panic!("JR_u8_i8 not implemented");
 	//----------------
 	}
 	{
 	// NAME: LDH_u8_out_u8
-			let reg0 = cpu.address((cpu.immediate_u8() as u32 + 0xff00) as u16);
+			let imm0 = cpu.immediate_u8();
+			let reg0 = cpu.address((imm0 as u32 + 0xff00) as u16);
 			let out;
 	//----------------
 		out = reg0;
@@ -219,7 +234,8 @@ unsafe fn stubs(cpu: &mut CPU) {
 	}
 	{
 	// NAME: LD_h_c_u16_out_u16
-			let reg0 = cpu.offset_sp(cpu.immediate_i8());
+			let imm0 = cpu.immediate_i8();
+			let reg0 = cpu.offset_sp(imm0);
 			let out;
 	//----------------
 		panic!("LD_h_c_u16_out_u16 not implemented");
@@ -237,17 +253,19 @@ unsafe fn stubs(cpu: &mut CPU) {
 	}
 	{
 	// NAME: LD_u16_out_u8
+			let imm0 = cpu.immediate_u16();
 			let reg0 = cpu.SP;
 			let out;
 	//----------------
 		out = reg0;
 	//----------------
-			let addr = cpu.immediate_u16();
+			let addr = imm0;
 			cpu.set_address16(addr, out);
 	}
 	{
 	// NAME: LD_u8_out_u8
-			let reg0 = cpu.address(cpu.immediate_u16());
+			let imm0 = cpu.immediate_u16();
+			let reg0 = cpu.address(imm0);
 			let out;
 	//----------------
 		out = reg0;
@@ -262,7 +280,8 @@ unsafe fn stubs(cpu: &mut CPU) {
 	}
 	{
 	// NAME: OR_z_u8
-			let reg0 = cpu.immediate_u8();
+			let imm0 = cpu.immediate_u8();
+			let reg0 = imm0;
 	//----------------
 		panic!("OR_z_u8 not implemented");
 	//----------------
@@ -390,8 +409,9 @@ unsafe fn stubs(cpu: &mut CPU) {
 	}
 	{
 	// NAME: SBC_z_h_c_u8_u8
+			let imm0 = cpu.immediate_u8();
 			let reg0 = cpu.AF.r8.0;
-			let reg1 = cpu.immediate_u8();
+			let reg1 = imm0;
 	//----------------
 		panic!("SBC_z_h_c_u8_u8 not implemented");
 	//----------------
@@ -440,7 +460,8 @@ unsafe fn stubs(cpu: &mut CPU) {
 	}
 	{
 	// NAME: SUB_z_h_c_u8
-			let reg0 = cpu.immediate_u8();
+			let imm0 = cpu.immediate_u8();
+			let reg0 = imm0;
 	//----------------
 		panic!("SUB_z_h_c_u8 not implemented");
 	//----------------
@@ -454,7 +475,8 @@ unsafe fn stubs(cpu: &mut CPU) {
 	}
 	{
 	// NAME: XOR_z_u8
-			let reg0 = cpu.immediate_u8();
+			let imm0 = cpu.immediate_u8();
+			let reg0 = imm0;
 	//----------------
 		cpu.AF.r8.0 = cpu.AF.r8.0 ^ reg0;
 		let z = cpu.AF.r8.0 == 0;
