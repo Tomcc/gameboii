@@ -157,7 +157,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let reg0 = cpu.SP;
 			let out;
 	//----------------
-		panic!("INC_u16_out_u16 not implemented");
+		out = reg0.wrapping_add(1);
 	//----------------
 			cpu.SP = out;
 	}
