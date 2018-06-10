@@ -8,6 +8,7 @@
             "name": "(Windows) Launch",
             "type": "cppvsdbg",
             "request": "launch",
+            "preLaunchTask": "cargo build",
             "program": "${workspaceFolder}/target/debug/gameboii.exe",
             "args": [],
             "stopAtEntry": false,

@@ -4,6 +4,8 @@ use std::fs::File;
 use std::io::Read;
 use interpreter;
 use bit_field::BitField;
+use std::time::Duration;
+use std::time::Instant;
 
 pub union Register {
     pub r8: (u8, u8),
@@ -12,6 +14,8 @@ pub union Register {
 
 //the RAM size is max addr + 1
 const RAM_SIZE: usize = 0xFFFF + 1;
+const MACHINE_HZ: f64 = 4194.304;
+const TICK_DURATION: Duration = Duration::from_nanos((1000000000.0 / MACHINE_HZ) as u64);
 
 #[allow(non_snake_case)]
 pub struct CPU {
@@ -25,6 +29,8 @@ pub struct CPU {
     pub RAM: [u8; RAM_SIZE],
 
     pub cb_mode: bool,
+
+    pub next_clock_time: Instant,
 }
 
 impl CPU {
@@ -38,6 +44,7 @@ impl CPU {
             HL: Register { r16: 0 },
             RAM: [0; RAM_SIZE],
             cb_mode: false,
+            next_clock_time: Instant::now(),
         };
 
         // try to load the "bios" rom into the start of the buffer
@@ -79,8 +86,19 @@ impl CPU {
         }
     }
 
-    pub fn run_cycles(&mut self, _count: usize) {
-        //TODO
+    pub fn run_cycles(&mut self, count: usize) {
+        for _ in 0..count {
+            //TODO do the thing
+
+            //then spin until the next clock.
+            //these clocks are too short to sleep, which has a ~1ms precision or worse.
+            //so we have to spin and hope that the OS doesn't hate us
+            //TODO going as fast as possible by disabling this
+            self.next_clock_time += TICK_DURATION;
+            while Instant::now() < self.next_clock_time {
+                std::thread::yield_now();
+            }
+        }
     }
 
     pub fn address(&self, addr: u16) -> u8 {
