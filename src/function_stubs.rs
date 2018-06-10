@@ -489,7 +489,11 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let imm0 = cpu.immediate_u8();
 			let reg0 = imm0;
 	//----------------
-		panic!("SUB_z_h_c_u8 not implemented");
+		//TODO H
+		let (a, overflow) = cpu.AF.r8.first.overflowing_sub(reg0);
+		cpu.AF.r8.first = a;
+		cpu.set_z(a == 0);
+		cpu.set_c(overflow);
 	//----------------
 	}
 	{
