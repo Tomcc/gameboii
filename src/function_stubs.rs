@@ -7,7 +7,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: ADC_z_h_c_u8_u8
 			let imm0 = cpu.immediate_u8();
-			let reg0 = cpu.AF.r8.0;
+			let reg0 = cpu.AF.r8.first;
 			let reg1 = imm0;
 	//----------------
 		panic!("ADC_z_h_c_u8_u8 not implemented");
@@ -33,12 +33,12 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: ADD_z_h_c_u8_u8
 			let imm0 = cpu.immediate_u8();
-			let reg0 = cpu.AF.r8.0;
+			let reg0 = cpu.AF.r8.first;
 			let reg1 = imm0;
 	//----------------
 		//TODO H
 		let (a, overflow) = reg0.overflowing_add(reg0);
-		cpu.AF.r8.0 = a;
+		cpu.AF.r8.first = a;
 		cpu.set_z(a == 0);
 		cpu.set_c(overflow);
 	//----------------
@@ -54,7 +54,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: BIT_z_u8_u8
 			let reg0 = 7;
-			let reg1 = cpu.AF.r8.0;
+			let reg1 = cpu.AF.r8.first;
 	//----------------
 		cpu.set_z(!reg1.get_bit(reg0));
 	//----------------
@@ -81,7 +81,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: CALL_u8_u16
 			let imm0 = cpu.immediate_u16();
-			let reg0 = cpu.BC.r8.1;
+			let reg0 = cpu.BC.r8.second;
 			let reg1 = imm0;
 	//----------------
 		panic!("CALL_u8_u16 not implemented");
@@ -105,7 +105,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let reg0 = imm0;
 	//----------------
 		//TODO H
-		let a = cpu.AF.r8.0;
+		let a = cpu.AF.r8.first;
 		cpu.set_z(reg0 == a);
 		cpu.set_c(reg0 < a);
 	//----------------
@@ -128,14 +128,14 @@ unsafe fn stubs(cpu: &mut CPU) {
 	}
 	{
 	// NAME: DEC_z_h_u8_out_u8
-			let reg0 = cpu.AF.r8.0;
+			let reg0 = cpu.AF.r8.first;
 			let out;
 	//----------------
 		//TODO H
 		out = reg0.wrapping_sub(1);
 		cpu.set_z(out == 0);
 	//----------------
-			cpu.AF.r8.0 = out;
+			cpu.AF.r8.first = out;
 	}
 	{
 	// NAME: DI
@@ -166,7 +166,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	}
 	{
 	// NAME: INC_z_h_u8_out_u8
-			let reg0 = cpu.AF.r8.0;
+			let reg0 = cpu.AF.r8.first;
 			let out;
 	//----------------
 		out = reg0.wrapping_add(1);
@@ -175,7 +175,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 		// TODO H - Set if carry from bit 3.
 
 	//----------------
-			cpu.AF.r8.0 = out;
+			cpu.AF.r8.first = out;
 	}
 	{
 	// NAME: JP_bool_u16
@@ -204,7 +204,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: JP_u8_u16
 			let imm0 = cpu.immediate_u16();
-			let reg0 = cpu.BC.r8.1;
+			let reg0 = cpu.BC.r8.second;
 			let reg1 = imm0;
 	//----------------
 		panic!("JP_u8_u16 not implemented");
@@ -232,7 +232,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: JR_u8_i8
 			let imm0 = cpu.immediate_i8();
-			let reg0 = cpu.BC.r8.1;
+			let reg0 = cpu.BC.r8.second;
 			let reg1 = imm0;
 	//----------------
 		panic!("JR_u8_i8 not implemented");
@@ -246,7 +246,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	//----------------
 		out = reg0;
 	//----------------
-			cpu.AF.r8.0 = out;
+			cpu.AF.r8.first = out;
 	}
 	{
 	// NAME: LD_h_c_u16_out_u16
@@ -286,7 +286,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	//----------------
 		out = reg0;
 	//----------------
-			cpu.AF.r8.0 = out;
+			cpu.AF.r8.first = out;
 	}
 	{
 	// NAME: NOP
@@ -335,7 +335,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: RES_u8_u8
 			let reg0 = 7;
-			let reg1 = cpu.AF.r8.0;
+			let reg1 = cpu.AF.r8.first;
 	//----------------
 		panic!("RES_u8_u8 not implemented");
 	//----------------
@@ -361,7 +361,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	}
 	{
 	// NAME: RET_u8
-			let reg0 = cpu.BC.r8.1;
+			let reg0 = cpu.BC.r8.second;
 	//----------------
 		panic!("RET_u8 not implemented");
 	//----------------
@@ -369,11 +369,11 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: RLA_c
 	//----------------
-		let mut a = cpu.AF.r8.0;
+		let mut a = cpu.AF.r8.first;
 		cpu.set_c(a.get_bit(7));
 		a = a << 1;
 		cpu.set_z(a == 0);
-		cpu.AF.r8.0 = a;
+		cpu.AF.r8.first = a;
 	//----------------
 	}
 	{
@@ -384,21 +384,21 @@ unsafe fn stubs(cpu: &mut CPU) {
 	}
 	{
 	// NAME: RLC_z_c_u8
-			let reg0 = cpu.AF.r8.0;
+			let reg0 = cpu.AF.r8.first;
 	//----------------
 		panic!("RLC_z_c_u8 not implemented");
 	//----------------
 	}
 	{
 	// NAME: RL_z_c_u8_out_u8
-			let reg0 = cpu.AF.r8.0;
+			let reg0 = cpu.AF.r8.first;
 			let out;
 	//----------------
 		cpu.set_c(reg0.get_bit(7));
 		out = reg0 << 1;
 		cpu.set_z(out == 0);
 	//----------------
-			cpu.AF.r8.0 = out;
+			cpu.AF.r8.first = out;
 	}
 	{
 	// NAME: RRA_c
@@ -414,14 +414,14 @@ unsafe fn stubs(cpu: &mut CPU) {
 	}
 	{
 	// NAME: RRC_z_c_u8
-			let reg0 = cpu.AF.r8.0;
+			let reg0 = cpu.AF.r8.first;
 	//----------------
 		panic!("RRC_z_c_u8 not implemented");
 	//----------------
 	}
 	{
 	// NAME: RR_z_c_u8
-			let reg0 = cpu.AF.r8.0;
+			let reg0 = cpu.AF.r8.first;
 	//----------------
 		panic!("RR_z_c_u8 not implemented");
 	//----------------
@@ -436,7 +436,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: SBC_z_h_c_u8_u8
 			let imm0 = cpu.immediate_u8();
-			let reg0 = cpu.AF.r8.0;
+			let reg0 = cpu.AF.r8.first;
 			let reg1 = imm0;
 	//----------------
 		panic!("SBC_z_h_c_u8_u8 not implemented");
@@ -451,28 +451,28 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: SET_u8_u8
 			let reg0 = 7;
-			let reg1 = cpu.AF.r8.0;
+			let reg1 = cpu.AF.r8.first;
 	//----------------
 		panic!("SET_u8_u8 not implemented");
 	//----------------
 	}
 	{
 	// NAME: SLA_z_c_u8
-			let reg0 = cpu.AF.r8.0;
+			let reg0 = cpu.AF.r8.first;
 	//----------------
 		panic!("SLA_z_c_u8 not implemented");
 	//----------------
 	}
 	{
 	// NAME: SRA_z_u8
-			let reg0 = cpu.AF.r8.0;
+			let reg0 = cpu.AF.r8.first;
 	//----------------
 		panic!("SRA_z_u8 not implemented");
 	//----------------
 	}
 	{
 	// NAME: SRL_z_c_u8
-			let reg0 = cpu.AF.r8.0;
+			let reg0 = cpu.AF.r8.first;
 	//----------------
 		panic!("SRL_z_c_u8 not implemented");
 	//----------------
@@ -494,7 +494,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	}
 	{
 	// NAME: SWAP_z_u8
-			let reg0 = cpu.AF.r8.0;
+			let reg0 = cpu.AF.r8.first;
 	//----------------
 		panic!("SWAP_z_u8 not implemented");
 	//----------------
@@ -504,8 +504,8 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let imm0 = cpu.immediate_u8();
 			let reg0 = imm0;
 	//----------------
-		cpu.AF.r8.0 = cpu.AF.r8.0 ^ reg0;
-		let z = cpu.AF.r8.0 == 0;
+		cpu.AF.r8.first = cpu.AF.r8.first ^ reg0;
+		let z = cpu.AF.r8.first == 0;
 		cpu.set_z(z);
 	//----------------
 	}

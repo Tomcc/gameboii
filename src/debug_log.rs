@@ -66,7 +66,7 @@ impl Log {
 
         write!(self.map_log, "{}", line)?;
 
-        self.map_log.sync_all()?;
+        // self.map_log.sync_all()?;
 
         Ok(())
     }

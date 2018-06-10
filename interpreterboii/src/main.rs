@@ -210,23 +210,23 @@ impl Parameter {
             let num: String = operand.chars().take(2).collect();
             return Parameter::new(format!("0x{}", num), ParameterType::U16);
         } else if operand == "A" {
-            return Parameter::new(String::from("cpu.AF.r8.0"), ParameterType::U8);
+            return Parameter::new(String::from("cpu.AF.r8.first"), ParameterType::U8);
         } else if operand == "F" {
-            return Parameter::new(String::from("cpu.AF.r8.1"), ParameterType::U8);
+            return Parameter::new(String::from("cpu.AF.r8.second"), ParameterType::U8);
         } else if operand == "B" {
-            return Parameter::new(String::from("cpu.BC.r8.0"), ParameterType::U8);
+            return Parameter::new(String::from("cpu.BC.r8.first"), ParameterType::U8);
         } else if operand == "C" {
-            return Parameter::new(String::from("cpu.BC.r8.1"), ParameterType::U8);
+            return Parameter::new(String::from("cpu.BC.r8.second"), ParameterType::U8);
         } else if operand == "D" {
-            return Parameter::new(String::from("cpu.DE.r8.0"), ParameterType::U8);
+            return Parameter::new(String::from("cpu.DE.r8.first"), ParameterType::U8);
         } else if operand == "E" {
-            return Parameter::new(String::from("cpu.DE.r8.1"), ParameterType::U8);
+            return Parameter::new(String::from("cpu.DE.r8.second"), ParameterType::U8);
         } else if operand == "H" {
-            return Parameter::new(String::from("cpu.HL.r8.0"), ParameterType::U8);
+            return Parameter::new(String::from("cpu.HL.r8.first"), ParameterType::U8);
         } else if operand == "L" {
-            return Parameter::new(String::from("cpu.HL.r8.1"), ParameterType::U8);
+            return Parameter::new(String::from("cpu.HL.r8.second"), ParameterType::U8);
         } else if operand == "L" {
-            return Parameter::new(String::from("cpu.HL.r8.1"), ParameterType::U8);
+            return Parameter::new(String::from("cpu.HL.r8.second"), ParameterType::U8);
         } else if operand == "Z" {
             return Parameter::new(String::from("cpu.z()"), ParameterType::Bool);
         } else if operand == "NZ" {

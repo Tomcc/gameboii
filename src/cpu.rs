@@ -8,8 +8,16 @@ use std::io::Read;
 use std::time::Duration;
 use std::time::Instant;
 
+#[derive(Clone, Copy)]
+#[repr(C)]
+pub struct RegisterPair {
+    pub second: u8,
+    pub first: u8,
+}
+
+#[repr(C)]
 pub union Register {
-    pub r8: (u8, u8),
+    pub r8: RegisterPair,
     pub r16: u16,
 }
 
@@ -369,22 +377,22 @@ impl<'a> CPU<'a> {
     }
 
     pub unsafe fn set_z(&mut self, val: bool) {
-        self.AF.r8.1.set_bit(7, val);
+        self.AF.r8.second.set_bit(7, val);
     }
     pub unsafe fn set_n(&mut self, val: bool) {
-        self.AF.r8.1.set_bit(6, val);
+        self.AF.r8.second.set_bit(6, val);
     }
     pub unsafe fn set_h(&mut self, val: bool) {
-        self.AF.r8.1.set_bit(5, val);
+        self.AF.r8.second.set_bit(5, val);
     }
     pub unsafe fn set_c(&mut self, val: bool) {
-        self.AF.r8.1.set_bit(4, val);
+        self.AF.r8.second.set_bit(4, val);
     }
 
     pub unsafe fn z(&self) -> bool {
-        self.AF.r8.1.get_bit(7)
+        self.AF.r8.second.get_bit(7)
     }
     pub unsafe fn c(&self) -> bool {
-        self.AF.r8.1.get_bit(4)
+        self.AF.r8.second.get_bit(4)
     }
 }
