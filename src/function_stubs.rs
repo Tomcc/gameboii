@@ -36,7 +36,11 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let reg0 = cpu.AF.r8.0;
 			let reg1 = imm0;
 	//----------------
-		panic!("ADD_z_h_c_u8_u8 not implemented");
+		//TODO H
+		let (a, overflow) = reg0.overflowing_add(reg0);
+		cpu.AF.r8.0 = a;
+		cpu.set_z(a == 0);
+		cpu.set_c(overflow);
 	//----------------
 	}
 	{
@@ -155,7 +159,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let reg0 = cpu.AF.r8.0;
 			let out;
 	//----------------
-		out = reg0 + 1;
+		out = reg0.wrapping_add(1);
 		cpu.set_z(out == 0);
 
 		// TODO H - Set if carry from bit 3.

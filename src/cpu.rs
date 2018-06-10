@@ -1,6 +1,7 @@
 extern crate std;
 
 use bit_field::BitField;
+use debug_log::Log;
 use interpreter;
 use std::fs::File;
 use std::io::Read;
@@ -42,18 +43,18 @@ const INTERNAL_ROM_TURN_OFF_ADDRESS: u16 = 0xff50;
 
 //P10 to P15 bits are the buttons
 #[allow(unused)]
-const P1_REGISTER_ADDRESS: u16 = 0xff00; 
+const P1_REGISTER_ADDRESS: u16 = 0xff00;
 
 //serial transfer data
 #[allow(unused)]
-const SB_REGISTER_ADDRESS: u16 = 0xff01; 
+const SB_REGISTER_ADDRESS: u16 = 0xff01;
 
 //Serial IO control bits
 #[allow(unused)]
-const SC_REGISTER_ADDRESS: u16 = 0xff02; 
- 
- //timer divider factor
- //writing any value sets it to 0
+const SC_REGISTER_ADDRESS: u16 = 0xff02;
+
+//timer divider factor
+//writing any value sets it to 0
 #[allow(unused)]
 const DIV_REGISTER_ADDRESS: u16 = 0xff04;
 
@@ -157,7 +158,6 @@ const WY_REGISTER_ADDRESS: u16 = 0xff4b;
 #[allow(unused)]
 const IE_REGISTER_ADDRESS: u16 = 0xffff;
 
-
 //derived data
 const TICK_DURATION: Duration = Duration::from_nanos(1000000000 / MACHINE_HZ);
 
@@ -213,6 +213,7 @@ pub struct CPU<'a> {
 
     next_clock_time: Instant,
     cartridge_ROM: &'a [u8],
+    log: Log,
 }
 
 impl<'a> CPU<'a> {
@@ -229,6 +230,7 @@ impl<'a> CPU<'a> {
 
             next_clock_time: Instant::now(),
             cartridge_ROM: rom,
+            log: Log::new(),
         };
 
         //setup stuff
@@ -240,7 +242,7 @@ impl<'a> CPU<'a> {
         // try to load the "bios" rom into the start of the buffer
         File::open("DMG_ROM.bin")
             .unwrap()
-            .read_exact(&mut cpu.RAM[0..100])
+            .read_exact(&mut cpu.RAM[0..0x100])
             .unwrap();
 
         cpu
@@ -248,6 +250,10 @@ impl<'a> CPU<'a> {
 
     pub fn run(&mut self) {
         loop {
+            let pc = self.PC;
+            let instr = self.peek_instruction();
+            self.log.log_instruction(instr, pc).unwrap();
+
             unsafe {
                 if self.cb_mode {
                     interpreter::interpret_cb(self);

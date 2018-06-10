@@ -1,9 +1,16 @@
 extern crate bit_field;
 extern crate clap;
+extern crate regex;
+
+#[macro_use]
+extern crate serde_derive;
+extern crate serde_json;
+extern crate serde;
 
 mod cpu;
 mod function_stubs;
 mod interpreter;
+mod debug_log;
 
 use std::fs::File;
 use clap::{App, Arg};

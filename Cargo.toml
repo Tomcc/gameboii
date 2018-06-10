@@ -6,3 +6,7 @@ authors = ["Tommaso Checchi <tommaso.checchi1@gmail.com>"]
 [dependencies]
 bit_field = "*"
 clap = "*"
+serde = "*"
+serde_json = "*"
+serde_derive = "*"
+regex = "*"
