@@ -430,14 +430,14 @@ fn write_opcodes(
                 HLMagic::Inc => {
                     writeln!(
                         outfile,
-                        "\t\t\t{} += 1;",
+                        "\t\t\t{0} = {0}.wrapping_add(1);",
                         Parameter::from_operand("HL").fullcode
                     )?;
                 }
                 HLMagic::Dec => {
                     writeln!(
                         outfile,
-                        "\t\t\t{} -= 1;",
+                        "\t\t\t{0} = {0}.wrapping_sub(1);",
                         Parameter::from_operand("HL").fullcode
                     )?;
                 }

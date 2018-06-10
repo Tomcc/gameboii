@@ -69,7 +69,9 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let imm0 = cpu.immediate_u16();
 			let reg0 = imm0;
 	//----------------
-		panic!("CALL_u16 not implemented");
+		let pc = cpu.PC;
+		cpu.push16(pc);
+		cpu.PC = imm0;
 	//----------------
 	}
 	{
