@@ -3,7 +3,7 @@
         {
             "type": "shell",
             "label": "cargo build",
-            "dependsOn":"interpreterboii",
+            "dependsOn": "interpreterboii",
             "command": "cargo",
             "args": [
                 "build"
@@ -16,7 +16,6 @@
                 "isDefault": true
             }
         },
-
         {
             "type": "shell",
             "label": "interpreterboii",
@@ -30,11 +29,7 @@
             },
             "problemMatcher": [
                 "$rustc"
-            ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+            ]
         }
     ]
 }

@@ -1,6 +1,7 @@
 extern crate bit_field;
 extern crate clap;
 extern crate regex;
+extern crate orbclient;
 
 #[macro_use]
 extern crate serde_derive;
@@ -8,12 +9,14 @@ extern crate serde;
 extern crate serde_json;
 
 mod cpu;
+mod gpu;
 mod debug_log;
 mod function_stubs;
 mod interpreter;
 
 use clap::{App, Arg};
 use cpu::CPU;
+use gpu::GPU;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
@@ -59,7 +62,8 @@ fn main() {
 
     let do_log = matches.is_present("debug_log");
 
-    let mut cpu = CPU::new(&rom, do_log);
+    let mut gpu = GPU::new();
+    let mut cpu = CPU::new(gpu, &rom, do_log);
 
     cpu.run();
 }

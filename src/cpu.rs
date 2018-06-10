@@ -2,6 +2,7 @@ extern crate std;
 
 use bit_field::BitField;
 use debug_log::Log;
+use gpu::GPU;
 use interpreter;
 use std::fs::File;
 use std::io::Read;
@@ -24,13 +25,6 @@ pub union Register {
 //the RAM size is max addr + 1
 const RAM_SIZE: usize = 0xFFFF + 1;
 const MACHINE_HZ: u64 = 4194304;
-
-#[allow(unused)]
-const HORIZONTAL_SYNC_HZ: u64 = 9198000;
-
-const VERTICAL_SYNC_HZ: f64 = 59.73;
-const VERTICAL_SYNC_INTERVAL: Duration =
-    Duration::from_nanos((1000000000.0 / VERTICAL_SYNC_HZ) as u64);
 
 #[allow(unused)]
 const VERTICAL_BLANK_INTERRUPT_START_ADDRESS: u16 = 0x40;
@@ -142,9 +136,6 @@ const SCY_REGISTER_ADDRESS: u16 = 0xff42;
 #[allow(unused)]
 const SCX_REGISTER_ADDRESS: u16 = 0xff43;
 
-const LY_VALUES_COUNT: u8 = 153 + 1;
-const LY_REGISTER_ADDRESS: u16 = 0xff44;
-
 #[allow(unused)]
 const LYC_REGISTER_ADDRESS: u16 = 0xff45;
 
@@ -172,40 +163,6 @@ const IE_REGISTER_ADDRESS: u16 = 0xffff;
 //derived data
 const TICK_DURATION: Duration = Duration::from_nanos(1000000000 / MACHINE_HZ);
 
-//TODO move to CPU/screen
-#[allow(unused)]
-const RESOLUTION_W: u32 = 160;
-#[allow(unused)]
-const RESOLUTION_H: u32 = 144;
-#[allow(unused)]
-const INTERNAL_RESOLUTION_W: u32 = 256;
-#[allow(unused)]
-const INTERNAL_RESOLUTION_H: u32 = 256;
-#[allow(unused)]
-const TILE_RESOLUTION_W: u32 = 32;
-#[allow(unused)]
-const TILE_RESOLUTION_H: u32 = 32;
-#[allow(unused)]
-const UNSIGNED_BACKGROUND_DATA_TABLE_ADDRESS: u16 = 0x8000;
-#[allow(unused)]
-const SIGNED_BACKGROUND_DATA_TABLE_ADDRESS: u16 = 0x8800;
-#[allow(unused)]
-const SPRITE_PATTERN_TABLE_ADDRESS: u16 = 0x8000; //same as background data???
-#[allow(unused)]
-const SPRITE_ATTRIBUTE_TABLE_ADDRESS: u16 = 0xFE00;
-#[allow(unused)]
-const MAX_SPRITES: u32 = 40;
-#[allow(unused)]
-const MAX_SPRITES_PER_LINE: u32 = 10;
-#[allow(unused)]
-const MAX_SPRITE_SIZE_W: u32 = 8;
-#[allow(unused)]
-const MAX_SPRITE_SIZE_H: u32 = 16;
-#[allow(unused)]
-const MIN_SPRITE_SIZE_W: u32 = 8;
-#[allow(unused)]
-const MIN_SPRITE_SIZE_H: u32 = 8;
-
 #[allow(unused)]
 const SOUND_CHANNELS: u32 = 4;
 
@@ -224,14 +181,12 @@ pub struct CPU<'a> {
 
     next_clock_time: Instant,
     cartridge_ROM: &'a [u8],
+    gpu: GPU,
     log: Option<Log>,
-
-    //TODO GPU?
-    next_ly_update_time: Instant,
 }
 
 impl<'a> CPU<'a> {
-    pub fn new(rom: &'a [u8], do_log: bool) -> CPU<'a> {
+    pub fn new(gpu: GPU, rom: &'a [u8], do_log: bool) -> CPU<'a> {
         let mut cpu = CPU {
             PC: 0,
             SP: 0,
@@ -243,8 +198,8 @@ impl<'a> CPU<'a> {
             cb_mode: false,
 
             next_clock_time: Instant::now(),
-            next_ly_update_time: Instant::now(),
             cartridge_ROM: rom,
+            gpu: gpu,
             log: if do_log { Some(Log::new()) } else { None },
         };
 
@@ -307,20 +262,8 @@ impl<'a> CPU<'a> {
 
     pub fn run_cycles(&mut self, count: usize) {
         for _ in 0..count {
-            let now = Instant::now();
-            //TODO GPU
-            {
-                if now >= self.next_ly_update_time {
-                    //increment the LY line every fixed time
-                    //TODO actually use this value to copy a line to the screen
-
-                    let ly = &mut self.RAM[LY_REGISTER_ADDRESS as usize];
-                    *ly = (*ly + 1) % LY_VALUES_COUNT;
-
-                    let ly_update_interval = VERTICAL_SYNC_INTERVAL / (LY_VALUES_COUNT as u32);
-                    self.next_ly_update_time += ly_update_interval;
-                }
-            }
+            // self.gpu.tick(self);
+ 
             //TODO sound
             //TODO increment the TIMA register and throw interrupts
 
