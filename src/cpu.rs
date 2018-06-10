@@ -363,10 +363,9 @@ impl<'a> CPU<'a> {
     }
 
     pub fn pop16(&mut self) -> u16 {
-        let sp = self.SP;
-        let res = self.address16(sp);
         self.SP = self.SP.wrapping_add(2);
-        res
+        let sp = self.SP;
+        self.address16(sp)
     }
 
     pub unsafe fn set_z(&mut self, val: bool) {
