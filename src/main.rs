@@ -1,7 +1,7 @@
 extern crate bit_field;
 extern crate clap;
-extern crate regex;
 extern crate orbclient;
+extern crate regex;
 
 #[macro_use]
 extern crate serde_derive;
@@ -9,9 +9,9 @@ extern crate serde;
 extern crate serde_json;
 
 mod cpu;
-mod gpu;
 mod debug_log;
 mod function_stubs;
+mod gpu;
 mod interpreter;
 
 use clap::{App, Arg};
@@ -46,7 +46,7 @@ fn main() {
         .arg(
             Arg::with_name("debug_log")
                 .long("log")
-                .help("Write the executable map and the log to file. Very slow")
+                .help("Write the executable map and the log to file. Very slow"),
         )
         .get_matches();
 
@@ -63,7 +63,10 @@ fn main() {
     let do_log = matches.is_present("debug_log");
 
     let mut gpu = GPU::new();
-    let mut cpu = CPU::new(gpu, &rom, do_log);
+    let mut cpu = CPU::new(&rom, do_log);
 
-    cpu.run();
+    loop {
+        cpu.tick();
+        gpu.tick(&mut cpu);
+    }
 }

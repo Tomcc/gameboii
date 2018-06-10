@@ -181,12 +181,11 @@ pub struct CPU<'a> {
 
     next_clock_time: Instant,
     cartridge_ROM: &'a [u8],
-    gpu: GPU,
     log: Option<Log>,
 }
 
 impl<'a> CPU<'a> {
-    pub fn new(gpu: GPU, rom: &'a [u8], do_log: bool) -> CPU<'a> {
+    pub fn new(rom: &'a [u8], do_log: bool) -> CPU<'a> {
         let mut cpu = CPU {
             PC: 0,
             SP: 0,
@@ -199,7 +198,6 @@ impl<'a> CPU<'a> {
 
             next_clock_time: Instant::now(),
             cartridge_ROM: rom,
-            gpu: gpu,
             log: if do_log { Some(Log::new()) } else { None },
         };
 
@@ -221,8 +219,8 @@ impl<'a> CPU<'a> {
         cpu
     }
 
-    pub fn run(&mut self) {
-        loop {
+    pub fn tick(&mut self) {
+        if Instant::now() > self.next_clock_time {
             let has_log = self.log.is_some();
             if has_log {
                 let pc = self.PC;
@@ -261,21 +259,7 @@ impl<'a> CPU<'a> {
     }
 
     pub fn run_cycles(&mut self, count: usize) {
-        for _ in 0..count {
-            // self.gpu.tick(self);
- 
-            //TODO sound
-            //TODO increment the TIMA register and throw interrupts
-
-            //then spin until the next clock.
-            //these clocks are too short to sleep, which has a ~1ms precision or worse.
-            //so we have to spin and hope that the OS doesn't hate us
-            //TODO going as fast as possible by disabling this
-            self.next_clock_time += TICK_DURATION;
-            while Instant::now() < self.next_clock_time {
-                std::thread::yield_now();
-            }
-        }
+        self.next_clock_time += TICK_DURATION * (count as u32);
     }
 
     pub fn address(&self, addr: u16) -> u8 {

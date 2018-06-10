@@ -54,6 +54,9 @@ const MIN_SPRITE_SIZE_H: u32 = 8;
 pub struct GPU {
     window: Window,
     next_ly_update_time: Instant,
+    next_vsync_time: Instant,
+
+    screen_buffer: [Color; (RESOLUTION_W * RESOLUTION_H) as usize],
 }
 
 impl GPU {
@@ -65,23 +68,29 @@ impl GPU {
         GPU {
             window: window,
             next_ly_update_time: Instant::now(),
+            next_vsync_time: Instant::now(),
+            screen_buffer: [Color::rgba(10,100,200,20); (RESOLUTION_W * RESOLUTION_H) as usize],
         }
     }
 
     pub fn tick(&mut self, cpu: &mut CPU) {
         let now = Instant::now();
-        //TODO GPU
-        {
-            if now >= self.next_ly_update_time {
-                //increment the LY line every fixed time
-                //TODO actually use this value to copy a line to the screen
+        
+        if now >= self.next_ly_update_time {
+            //increment the LY line every fixed time
+            //TODO actually use this value to copy a line to the screen
 
-                let ly = &mut cpu.RAM[LY_REGISTER_ADDRESS as usize];
-                *ly = (*ly + 1) % LY_VALUES_COUNT;
+            let ly = &mut cpu.RAM[LY_REGISTER_ADDRESS as usize];
+            *ly = (*ly + 1) % LY_VALUES_COUNT;
 
-                let ly_update_interval = VERTICAL_SYNC_INTERVAL / (LY_VALUES_COUNT as u32);
-                self.next_ly_update_time += ly_update_interval;
-            }
+            let ly_update_interval = VERTICAL_SYNC_INTERVAL / (LY_VALUES_COUNT as u32);
+            self.next_ly_update_time += ly_update_interval;
+        }
+        if now >= self.next_vsync_time {
+            self.window.data_mut().copy_from_slice(&self.screen_buffer);
+            self.window.sync();
+
+            self.next_vsync_time += VERTICAL_SYNC_INTERVAL;
         }
     }
 }
