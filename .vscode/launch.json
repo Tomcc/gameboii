@@ -10,7 +10,9 @@
             "request": "launch",
             "preLaunchTask": "cargo build",
             "program": "${workspaceFolder}/target/debug/gameboii.exe",
-            "args": [],
+            "args": [
+                "ROMs/Tetris.gb"
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

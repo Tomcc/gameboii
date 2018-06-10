@@ -3,3 +3,4 @@
 
 /src/interpreter.rs
 .DS_Store
+/ROMs/*
