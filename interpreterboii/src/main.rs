@@ -248,7 +248,12 @@ impl Parameter {
         if let Some(ref inner) = self.inner {
             writeln!(outfile, "\t\t\tlet addr = {};", inner.fullcode)?;
 
-            match input.unwrap().param_type {
+            let mut param_type = ParameterType::U8;
+            if let Some(ref i) = input {
+                param_type = i.param_type.clone();
+            }
+
+            match param_type {
                 ParameterType::U16 => writeln!(outfile, "\t\t\tcpu.set_address16(addr, out);")?,
                 _ => writeln!(outfile, "\t\t\tcpu.set_address(addr, out);")?,
             }

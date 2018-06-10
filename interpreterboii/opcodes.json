@@ -78,7 +78,7 @@
         "opcode": "0x5",
         "mnemonic": "DEC",
         "operands": [
-            "B"
+            "inout B"
         ],
         "bytes": 1,
         "cycles": 4,
@@ -170,7 +170,7 @@
         "opcode": "0xb",
         "mnemonic": "DEC",
         "operands": [
-            "BC"
+            "inout BC"
         ],
         "bytes": 1,
         "cycles": 8,
@@ -200,7 +200,7 @@
         "opcode": "0xd",
         "mnemonic": "DEC",
         "operands": [
-            "C"
+            "inout C"
         ],
         "bytes": 1,
         "cycles": 4,
@@ -321,7 +321,7 @@
         "opcode": "0x15",
         "mnemonic": "DEC",
         "operands": [
-            "D"
+            "inout D"
         ],
         "bytes": 1,
         "cycles": 4,
@@ -412,7 +412,7 @@
         "opcode": "0x1b",
         "mnemonic": "DEC",
         "operands": [
-            "DE"
+            "inout DE"
         ],
         "bytes": 1,
         "cycles": 8,
@@ -442,7 +442,7 @@
         "opcode": "0x1d",
         "mnemonic": "DEC",
         "operands": [
-            "E"
+            "inout E"
         ],
         "bytes": 1,
         "cycles": 4,
@@ -564,7 +564,7 @@
         "opcode": "0x25",
         "mnemonic": "DEC",
         "operands": [
-            "H"
+            "inout H"
         ],
         "bytes": 1,
         "cycles": 4,
@@ -656,7 +656,7 @@
         "opcode": "0x2b",
         "mnemonic": "DEC",
         "operands": [
-            "HL"
+            "inout HL"
         ],
         "bytes": 1,
         "cycles": 8,
@@ -686,7 +686,7 @@
         "opcode": "0x2d",
         "mnemonic": "DEC",
         "operands": [
-            "L"
+            "inout L"
         ],
         "bytes": 1,
         "cycles": 4,
@@ -808,7 +808,7 @@
         "opcode": "0x35",
         "mnemonic": "DEC",
         "operands": [
-            "(HL)"
+            "inout (HL)"
         ],
         "bytes": 1,
         "cycles": 12,
@@ -900,7 +900,7 @@
         "opcode": "0x3b",
         "mnemonic": "DEC",
         "operands": [
-            "SP"
+            "inout SP"
         ],
         "bytes": 1,
         "cycles": 8,
@@ -930,7 +930,7 @@
         "opcode": "0x3d",
         "mnemonic": "DEC",
         "operands": [
-            "A"
+            "inout A"
         ],
         "bytes": 1,
         "cycles": 4,

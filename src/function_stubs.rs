@@ -114,18 +114,25 @@ unsafe fn stubs(cpu: &mut CPU) {
 	//----------------
 	}
 	{
-	// NAME: DEC_u16
+	// NAME: DEC_u16_out_u16
 			let reg0 = cpu.SP;
+			let out;
 	//----------------
-		panic!("DEC_u16 not implemented");
+		out = reg0.wrapping_sub(1);
+		cpu.set_z(out == 0);
 	//----------------
+			cpu.SP = out;
 	}
 	{
-	// NAME: DEC_z_h_u8
+	// NAME: DEC_z_h_u8_out_u8
 			let reg0 = cpu.AF.r8.0;
+			let out;
 	//----------------
-		panic!("DEC_z_h_u8 not implemented");
+		//TODO H
+		out = reg0.wrapping_sub(1);
+		cpu.set_z(out == 0);
 	//----------------
+			cpu.AF.r8.0 = out;
 	}
 	{
 	// NAME: DI
