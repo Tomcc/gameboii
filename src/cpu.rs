@@ -248,13 +248,16 @@ impl<'a> CPU<'a> {
             log: Log::new(),
         };
 
+        //copy the ROM in memory
+        cpu.RAM[0..rom.len()].copy_from_slice(rom);
+
         //setup stuff
         assert!(
             rom[CARTRIDGE_TYPE_ADDRESS as usize] == 0,
             "Not a ROM-Only ROM, not supported"
         );
 
-        // try to load the "bios" rom into the start of the buffer
+        // override the first 256 bytes with the Nintendo boot ROM
         File::open("DMG_ROM.bin")
             .unwrap()
             .read_exact(&mut cpu.RAM[0..0x100])
@@ -368,8 +371,8 @@ impl<'a> CPU<'a> {
 
     pub fn set_address(&mut self, addr: u16, val: u8) {
         if addr == INTERNAL_ROM_TURN_OFF_ADDRESS && val == 1 {
-            //load the cartridge rom
-            self.RAM.copy_from_slice(self.cartridge_ROM);
+            //replace the Nintendo boot ROM with the first 256 bytes of the cart
+            self.RAM[0..0x100].copy_from_slice(&self.cartridge_ROM[0..0x100]);
         }
 
         self.RAM[addr as usize] = val;
