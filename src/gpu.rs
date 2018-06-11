@@ -81,13 +81,13 @@ fn get_bg_level(x: u8, y: u8, ram: &[u8], window: bool) -> u8 {
     let tile_idx = tile_x as u16 + tile_y as u16 * TILE_RESOLUTION_W as u16;
 
     //TODO decide if to use map0 or map1
-    let tile_id = ram[(address::TILE_MAP0 + tile_idx) as usize];
+    let tile_id = ram[address::TILE_MAP0 + tile_idx as usize];
 
     //TODO all the absolute madness about tile address mode
     let base_addr = address::UNSIGNED_BACKGROUND_DATA_TABLE;
-    let tile_data_start = base_addr + tile_id as u16 * TILE_SIZE_BYTES;
-    let tile_data_end = tile_data_start + TILE_SIZE_BYTES;
-    let tile_data = &ram[tile_data_start as usize..tile_data_end as usize];
+    let tile_data_start = base_addr + tile_id as usize * TILE_SIZE_BYTES as usize;
+    let tile_data_end = tile_data_start + TILE_SIZE_BYTES as usize;
+    let tile_data = &ram[tile_data_start..tile_data_end];
 
     let inner_x = x % 8;
     let inner_y = y % 8;
@@ -124,8 +124,8 @@ impl GPU {
     }
 
     fn render_scanline(&mut self, scanline_idx: u8, ram: &[u8]) {
-        let scroll_x = ram[address::SCX_REGISTER as usize];
-        let scroll_y = ram[address::SCY_REGISTER as usize];
+        let scroll_x = ram[address::SCX_REGISTER];
+        let scroll_y = ram[address::SCY_REGISTER];
 
         let pitch = RESOLUTION_W as usize * 4;
         let start_idx = scanline_idx as usize * pitch;
@@ -162,7 +162,7 @@ impl GPU {
             //TODO actually use this value to copy a line to the screen
 
             let scanline_idx = {
-                let scanline_idx = &mut cpu.RAM[address::LY_REGISTER as usize];
+                let scanline_idx = &mut cpu.RAM[address::LY_REGISTER];
                 *scanline_idx = (*scanline_idx + 1) % LY_VALUES_COUNT;
                 *scanline_idx
             };

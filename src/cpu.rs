@@ -72,7 +72,7 @@ impl<'a> CPU<'a> {
 
         //setup stuff
         assert!(
-            rom[address::CARTRIDGE_TYPE as usize] == 0,
+            rom[address::CARTRIDGE_TYPE] == 0,
             "Not a ROM-Only ROM, not supported"
         );
 
@@ -169,7 +169,7 @@ impl<'a> CPU<'a> {
 
     pub fn set_address(&mut self, addr: u16, val: u8) {
         //TODO how to not check this for every set ever?
-        if addr == address::INTERNAL_ROM_TURN_OFF && val == 1 {
+        if addr == address::INTERNAL_ROM_TURN_OFF as u16 && val == 1 {
             //replace the Nintendo boot ROM with the first 256 bytes of the cart
             self.RAM[0..0x100].copy_from_slice(&self.cartridge_ROM[0..0x100]);
         }
