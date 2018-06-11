@@ -77,7 +77,7 @@ fn main() {
     let gl_version = OpenGL::V3_2;
     let mut window: GlutinWindow = WindowSettings::new(
         "worldgentest",
-        [gpu::RESOLUTION_W * scale, gpu::RESOLUTION_H * scale],
+        [gpu::RESOLUTION_W as u32 * scale, gpu::RESOLUTION_H as u32 * scale],
     ).opengl(gl_version)
         .exit_on_esc(true)
         .build()
@@ -92,8 +92,11 @@ fn main() {
         bench_mode: false,
         lazy: false,
         swap_buffers: true,
-        ups_reset: 0,
+        ups_reset: 2,
     });
+
+    // let lslsls = EventSettings::new();
+    // let mut events = Events::new(lslsls);
 
     while let Some(e) = events.next(&mut window) {
         if let Some(_) = e.update_args() {

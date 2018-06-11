@@ -11,7 +11,6 @@ use opengl_graphics::OpenGL;
 use opengl_graphics::Texture;
 use opengl_graphics::TextureSettings;
 use piston::input::RenderArgs;
-use piston::window::Size;
 use std::time::Duration;
 use std::time::Instant;
 
@@ -25,8 +24,8 @@ const VERTICAL_SYNC_HZ: f64 = 59.73;
 const VERTICAL_SYNC_INTERVAL: Duration =
     Duration::from_nanos((1000000000.0 / VERTICAL_SYNC_HZ) as u64);
 
-pub const RESOLUTION_W: u32 = 160;
-pub const RESOLUTION_H: u32 = 144;
+pub const RESOLUTION_W: u8 = 160;
+pub const RESOLUTION_H: u8 = 144;
 
 #[allow(unused)]
 const INTERNAL_RESOLUTION_W: u32 = 256;
@@ -60,15 +59,16 @@ const MIN_SPRITE_SIZE_H: u32 = 8;
 #[allow(non_snake_case)]
 pub struct GPU {
     gl: GlGraphics,
-    next_ly_update_time: Instant,
+    next_scanline_time: Instant,
     next_vsync_time: Instant,
-    screen_buffer: RgbaImage,
+    front_buffer: RgbaImage,
+    back_buffer: RgbaImage,
     screen_texture: Texture,
 }
 
 impl GPU {
     pub fn new(gl_version: OpenGL) -> Self {
-        let img = RgbaImage::from_fn(RESOLUTION_W, RESOLUTION_H, |x, y| {
+        let img = RgbaImage::from_fn(RESOLUTION_W as u32, RESOLUTION_H as u32, |x, _| {
             Rgba::from_channels(10, 100 * (x % 2) as u8, 200, 255)
         });
 
@@ -77,24 +77,51 @@ impl GPU {
 
         GPU {
             gl: GlGraphics::new(gl_version),
-            next_ly_update_time: Instant::now(),
+            next_scanline_time: Instant::now(),
             next_vsync_time: Instant::now(),
             screen_texture: Texture::from_image(&img, &texture_settings),
-            screen_buffer: img,
+            front_buffer: img.clone(),
+            back_buffer: RgbaImage::from_fn(RESOLUTION_W as u32, RESOLUTION_H as u32, |x, _| {
+                Rgba::from_channels(100, 0 * (x % 2) as u8, 200, 255)
+            }),
+        }
+    }
+
+    fn render_scanline(&mut self, scanline_idx: u8, ram: &mut [u8]) {
+        let pitch = RESOLUTION_W as usize * 4;
+        let start_idx = scanline_idx as usize * pitch;
+        let end_idx = start_idx + pitch;
+
+        let line = self.front_buffer.get_mut(start_idx..end_idx).unwrap();
+
+        for i in 0..line.len() {
+            line[i] = 255;
         }
     }
 
     pub fn tick(&mut self, cpu: &mut CPU) {
         let now = Instant::now();
-        if now >= self.next_ly_update_time {
+        if now >= self.next_scanline_time {
             //increment the LY line every fixed time
             //TODO actually use this value to copy a line to the screen
 
-            let ly = &mut cpu.RAM[LY_REGISTER_ADDRESS as usize];
-            *ly = (*ly + 1) % LY_VALUES_COUNT;
+            let scanline_idx = {
+                let scanline_idx = &mut cpu.RAM[LY_REGISTER_ADDRESS as usize];
+                *scanline_idx = (*scanline_idx + 1) % LY_VALUES_COUNT;
+                *scanline_idx
+            };
+
+            if scanline_idx < RESOLUTION_H {
+                self.render_scanline(scanline_idx, &mut cpu.RAM);
+            }
+
+            //vblank started, swap buffers
+            if scanline_idx == RESOLUTION_H {
+                std::mem::swap(&mut self.front_buffer, &mut self.back_buffer)
+            }
 
             let ly_update_interval = VERTICAL_SYNC_INTERVAL / (LY_VALUES_COUNT as u32);
-            self.next_ly_update_time += ly_update_interval;
+            self.next_scanline_time += ly_update_interval;
         }
     }
 
@@ -107,7 +134,7 @@ impl GPU {
             const GREEN: [f32; 4] = [0.0, 1.0, 0.0, 1.0];
 
             //send the cpu-made texture to the CPU
-            self.screen_texture.update(&self.screen_buffer);
+            self.screen_texture.update(&self.back_buffer);
 
             let c = self.gl.draw_begin(args.viewport());
 
