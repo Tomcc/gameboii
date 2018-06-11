@@ -131,12 +131,6 @@ const LCDC_REGISTER_ADDRESS: u16 = 0xff40;
 const STAT_REGISTER_ADDRESS: u16 = 0xff41;
 
 #[allow(unused)]
-const SCY_REGISTER_ADDRESS: u16 = 0xff42;
-
-#[allow(unused)]
-const SCX_REGISTER_ADDRESS: u16 = 0xff43;
-
-#[allow(unused)]
 const LYC_REGISTER_ADDRESS: u16 = 0xff45;
 
 #[allow(unused)]

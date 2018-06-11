@@ -1,6 +1,7 @@
 extern crate graphics;
 extern crate std;
 
+use bit_field::BitField;
 use cpu::CPU;
 use image::Pixel;
 use image::Rgba;
@@ -17,6 +18,9 @@ use std::time::Instant;
 const LY_VALUES_COUNT: u8 = 153 + 1;
 const LY_REGISTER_ADDRESS: u16 = 0xff44;
 
+const SCY_REGISTER_ADDRESS: u16 = 0xff42;
+const SCX_REGISTER_ADDRESS: u16 = 0xff43;
+
 #[allow(unused)]
 const HORIZONTAL_SYNC_HZ: u64 = 9198000;
 
@@ -32,9 +36,14 @@ const INTERNAL_RESOLUTION_W: u32 = 256;
 #[allow(unused)]
 const INTERNAL_RESOLUTION_H: u32 = 256;
 #[allow(unused)]
-const TILE_RESOLUTION_W: u32 = 32;
+const TILE_RESOLUTION_W: u8 = 32;
 #[allow(unused)]
-const TILE_RESOLUTION_H: u32 = 32;
+const TILE_RESOLUTION_H: u8 = 32;
+const TILE_SIZE_BYTES: u16 = 8 * 8 * 2;
+
+const TILE_MAP0_ADDRESS: u16 = 0x9800;
+#[allow(unused)]
+const TILE_MAP1_ADDRESS: u16 = 0x9C00;
 #[allow(unused)]
 const UNSIGNED_BACKGROUND_DATA_TABLE_ADDRESS: u16 = 0x8000;
 #[allow(unused)]
@@ -55,6 +64,49 @@ const MAX_SPRITE_SIZE_H: u32 = 16;
 const MIN_SPRITE_SIZE_W: u32 = 8;
 #[allow(unused)]
 const MIN_SPRITE_SIZE_H: u32 = 8;
+
+fn gb_level_to_color(level: u8, ram: &[u8]) -> Rgba<u8> {
+    //TODO use the palette register for additional lookup
+
+    match level {
+        0 => Rgba::from_channels(0, 0, 0, 255),
+        1 => Rgba::from_channels(84, 84, 84, 255),
+        2 => Rgba::from_channels(167, 167, 167, 255),
+        3 => Rgba::from_channels(255, 255, 255, 255),
+        _ => panic!("Invalid level"),
+    }
+}
+
+fn get_level_in_tile(x: u8, y: u8, tile_data: &[u8]) -> u8 {
+    //tiles are stored super weird: each row is 2 bytes
+    //but the bits of the same pixel are in both bytes
+    //x is the bit index
+    let byte_offset = y * 2;
+
+    let bit1 = tile_data[byte_offset as usize + 0].get_bit(x as usize) as u8;
+    let bit2 = tile_data[byte_offset as usize + 1].get_bit(x as usize) as u8;
+    
+    (bit1 << 1) | bit2
+}
+
+fn get_bg_level(x: u8, y: u8, ram: &[u8], window: bool) -> u8 {
+    let tile_x = x / 8;
+    let tile_y = y / 8;
+    let tile_idx = tile_x as u16 + tile_y as u16 * TILE_RESOLUTION_W as u16;
+
+    //TODO decide if to use map0 or map1
+    let tile_id = ram[(TILE_MAP0_ADDRESS + tile_idx) as usize];
+
+    //TODO all the absolute madness about tile address mode
+    let base_addr = UNSIGNED_BACKGROUND_DATA_TABLE_ADDRESS;
+    let tile_data_start = base_addr + tile_id as u16 * TILE_SIZE_BYTES;
+    let tile_data_end = tile_data_start + TILE_SIZE_BYTES;
+    let tile_data = &ram[tile_data_start as usize..tile_data_end as usize];
+
+    let inner_x = x % 8;
+    let inner_y = y % 8;
+    get_level_in_tile(inner_x, inner_y, tile_data)
+}
 
 #[allow(non_snake_case)]
 pub struct GPU {
@@ -81,21 +133,39 @@ impl GPU {
             next_vsync_time: Instant::now(),
             screen_texture: Texture::from_image(&img, &texture_settings),
             front_buffer: img.clone(),
-            back_buffer: RgbaImage::from_fn(RESOLUTION_W as u32, RESOLUTION_H as u32, |x, _| {
-                Rgba::from_channels(100, 0 * (x % 2) as u8, 200, 255)
-            }),
+            back_buffer: img,
         }
     }
 
-    fn render_scanline(&mut self, scanline_idx: u8, ram: &mut [u8]) {
+    fn render_scanline(&mut self, scanline_idx: u8, ram: &[u8]) {
+        let scroll_x = ram[SCX_REGISTER_ADDRESS as usize];
+        let scroll_y = ram[SCY_REGISTER_ADDRESS as usize];
+
         let pitch = RESOLUTION_W as usize * 4;
         let start_idx = scanline_idx as usize * pitch;
         let end_idx = start_idx + pitch;
 
         let line = self.front_buffer.get_mut(start_idx..end_idx).unwrap();
 
-        for i in 0..line.len() {
-            line[i] = 255;
+        let mut x = scroll_x;
+        let y = scroll_y + scanline_idx;
+
+        //TODO window mode
+        let window = false;
+
+        let mut i = 0;
+        while i < line.len() {
+            //TODO this could be 8 times faster by looking up a tile
+            //only when entering rather than all the time
+            let level = get_bg_level(x, y, ram, window);
+            let color = gb_level_to_color(level, ram);
+
+            line[i + 0] = color[0];
+            line[i + 1] = color[1];
+            line[i + 2] = color[2];
+
+            i += 4;
+            x += 1;
         }
     }
 
