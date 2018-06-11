@@ -24,7 +24,7 @@ pub union Register {
 
 //the RAM size is max addr + 1
 const RAM_SIZE: usize = 0xFFFF + 1;
-const MACHINE_HZ: u64 = 4194304;
+pub const MACHINE_HZ: u64 = 4194304;
 
 #[allow(unused)]
 const VERTICAL_BLANK_INTERRUPT_START_ADDRESS: u16 = 0x40;

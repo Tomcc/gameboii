@@ -83,17 +83,26 @@ fn main() {
         .build()
         .unwrap();
 
-    let mut gpu = GPU::new(gl_version, window.size());
+    let mut gpu = GPU::new(gl_version);
     let mut cpu = CPU::new(&rom, do_log);
 
-    let mut events = Events::new(EventSettings::new());
+    let mut events = Events::new(EventSettings {
+        max_fps: 60,
+        ups: cpu::MACHINE_HZ, //TODO it would be neat to use events to push the clock and the gpu
+        bench_mode: false,
+        lazy: false,
+        swap_buffers: true,
+        ups_reset: 0,
+    });
+
     while let Some(e) = events.next(&mut window) {
         if let Some(_) = e.update_args() {
             cpu.tick();
+            gpu.tick(&mut cpu);
         }
 
         if let Some(r) = e.render_args() {
-            gpu.tick(&mut cpu, &r);
+            gpu.render(&r);
         }
     }
 }

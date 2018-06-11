@@ -60,7 +60,6 @@ const MIN_SPRITE_SIZE_H: u32 = 8;
 #[allow(non_snake_case)]
 pub struct GPU {
     gl: GlGraphics,
-    real_size: Size,
     next_ly_update_time: Instant,
     next_vsync_time: Instant,
     screen_buffer: RgbaImage,
@@ -68,7 +67,7 @@ pub struct GPU {
 }
 
 impl GPU {
-    pub fn new(gl_version: OpenGL, real_size: Size) -> Self {
+    pub fn new(gl_version: OpenGL) -> Self {
         let img = RgbaImage::from_fn(RESOLUTION_W, RESOLUTION_H, |x, y| {
             Rgba::from_channels(10, 100 * (x % 2) as u8, 200, 255)
         });
@@ -77,7 +76,6 @@ impl GPU {
         texture_settings.set_filter(Filter::Nearest);
 
         GPU {
-            real_size: real_size,
             gl: GlGraphics::new(gl_version),
             next_ly_update_time: Instant::now(),
             next_vsync_time: Instant::now(),
@@ -86,9 +84,8 @@ impl GPU {
         }
     }
 
-    pub fn tick(&mut self, cpu: &mut CPU, args: &RenderArgs) {
+    pub fn tick(&mut self, cpu: &mut CPU) {
         let now = Instant::now();
-
         if now >= self.next_ly_update_time {
             //increment the LY line every fixed time
             //TODO actually use this value to copy a line to the screen
@@ -99,6 +96,10 @@ impl GPU {
             let ly_update_interval = VERTICAL_SYNC_INTERVAL / (LY_VALUES_COUNT as u32);
             self.next_ly_update_time += ly_update_interval;
         }
+    }
+
+    pub fn render(&mut self, args: &RenderArgs) {
+        let now = Instant::now();
         if now >= self.next_vsync_time {
             //video update
             use graphics::*;
