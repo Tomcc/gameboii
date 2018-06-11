@@ -1,6 +1,10 @@
 extern crate bit_field;
 extern crate clap;
-extern crate orbclient;
+extern crate glutin_window;
+extern crate graphics;
+extern crate image;
+extern crate opengl_graphics;
+extern crate piston;
 extern crate regex;
 
 #[macro_use]
@@ -16,7 +20,13 @@ mod interpreter;
 
 use clap::{App, Arg};
 use cpu::CPU;
+use glutin_window::GlutinWindow;
 use gpu::GPU;
+use opengl_graphics::OpenGL;
+use piston::event_loop::*;
+use piston::input::*;
+use piston::window::Window;
+use piston::window::WindowSettings;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
@@ -62,11 +72,28 @@ fn main() {
 
     let do_log = matches.is_present("debug_log");
 
-    let mut gpu = GPU::new();
+    // Create an Glutin window.
+    let scale = 4;
+    let gl_version = OpenGL::V3_2;
+    let mut window: GlutinWindow = WindowSettings::new(
+        "worldgentest",
+        [gpu::RESOLUTION_W * scale, gpu::RESOLUTION_H * scale],
+    ).opengl(gl_version)
+        .exit_on_esc(true)
+        .build()
+        .unwrap();
+
+    let mut gpu = GPU::new(gl_version, window.size());
     let mut cpu = CPU::new(&rom, do_log);
 
-    loop {
-        cpu.tick();
-        gpu.tick(&mut cpu);
+    let mut events = Events::new(EventSettings::new());
+    while let Some(e) = events.next(&mut window) {
+        if let Some(_) = e.update_args() {
+            cpu.tick();
+        }
+
+        if let Some(r) = e.render_args() {
+            gpu.tick(&mut cpu, &r);
+        }
     }
 }
