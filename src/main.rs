@@ -12,6 +12,7 @@ extern crate serde_derive;
 extern crate serde;
 extern crate serde_json;
 
+mod address;
 mod cpu;
 mod debug_log;
 mod function_stubs;
@@ -25,7 +26,6 @@ use gpu::GPU;
 use opengl_graphics::OpenGL;
 use piston::event_loop::*;
 use piston::input::*;
-use piston::window::Window;
 use piston::window::WindowSettings;
 use std::fs::File;
 use std::io::Read;
@@ -77,7 +77,10 @@ fn main() {
     let gl_version = OpenGL::V3_2;
     let mut window: GlutinWindow = WindowSettings::new(
         "worldgentest",
-        [gpu::RESOLUTION_W as u32 * scale, gpu::RESOLUTION_H as u32 * scale],
+        [
+            gpu::RESOLUTION_W as u32 * scale,
+            gpu::RESOLUTION_H as u32 * scale,
+        ],
     ).opengl(gl_version)
         .exit_on_esc(true)
         .build()

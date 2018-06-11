@@ -1,8 +1,8 @@
 extern crate std;
 
+use address;
 use bit_field::BitField;
 use debug_log::Log;
-use gpu::GPU;
 use interpreter;
 use std::fs::File;
 use std::io::Read;
@@ -25,134 +25,6 @@ pub union Register {
 //the RAM size is max addr + 1
 const RAM_SIZE: usize = 0xFFFF + 1;
 pub const MACHINE_HZ: u64 = 4194304;
-
-#[allow(unused)]
-const VERTICAL_BLANK_INTERRUPT_START_ADDRESS: u16 = 0x40;
-#[allow(unused)]
-const LCDC_STATUS_INTERRUPT_START_ADDRESS: u16 = 0x48;
-#[allow(unused)]
-const SERIAL_TRANSFER_COMPLETION_INTERRUPT_START_ADDRESS: u16 = 0x58;
-#[allow(unused)]
-const HIGH_TO_LOW_P10_P13_INTERRUPT_START_ADDRESS: u16 = 0x60;
-#[allow(unused)]
-const COLOR_GB_ENABLE_ADDRESS: u16 = 0x143;
-#[allow(unused)]
-const SUPER_GB_ENABLE_ADDRESS: u16 = 0x146;
-const CARTRIDGE_TYPE_ADDRESS: u16 = 0x147;
-#[allow(unused)]
-const ROM_SIZE_ADDRESS: u16 = 0x148;
-#[allow(unused)]
-const RAM_SIZE_ADDRESS: u16 = 0x149;
-const INTERNAL_ROM_TURN_OFF_ADDRESS: u16 = 0xff50;
-
-//P10 to P15 bits are the buttons
-#[allow(unused)]
-const P1_REGISTER_ADDRESS: u16 = 0xff00;
-
-//serial transfer data
-#[allow(unused)]
-const SB_REGISTER_ADDRESS: u16 = 0xff01;
-
-//Serial IO control bits
-#[allow(unused)]
-const SC_REGISTER_ADDRESS: u16 = 0xff02;
-
-//timer divider factor
-//writing any value sets it to 0
-#[allow(unused)]
-const DIV_REGISTER_ADDRESS: u16 = 0xff04;
-
-//Timer counter, generates an interrupt on 8-bit overflow
-#[allow(unused)]
-const TIMA_REGISTER_ADDRESS: u16 = 0xff05;
-
-//this data is loaded on overflow of TIMA
-#[allow(unused)]
-const TMA_REGISTER_ADDRESS: u16 = 0xff06;
-
-//timer control, start/stop and freq selection
-#[allow(unused)]
-const TAC_REGISTER_ADDRESS: u16 = 0xff07;
-
-//Interrupt FLag
-#[allow(unused)]
-const IF_REGISTER_ADDRESS: u16 = 0xff0f;
-
-//Sound modes
-#[allow(unused)]
-const NR10_REGISTER_ADDRESS: u16 = 0xff10;
-#[allow(unused)]
-const NR11_REGISTER_ADDRESS: u16 = 0xff11;
-#[allow(unused)]
-const NR12_REGISTER_ADDRESS: u16 = 0xff12;
-#[allow(unused)]
-const NR13_REGISTER_ADDRESS: u16 = 0xff13;
-#[allow(unused)]
-const NR14_REGISTER_ADDRESS: u16 = 0xff14;
-#[allow(unused)]
-const NR21_REGISTER_ADDRESS: u16 = 0xff16;
-#[allow(unused)]
-const NR22_REGISTER_ADDRESS: u16 = 0xff17;
-#[allow(unused)]
-const NR23_REGISTER_ADDRESS: u16 = 0xff18;
-#[allow(unused)]
-const NR24_REGISTER_ADDRESS: u16 = 0xff19;
-#[allow(unused)]
-const NR30_REGISTER_ADDRESS: u16 = 0xff1a;
-#[allow(unused)]
-const NR31_REGISTER_ADDRESS: u16 = 0xff1b;
-#[allow(unused)]
-const NR32_REGISTER_ADDRESS: u16 = 0xff1c;
-#[allow(unused)]
-const NR33_REGISTER_ADDRESS: u16 = 0xff1d;
-#[allow(unused)]
-const NR34_REGISTER_ADDRESS: u16 = 0xff1e;
-#[allow(unused)]
-const NR41_REGISTER_ADDRESS: u16 = 0xff20;
-#[allow(unused)]
-const NR42_REGISTER_ADDRESS: u16 = 0xff21;
-#[allow(unused)]
-const NR43_REGISTER_ADDRESS: u16 = 0xff22;
-#[allow(unused)]
-const NR44_REGISTER_ADDRESS: u16 = 0xff23;
-#[allow(unused)]
-const NR50_REGISTER_ADDRESS: u16 = 0xff24;
-#[allow(unused)]
-const NR51_REGISTER_ADDRESS: u16 = 0xff25;
-#[allow(unused)]
-const NR52_REGISTER_ADDRESS: u16 = 0xff26;
-#[allow(unused)]
-const WAVE_PATTERN_RAM_ADDRESS: u16 = 0xff30;
-
-#[allow(unused)]
-const LCDC_REGISTER_ADDRESS: u16 = 0xff40;
-
-#[allow(unused)]
-const STAT_REGISTER_ADDRESS: u16 = 0xff41;
-
-#[allow(unused)]
-const LYC_REGISTER_ADDRESS: u16 = 0xff45;
-
-#[allow(unused)]
-const DMA_REGISTER_ADDRESS: u16 = 0xff46;
-
-#[allow(unused)]
-const BGP_REGISTER_ADDRESS: u16 = 0xff47;
-
-#[allow(unused)]
-const OBP0_REGISTER_ADDRESS: u16 = 0xff48;
-
-#[allow(unused)]
-const OBP1_REGISTER_ADDRESS: u16 = 0xff49;
-
-#[allow(unused)]
-const WX_REGISTER_ADDRESS: u16 = 0xff4a;
-
-#[allow(unused)]
-const WY_REGISTER_ADDRESS: u16 = 0xff4b;
-
-#[allow(unused)]
-const IE_REGISTER_ADDRESS: u16 = 0xffff;
 
 //derived data
 const TICK_DURATION: Duration = Duration::from_nanos(1000000000 / MACHINE_HZ);
@@ -200,7 +72,7 @@ impl<'a> CPU<'a> {
 
         //setup stuff
         assert!(
-            rom[CARTRIDGE_TYPE_ADDRESS as usize] == 0,
+            rom[address::CARTRIDGE_TYPE as usize] == 0,
             "Not a ROM-Only ROM, not supported"
         );
 
@@ -297,7 +169,7 @@ impl<'a> CPU<'a> {
 
     pub fn set_address(&mut self, addr: u16, val: u8) {
         //TODO how to not check this for every set ever?
-        if addr == INTERNAL_ROM_TURN_OFF_ADDRESS && val == 1 {
+        if addr == address::INTERNAL_ROM_TURN_OFF && val == 1 {
             //replace the Nintendo boot ROM with the first 256 bytes of the cart
             self.RAM[0..0x100].copy_from_slice(&self.cartridge_ROM[0..0x100]);
         }

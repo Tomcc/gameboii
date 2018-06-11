@@ -1,6 +1,7 @@
 extern crate graphics;
 extern crate std;
 
+use address;
 use bit_field::BitField;
 use cpu::CPU;
 use image::Pixel;
@@ -16,10 +17,6 @@ use std::time::Duration;
 use std::time::Instant;
 
 const LY_VALUES_COUNT: u8 = 153 + 1;
-const LY_REGISTER_ADDRESS: u16 = 0xff44;
-
-const SCY_REGISTER_ADDRESS: u16 = 0xff42;
-const SCX_REGISTER_ADDRESS: u16 = 0xff43;
 
 #[allow(unused)]
 const HORIZONTAL_SYNC_HZ: u64 = 9198000;
@@ -41,17 +38,6 @@ const TILE_RESOLUTION_W: u8 = 32;
 const TILE_RESOLUTION_H: u8 = 32;
 const TILE_SIZE_BYTES: u16 = 8 * 8 * 2;
 
-const TILE_MAP0_ADDRESS: u16 = 0x9800;
-#[allow(unused)]
-const TILE_MAP1_ADDRESS: u16 = 0x9C00;
-#[allow(unused)]
-const UNSIGNED_BACKGROUND_DATA_TABLE_ADDRESS: u16 = 0x8000;
-#[allow(unused)]
-const SIGNED_BACKGROUND_DATA_TABLE_ADDRESS: u16 = 0x8800;
-#[allow(unused)]
-const SPRITE_PATTERN_TABLE_ADDRESS: u16 = 0x8000; //same as background data???
-#[allow(unused)]
-const SPRITE_ATTRIBUTE_TABLE_ADDRESS: u16 = 0xFE00;
 #[allow(unused)]
 const MAX_SPRITES: u32 = 40;
 #[allow(unused)]
@@ -85,7 +71,7 @@ fn get_level_in_tile(x: u8, y: u8, tile_data: &[u8]) -> u8 {
 
     let bit1 = tile_data[byte_offset as usize + 0].get_bit(x as usize) as u8;
     let bit2 = tile_data[byte_offset as usize + 1].get_bit(x as usize) as u8;
-    
+
     (bit1 << 1) | bit2
 }
 
@@ -95,10 +81,10 @@ fn get_bg_level(x: u8, y: u8, ram: &[u8], window: bool) -> u8 {
     let tile_idx = tile_x as u16 + tile_y as u16 * TILE_RESOLUTION_W as u16;
 
     //TODO decide if to use map0 or map1
-    let tile_id = ram[(TILE_MAP0_ADDRESS + tile_idx) as usize];
+    let tile_id = ram[(address::TILE_MAP0 + tile_idx) as usize];
 
     //TODO all the absolute madness about tile address mode
-    let base_addr = UNSIGNED_BACKGROUND_DATA_TABLE_ADDRESS;
+    let base_addr = address::UNSIGNED_BACKGROUND_DATA_TABLE;
     let tile_data_start = base_addr + tile_id as u16 * TILE_SIZE_BYTES;
     let tile_data_end = tile_data_start + TILE_SIZE_BYTES;
     let tile_data = &ram[tile_data_start as usize..tile_data_end as usize];
@@ -138,8 +124,8 @@ impl GPU {
     }
 
     fn render_scanline(&mut self, scanline_idx: u8, ram: &[u8]) {
-        let scroll_x = ram[SCX_REGISTER_ADDRESS as usize];
-        let scroll_y = ram[SCY_REGISTER_ADDRESS as usize];
+        let scroll_x = ram[address::SCX_REGISTER as usize];
+        let scroll_y = ram[address::SCY_REGISTER as usize];
 
         let pitch = RESOLUTION_W as usize * 4;
         let start_idx = scanline_idx as usize * pitch;
@@ -176,7 +162,7 @@ impl GPU {
             //TODO actually use this value to copy a line to the screen
 
             let scanline_idx = {
-                let scanline_idx = &mut cpu.RAM[LY_REGISTER_ADDRESS as usize];
+                let scanline_idx = &mut cpu.RAM[address::LY_REGISTER as usize];
                 *scanline_idx = (*scanline_idx + 1) % LY_VALUES_COUNT;
                 *scanline_idx
             };
