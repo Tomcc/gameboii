@@ -81,7 +81,7 @@ impl<'a> CPU<'a> {
         );
 
         // override the first 256 bytes with the Nintendo boot ROM
-        File::open("DMG_ROM.bin")
+        File::open("ROMs/DMG_ROM.bin")
             .unwrap()
             .read_exact(&mut cpu.RAM[0..0x100])
             .unwrap();
@@ -159,7 +159,7 @@ impl<'a> CPU<'a> {
         //          --------------------------- 0000 -
 
         //    * NOTE: b = bit, B = byte
-        
+
         //TODO the address space and interrupts are a lot more complex than that...
         self.RAM[addr as usize]
     }
@@ -183,20 +183,19 @@ impl<'a> CPU<'a> {
         self.RAM[addr as usize] = val;
 
         let addr = addr as usize;
-        if addr >= address::UNSIGNED_TILE_DATA_TABLE_START && addr < 0x97FF && val > 0{
+        if addr >= address::UNSIGNED_TILE_DATA_TABLE_START && addr < 0x97FF && val > 0 {
             self.bg_writes.push(addr);
         }
     }
 
     pub fn set_address16(&mut self, addr: u16, val: u16) {
-
         address::check_unimplemented(addr);
 
         self.RAM[addr as usize] = val as u8;
         self.RAM[addr as usize + 1] = (val >> 8) as u8;
-        
+
         let addr = addr as usize;
-        if addr >= address::UNSIGNED_TILE_DATA_TABLE_START && addr < 0x97FF && val > 0{
+        if addr >= address::UNSIGNED_TILE_DATA_TABLE_START && addr < 0x97FF && val > 0 {
             self.bg_writes.push(addr);
         }
     }
