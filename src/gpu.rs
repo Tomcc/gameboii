@@ -36,7 +36,7 @@ const INTERNAL_RESOLUTION_H: u32 = 256;
 const TILE_RESOLUTION_W: u8 = 32;
 #[allow(unused)]
 const TILE_RESOLUTION_H: u8 = 32;
-const TILE_SIZE_BYTES: u16 = 8 * 8 * 2;
+const TILE_SIZE_BYTES: usize = 8 * 2;
 
 #[allow(unused)]
 const MAX_SPRITES: u32 = 40;
@@ -92,7 +92,7 @@ impl LCDCValues {
             )
         } else {
             (
-                address::SIGNED_TILE_DATA_TABLE_END,
+                address::SIGNED_TILE_DATA_TABLE_START,
                 TileDataAddressing::Signed,
             )
         }
@@ -139,10 +139,10 @@ fn get_level_in_tile(x: u8, y: u8, tile_data: &[u8]) -> u8 {
     //tiles are stored super weird: each row is 2 bytes
     //but the bits of the same pixel are in both bytes
     //x is the bit index
-    let byte_offset = y * 2;
+    let row_offset = y * 2;
 
-    let bit1 = tile_data[byte_offset as usize + 0].get_bit(x as usize) as u8;
-    let bit2 = tile_data[byte_offset as usize + 1].get_bit(x as usize) as u8;
+    let bit1 = tile_data[row_offset as usize + 0].get_bit(x as usize) as u8;
+    let bit2 = tile_data[row_offset as usize + 1].get_bit(x as usize) as u8;
 
     (bit1 << 1) | bit2
 }
@@ -155,19 +155,17 @@ fn get_bg_color_idx(x: u8, y: u8, ram: &[u8], lcd_settings: LCDCValues) -> u8 {
     //TODO all the absolute madness about tile address mode
     let tile_id = ram[lcd_settings.tile_map_addr() + tile_idx as usize];
 
-    return tile_id % 4;
+    let (base_addr, addressing) = lcd_settings.tile_data_addr_and_addressing();
 
-    // let (base_addr, addressing) = lcd_settings.tile_data_addr_and_addressing();
+    assert!(addressing == TileDataAddressing::Unsigned);
 
-    // assert!(addressing == TileDataAddressing::Unsigned);
+    let tile_data_start = base_addr + (tile_id as usize * TILE_SIZE_BYTES);
+    let tile_data_end = tile_data_start + TILE_SIZE_BYTES;
+    let tile_data = &ram[tile_data_start..tile_data_end];
 
-    // let tile_data_start = base_addr + tile_id as usize * TILE_SIZE_BYTES as usize;
-    // let tile_data_end = tile_data_start + TILE_SIZE_BYTES as usize;
-    // let tile_data = &ram[tile_data_start..tile_data_end];
-
-    // let inner_x = x % 8;
-    // let inner_y = y % 8;
-    // get_level_in_tile(inner_x, inner_y, tile_data)
+    let inner_x = x % 8;
+    let inner_y = y % 8;
+    get_level_in_tile(inner_x, inner_y, tile_data)
 }
 
 #[allow(non_snake_case)]

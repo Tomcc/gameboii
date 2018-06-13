@@ -9,15 +9,9 @@ pub const ROM_SIZE: usize = 0x148;
 pub const RAM_SIZE: usize = 0x149;
 
 pub const UNSIGNED_TILE_DATA_TABLE_START: usize = 0x8000;
-pub const UNSIGNED_TILE_DATA_TABLE_END: usize = 0x87ff;
 pub const SIGNED_TILE_DATA_TABLE_START: usize = 0x8800;
-pub const SIGNED_TILE_DATA_TABLE_END: usize = 0x97ff;
-
 pub const TILE_MAP0_START: usize = 0x9800;
-pub const TILE_MAP0_END: usize = 0x9bff;
-
 pub const TILE_MAP1_START: usize = 0x9C00;
-pub const TILE_MAP1_END: usize = 0x9fff;
 
 pub const ECHO_MEM_START: usize = 0xe000;
 pub const ECHO_MEM_END: usize = 0xfdff;
