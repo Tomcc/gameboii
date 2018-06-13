@@ -155,17 +155,19 @@ fn get_bg_color_idx(x: u8, y: u8, ram: &[u8], lcd_settings: LCDCValues) -> u8 {
     //TODO all the absolute madness about tile address mode
     let tile_id = ram[lcd_settings.tile_map_addr() + tile_idx as usize];
 
-    let (base_addr, addressing) = lcd_settings.tile_data_addr_and_addressing();
+    return tile_id % 4;
 
-    assert!(addressing == TileDataAddressing::Unsigned);
+    // let (base_addr, addressing) = lcd_settings.tile_data_addr_and_addressing();
 
-    let tile_data_start = base_addr + tile_id as usize * TILE_SIZE_BYTES as usize;
-    let tile_data_end = tile_data_start + TILE_SIZE_BYTES as usize;
-    let tile_data = &ram[tile_data_start..tile_data_end];
+    // assert!(addressing == TileDataAddressing::Unsigned);
 
-    let inner_x = x % 8;
-    let inner_y = y % 8;
-    get_level_in_tile(inner_x, inner_y, tile_data)
+    // let tile_data_start = base_addr + tile_id as usize * TILE_SIZE_BYTES as usize;
+    // let tile_data_end = tile_data_start + TILE_SIZE_BYTES as usize;
+    // let tile_data = &ram[tile_data_start..tile_data_end];
+
+    // let inner_x = x % 8;
+    // let inner_y = y % 8;
+    // get_level_in_tile(inner_x, inner_y, tile_data)
 }
 
 #[allow(non_snake_case)]

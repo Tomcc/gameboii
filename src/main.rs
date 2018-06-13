@@ -76,7 +76,7 @@ fn main() {
     let scale = 4;
     let gl_version = OpenGL::V3_2;
     let mut window: GlutinWindow = WindowSettings::new(
-        "worldgentest",
+        "gameboii",
         [
             gpu::RESOLUTION_W as u32 * scale,
             gpu::RESOLUTION_H as u32 * scale,
