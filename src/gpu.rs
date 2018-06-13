@@ -141,8 +141,8 @@ fn get_level_in_tile(x: u8, y: u8, tile_data: &[u8]) -> u8 {
     //x is the bit index
     let row_offset = y * 2;
 
-    let bit1 = tile_data[row_offset as usize + 0].get_bit(x as usize) as u8;
-    let bit2 = tile_data[row_offset as usize + 1].get_bit(x as usize) as u8;
+    let bit1 = tile_data[row_offset as usize + 0].get_bit(7 - x as usize) as u8;
+    let bit2 = tile_data[row_offset as usize + 1].get_bit(7 - x as usize) as u8;
 
     (bit1 << 1) | bit2
 }
