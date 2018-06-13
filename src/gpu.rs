@@ -63,6 +63,67 @@ fn gb_level_to_color(level: u8, ram: &[u8]) -> Rgba<u8> {
     }
 }
 
+#[derive(Eq, PartialEq)]
+enum TileDataAddressing {
+    Unsigned,
+    Signed,
+}
+
+#[derive(Clone, Copy)]
+struct LCDCValues {
+    raw: u8,
+}
+
+impl LCDCValues {
+    fn from_ram(ram: &[u8]) -> Self {
+        LCDCValues {
+            raw: ram[address::LCDC_REGISTER],
+        }
+    }
+    fn bg_on(&self) -> bool {
+        self.raw.get_bit(0)
+    }
+    fn obj_on(&self) -> bool {
+        self.raw.get_bit(1)
+    }
+    fn double_obj(&self) -> bool {
+        self.raw.get_bit(2)
+    }
+    fn tile_map_addr(&self) -> usize {
+        if self.raw.get_bit(3) {
+            address::TILE_MAP1_START
+        } else {
+            address::TILE_MAP0_START
+        }
+    }
+    fn tile_data_addr_and_addressing(&self) -> (usize, TileDataAddressing) {
+        if self.raw.get_bit(4) {
+            (
+                address::UNSIGNED_TILE_DATA_TABLE_START,
+                TileDataAddressing::Unsigned,
+            )
+        } else {
+            (
+                address::SIGNED_TILE_DATA_TABLE_END,
+                TileDataAddressing::Signed,
+            )
+        }
+    }
+    fn windowing_on(&self) -> bool {
+        self.raw.get_bit(5)
+    }
+    fn window_data_toggle(&self) -> bool {
+        self.raw.get_bit(6)
+    }
+    fn lcd_on(&self) -> bool {
+        self.raw.get_bit(7)
+    }
+}
+
+fn is_lcd_on(ram: &[u8]) -> bool {
+    ram[address::LCDC_REGISTER].get_bit(7)
+}
+
 fn get_level_in_tile(x: u8, y: u8, tile_data: &[u8]) -> u8 {
     //tiles are stored super weird: each row is 2 bytes
     //but the bits of the same pixel are in both bytes
@@ -75,16 +136,18 @@ fn get_level_in_tile(x: u8, y: u8, tile_data: &[u8]) -> u8 {
     (bit1 << 1) | bit2
 }
 
-fn get_bg_level(x: u8, y: u8, ram: &[u8], window: bool) -> u8 {
+fn get_bg_level(x: u8, y: u8, ram: &[u8], lcd_settings: LCDCValues) -> u8 {
     let tile_x = x / 8;
     let tile_y = y / 8;
     let tile_idx = tile_x as u16 + tile_y as u16 * TILE_RESOLUTION_W as u16;
 
-    //TODO decide if to use map0 or map1
-    let tile_id = ram[address::TILE_MAP0_START + tile_idx as usize];
-
     //TODO all the absolute madness about tile address mode
-    let base_addr = address::UNSIGNED_BACKGROUND_DATA_TABLE_START;
+    let tile_id = ram[lcd_settings.tile_map_addr() + tile_idx as usize];
+
+    let (base_addr, addressing) = lcd_settings.tile_data_addr_and_addressing();
+
+    assert!(addressing == TileDataAddressing::Unsigned);
+
     let tile_data_start = base_addr + tile_id as usize * TILE_SIZE_BYTES as usize;
     let tile_data_end = tile_data_start + TILE_SIZE_BYTES as usize;
     let tile_data = &ram[tile_data_start..tile_data_end];
@@ -136,26 +199,34 @@ impl GPU {
         let mut x = scroll_x;
         let y = scroll_y + scanline_idx;
 
-        //TODO window mode
-        let window = false;
+        let lcd_settings = LCDCValues::from_ram(ram);
 
-        let mut i = 0;
-        while i < line.len() {
-            //TODO this could be 8 times faster by looking up a tile
-            //only when entering rather than all the time
-            let level = get_bg_level(x, y, ram, window);
-            let color = gb_level_to_color(level, ram);
+        assert!(lcd_settings.windowing_on() == false);
+        assert!(lcd_settings.obj_on() == false);
 
-            line[i + 0] = color[0];
-            line[i + 1] = color[1];
-            line[i + 2] = color[2];
+        if lcd_settings.bg_on() {
+            let mut i = 0;
+            while i < line.len() {
+                //TODO this could be 8 times faster by looking up a tile
+                //only when entering rather than all the time
+                let level = get_bg_level(x, y, ram, lcd_settings);
+                let color = gb_level_to_color(level, ram);
 
-            i += 4;
-            x += 1;
+                line[i + 0] = color[0];
+                line[i + 1] = color[1];
+                line[i + 2] = color[2];
+
+                i += 4;
+                x += 1;
+            }
         }
     }
 
     pub fn tick(&mut self, cpu: &mut CPU) {
+        if !is_lcd_on(&cpu.RAM) {
+            return;
+        }
+
         let now = Instant::now();
         if now >= self.next_scanline_time {
             //increment the LY line every fixed time

@@ -8,10 +8,10 @@ pub const CARTRIDGE_TYPE: usize = 0x147;
 pub const ROM_SIZE: usize = 0x148;
 pub const RAM_SIZE: usize = 0x149;
 
-pub const UNSIGNED_BACKGROUND_DATA_TABLE_START: usize = 0x8000;
-pub const UNSIGNED_BACKGROUND_DATA_TABLE_END: usize = 0x87ff;
-pub const SIGNED_BACKGROUND_DATA_TABLE_START: usize = 0x8800;
-pub const SIGNED_BACKGROUND_DATA_TABLE_END: usize = 0x97ff;
+pub const UNSIGNED_TILE_DATA_TABLE_START: usize = 0x8000;
+pub const UNSIGNED_TILE_DATA_TABLE_END: usize = 0x87ff;
+pub const SIGNED_TILE_DATA_TABLE_START: usize = 0x8800;
+pub const SIGNED_TILE_DATA_TABLE_END: usize = 0x97ff;
 
 pub const TILE_MAP0_START: usize = 0x9800;
 pub const TILE_MAP0_END: usize = 0x9bff;
@@ -103,18 +103,7 @@ pub const IE_REGISTER: usize = 0xffff;
 
 pub fn check_unimplemented(address: u16) {
     let addr = address as usize;
-    if addr >= TILE_MAP0_START && addr < TILE_MAP0_END {
-        // panic!("{} unimplemented", TILE_MAP0_START);
-    }
-    if addr >= TILE_MAP1_START && addr < TILE_MAP1_END {
-        // panic!("{} unimplemented", TILE_MAP1_START);
-    }
-    if addr >= UNSIGNED_BACKGROUND_DATA_TABLE_START && addr < UNSIGNED_BACKGROUND_DATA_TABLE_END {
-        // panic!("{} unimplemented", UNSIGNED_BACKGROUND_DATA_TABLE_START);
-    }
-    if addr >= SIGNED_BACKGROUND_DATA_TABLE_START && addr < SIGNED_BACKGROUND_DATA_TABLE_END {
-        // panic!("{} unimplemented", SIGNED_BACKGROUND_DATA_TABLE_START);
-    }
+    
     if addr >= SPRITE_ATTRIBUTE_TABLE_START && addr < SPRITE_ATTRIBUTE_TABLE_END {
         panic!("{} unimplemented", SPRITE_ATTRIBUTE_TABLE_START);
     }
@@ -240,9 +229,6 @@ pub fn check_unimplemented(address: u16) {
     }
     if addr == WAVE_PATTERN_RAM {
         panic!("{} unimplemented", WAVE_PATTERN_RAM);
-    }
-    if addr == LCDC_REGISTER {
-        // panic!("{} unimplemented", LCDC_REGISTER);
     }
     if addr == STAT_REGISTER {
         panic!("{} unimplemented", STAT_REGISTER);
