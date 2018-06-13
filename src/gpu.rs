@@ -51,18 +51,6 @@ const MIN_SPRITE_SIZE_W: u32 = 8;
 #[allow(unused)]
 const MIN_SPRITE_SIZE_H: u32 = 8;
 
-fn gb_level_to_color(level: u8, ram: &[u8]) -> Rgba<u8> {
-    //TODO use the palette register for additional lookup
-
-    match level {
-        0 => Rgba::from_channels(0, 0, 0, 255),
-        1 => Rgba::from_channels(84, 84, 84, 255),
-        2 => Rgba::from_channels(167, 167, 167, 255),
-        3 => Rgba::from_channels(255, 255, 255, 255),
-        _ => panic!("Invalid level"),
-    }
-}
-
 #[derive(Eq, PartialEq)]
 enum TileDataAddressing {
     Unsigned,
@@ -120,8 +108,31 @@ impl LCDCValues {
     }
 }
 
-fn is_lcd_on(ram: &[u8]) -> bool {
-    ram[address::LCDC_REGISTER].get_bit(7)
+struct LCDPalette {
+    palette: [u8; 4],
+}
+
+impl LCDPalette {
+    fn from_register(raw: u8) -> Self {
+        LCDPalette {
+            palette: [
+                raw.get_bits(0..1),
+                raw.get_bits(2..3),
+                raw.get_bits(4..5),
+                raw.get_bits(6..7),
+            ],
+        }
+    }
+
+    fn get_color(&self, idx: usize) -> Rgba<u8> {
+        match self.palette[idx] {
+            0 => Rgba::from_channels(0, 0, 0, 255),
+            1 => Rgba::from_channels(84, 84, 84, 255),
+            2 => Rgba::from_channels(167, 167, 167, 255),
+            3 => Rgba::from_channels(255, 255, 255, 255),
+            _ => panic!("Invalid level"),
+        }
+    }
 }
 
 fn get_level_in_tile(x: u8, y: u8, tile_data: &[u8]) -> u8 {
@@ -136,7 +147,7 @@ fn get_level_in_tile(x: u8, y: u8, tile_data: &[u8]) -> u8 {
     (bit1 << 1) | bit2
 }
 
-fn get_bg_level(x: u8, y: u8, ram: &[u8], lcd_settings: LCDCValues) -> u8 {
+fn get_bg_color_idx(x: u8, y: u8, ram: &[u8], lcd_settings: LCDCValues) -> u8 {
     let tile_x = x / 8;
     let tile_y = y / 8;
     let tile_idx = tile_x as u16 + tile_y as u16 * TILE_RESOLUTION_W as u16;
@@ -202,15 +213,16 @@ impl GPU {
         let lcd_settings = LCDCValues::from_ram(ram);
 
         assert!(lcd_settings.windowing_on() == false);
-        assert!(lcd_settings.obj_on() == false);
 
         if lcd_settings.bg_on() {
+            let palette = LCDPalette::from_register(ram[address::BGP_REGISTER]);
+
             let mut i = 0;
             while i < line.len() {
                 //TODO this could be 8 times faster by looking up a tile
                 //only when entering rather than all the time
-                let level = get_bg_level(x, y, ram, lcd_settings);
-                let color = gb_level_to_color(level, ram);
+                let idx = get_bg_color_idx(x, y, ram, lcd_settings);
+                let color = palette.get_color(idx as usize);
 
                 line[i + 0] = color[0];
                 line[i + 1] = color[1];
@@ -220,10 +232,17 @@ impl GPU {
                 x += 1;
             }
         }
+
+        if lcd_settings.obj_on() {
+            let _palette0 = LCDPalette::from_register(ram[address::OBP0_REGISTER]);
+            let _palette1 = LCDPalette::from_register(ram[address::OBP1_REGISTER]);
+
+            panic!("Not implemented yet");
+        }
     }
 
     pub fn tick(&mut self, cpu: &mut CPU) {
-        if !is_lcd_on(&cpu.RAM) {
+        if LCDCValues::from_ram(&cpu.RAM).lcd_on() == false {
             return;
         }
 

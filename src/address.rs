@@ -103,7 +103,7 @@ pub const IE_REGISTER: usize = 0xffff;
 
 pub fn check_unimplemented(address: u16) {
     let addr = address as usize;
-    
+
     if addr >= SPRITE_ATTRIBUTE_TABLE_START && addr < SPRITE_ATTRIBUTE_TABLE_END {
         panic!("{} unimplemented", SPRITE_ATTRIBUTE_TABLE_START);
     }
@@ -247,15 +247,6 @@ pub fn check_unimplemented(address: u16) {
     }
     if addr == DMA_REGISTER {
         panic!("{} unimplemented", DMA_REGISTER);
-    }
-    if addr == BGP_REGISTER {
-        // panic!("{} unimplemented", BGP_REGISTER);
-    }
-    if addr == OBP0_REGISTER {
-        panic!("{} unimplemented", OBP0_REGISTER);
-    }
-    if addr == OBP1_REGISTER {
-        panic!("{} unimplemented", OBP1_REGISTER);
     }
     if addr == WX_REGISTER {
         panic!("{} unimplemented", WX_REGISTER);
