@@ -116,20 +116,20 @@ impl LCDPalette {
     fn from_register(raw: u8) -> Self {
         LCDPalette {
             palette: [
-                raw.get_bits(0..1),
-                raw.get_bits(2..3),
-                raw.get_bits(4..5),
-                raw.get_bits(6..7),
+                raw.get_bits(0..2),
+                raw.get_bits(2..4),
+                raw.get_bits(4..6),
+                raw.get_bits(6..8),
             ],
         }
     }
 
     fn get_color(&self, idx: usize) -> Rgba<u8> {
         match self.palette[idx] {
-            0 => Rgba::from_channels(0, 0, 0, 255),
-            1 => Rgba::from_channels(84, 84, 84, 255),
-            2 => Rgba::from_channels(167, 167, 167, 255),
-            3 => Rgba::from_channels(255, 255, 255, 255),
+            3 => Rgba::from_channels(0, 0, 0, 255),
+            2 => Rgba::from_channels(84, 84, 84, 255),
+            1 => Rgba::from_channels(167, 167, 167, 255),
+            0 => Rgba::from_channels(255, 255, 255, 255),
             _ => panic!("Invalid level"),
         }
     }
