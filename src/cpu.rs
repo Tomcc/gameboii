@@ -48,6 +48,8 @@ pub struct CPU<'a> {
     next_clock_time: Instant,
     cartridge_ROM: &'a [u8],
     log: Option<Log>,
+
+    pub bg_writes: Vec<usize>,
 }
 
 impl<'a> CPU<'a> {
@@ -65,6 +67,8 @@ impl<'a> CPU<'a> {
             next_clock_time: Instant::now(),
             cartridge_ROM: rom,
             log: if do_log { Some(Log::new()) } else { None },
+
+            bg_writes: vec![],
         };
 
         //copy the ROM in memory
@@ -177,6 +181,11 @@ impl<'a> CPU<'a> {
         address::check_unimplemented(addr);
 
         self.RAM[addr as usize] = val;
+
+        let addr = addr as usize;
+        if addr >= address::UNSIGNED_TILE_DATA_TABLE_START && addr < 0x97FF && val > 0{
+            self.bg_writes.push(addr);
+        }
     }
 
     pub fn set_address16(&mut self, addr: u16, val: u16) {
@@ -185,6 +194,11 @@ impl<'a> CPU<'a> {
 
         self.RAM[addr as usize] = val as u8;
         self.RAM[addr as usize + 1] = (val >> 8) as u8;
+        
+        let addr = addr as usize;
+        if addr >= address::UNSIGNED_TILE_DATA_TABLE_START && addr < 0x97FF && val > 0{
+            self.bg_writes.push(addr);
+        }
     }
 
     pub fn offset_sp(&self, _off: i8) -> u16 {

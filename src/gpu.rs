@@ -147,19 +147,21 @@ fn get_level_in_tile(x: u8, y: u8, tile_data: &[u8]) -> u8 {
     (bit1 << 1) | bit2
 }
 
-fn get_bg_color_idx(x: u8, y: u8, ram: &[u8], lcd_settings: LCDCValues) -> u8 {
+fn get_tile(x: u8, y: u8, ram: &[u8], lcd_settings: LCDCValues) -> usize {
     let tile_x = x / 8;
     let tile_y = y / 8;
     let tile_idx = tile_x as u16 + tile_y as u16 * TILE_RESOLUTION_W as u16;
 
-    //TODO all the absolute madness about tile address mode
-    let tile_id = ram[lcd_settings.tile_map_addr() + tile_idx as usize];
+    ram[lcd_settings.tile_map_addr() + tile_idx as usize] as usize
+}
 
+fn get_tile_color_idx(x: u8, y: u8, tile_id: usize, ram: &[u8], lcd_settings: LCDCValues) -> u8 {
     let (base_addr, addressing) = lcd_settings.tile_data_addr_and_addressing();
 
+    //TODO all the absolute madness about tile address mode
     assert!(addressing == TileDataAddressing::Unsigned);
 
-    let tile_data_start = base_addr + (tile_id as usize * TILE_SIZE_BYTES);
+    let tile_data_start = base_addr + (tile_id * TILE_SIZE_BYTES);
     let tile_data_end = tile_data_start + TILE_SIZE_BYTES;
     let tile_data = &ram[tile_data_start..tile_data_end];
 
@@ -207,11 +209,35 @@ impl GPU {
 
         let line = self.front_buffer.get_mut(start_idx..end_idx).unwrap();
 
-        let mut x = scroll_x;
-        let y = scroll_y + scanline_idx;
-
         let lcd_settings = LCDCValues::from_ram(ram);
 
+        let mut x = scroll_x;
+
+        let tile_map_screen = false;
+        if tile_map_screen {
+            let y = scanline_idx as usize + 8 * 25;
+            let palette = LCDPalette::from_register(ram[address::BGP_REGISTER]);
+
+            let mut i = 0;
+            while i < line.len() {
+                //TODO this could be 8 times faster by looking up a tile
+                //only when entering rather than all the time
+                let tile_id = 25 ; // y / 8; //(x as usize / 8) + (y as usize / 8) * 32; 
+                let idx = get_tile_color_idx(x, y as u8, tile_id, ram, lcd_settings);
+                let color = palette.get_color(idx as usize);
+
+                line[i + 0] = color[0];
+                line[i + 1] = color[1];
+                line[i + 2] = color[2];
+
+                i += 4;
+                x += 1;
+            }
+
+            return;
+        }
+
+        let y = scroll_y + scanline_idx;
         assert!(lcd_settings.windowing_on() == false);
 
         if lcd_settings.bg_on() {
@@ -221,7 +247,8 @@ impl GPU {
             while i < line.len() {
                 //TODO this could be 8 times faster by looking up a tile
                 //only when entering rather than all the time
-                let idx = get_bg_color_idx(x, y, ram, lcd_settings);
+                let tile_id = get_tile(x, y, ram, lcd_settings);
+                let idx = get_tile_color_idx(x, y, tile_id, ram, lcd_settings);
                 let color = palette.get_color(idx as usize);
 
                 line[i + 0] = color[0];
@@ -258,6 +285,19 @@ impl GPU {
             };
 
             if scanline_idx < RESOLUTION_H {
+                use std::collections::BTreeSet;
+
+                let mut set = BTreeSet::new();
+                let mut min = 999999;
+                let mut max = 0;
+                for write in &cpu.bg_writes {
+                    set.insert(write);
+                    min = std::cmp::min(min, *write);
+                    max = std::cmp::max(max, *write);
+                }
+
+                println!("write range: {:x},{:x}", min, max);
+
                 self.render_scanline(scanline_idx, &mut cpu.RAM);
             }
 
