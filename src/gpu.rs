@@ -81,10 +81,10 @@ fn get_bg_level(x: u8, y: u8, ram: &[u8], window: bool) -> u8 {
     let tile_idx = tile_x as u16 + tile_y as u16 * TILE_RESOLUTION_W as u16;
 
     //TODO decide if to use map0 or map1
-    let tile_id = ram[address::TILE_MAP0 + tile_idx as usize];
+    let tile_id = ram[address::TILE_MAP0_START + tile_idx as usize];
 
     //TODO all the absolute madness about tile address mode
-    let base_addr = address::UNSIGNED_BACKGROUND_DATA_TABLE;
+    let base_addr = address::UNSIGNED_BACKGROUND_DATA_TABLE_START;
     let tile_data_start = base_addr + tile_id as usize * TILE_SIZE_BYTES as usize;
     let tile_data_end = tile_data_start + TILE_SIZE_BYTES as usize;
     let tile_data = &ram[tile_data_start..tile_data_end];

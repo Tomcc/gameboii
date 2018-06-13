@@ -155,7 +155,7 @@ impl<'a> CPU<'a> {
         //          --------------------------- 0000 -
 
         //    * NOTE: b = bit, B = byte
-
+        
         //TODO the address space and interrupts are a lot more complex than that...
         self.RAM[addr as usize]
     }
@@ -174,10 +174,15 @@ impl<'a> CPU<'a> {
             self.RAM[0..0x100].copy_from_slice(&self.cartridge_ROM[0..0x100]);
         }
 
+        address::check_unimplemented(addr);
+
         self.RAM[addr as usize] = val;
     }
 
     pub fn set_address16(&mut self, addr: u16, val: u16) {
+
+        address::check_unimplemented(addr);
+
         self.RAM[addr as usize] = val as u8;
         self.RAM[addr as usize + 1] = (val >> 8) as u8;
     }

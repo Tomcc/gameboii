@@ -5,3 +5,4 @@
 .DS_Store
 /ROMs/*
 /map_log.txt
+/.vscode/launch.json
