@@ -84,8 +84,9 @@ impl LCDCValues {
             address::TILE_MAP0_START
         }
     }
-    fn tile_data_addr_and_addressing(&self) -> (usize, TileDataAddressing) {
-        if self.raw.get_bit(4) {
+
+    fn pick_tile_bank(unsigned: bool) -> (usize, TileDataAddressing) {
+        if unsigned {
             (
                 address::UNSIGNED_TILE_DATA_TABLE_START,
                 TileDataAddressing::Unsigned,
@@ -97,11 +98,15 @@ impl LCDCValues {
             )
         }
     }
+
+    fn tile_data_addr_and_addressing(&self) -> (usize, TileDataAddressing) {
+        Self::pick_tile_bank(self.raw.get_bit(4))
+    }
     fn windowing_on(&self) -> bool {
         self.raw.get_bit(5)
     }
-    fn window_data_toggle(&self) -> bool {
-        self.raw.get_bit(6)
+    fn window_tile_data_addr_and_addressing(&self) -> (usize, TileDataAddressing) {
+        Self::pick_tile_bank(self.raw.get_bit(6))
     }
     fn lcd_on(&self) -> bool {
         self.raw.get_bit(7)
@@ -155,8 +160,19 @@ fn get_tile(x: u8, y: u8, ram: &[u8], lcd_settings: LCDCValues) -> usize {
     ram[lcd_settings.tile_map_addr() + tile_idx as usize] as usize
 }
 
-fn get_tile_color_idx(x: u8, y: u8, tile_id: usize, ram: &[u8], lcd_settings: LCDCValues) -> u8 {
-    let (base_addr, addressing) = lcd_settings.tile_data_addr_and_addressing();
+fn get_tile_color_idx(
+    x: u8,
+    y: u8,
+    tile_id: usize,
+    ram: &[u8],
+    window: bool,
+    lcd_settings: LCDCValues,
+) -> u8 {
+    let (base_addr, addressing) = if window {
+        lcd_settings.window_tile_data_addr_and_addressing()
+    } else {
+        lcd_settings.tile_data_addr_and_addressing()
+    };
 
     //TODO all the absolute madness about tile address mode
     assert!(addressing == TileDataAddressing::Unsigned);
@@ -212,32 +228,8 @@ impl GPU {
         let lcd_settings = LCDCValues::from_ram(ram);
 
         let mut x = scroll_x;
-
-        let tile_map_screen = false;
-        if tile_map_screen {
-            let y = scanline_idx as usize + 8 * 25;
-            let palette = LCDPalette::from_register(ram[address::BGP_REGISTER]);
-
-            let mut i = 0;
-            while i < line.len() {
-                //TODO this could be 8 times faster by looking up a tile
-                //only when entering rather than all the time
-                let tile_id = 25 ; // y / 8; //(x as usize / 8) + (y as usize / 8) * 32; 
-                let idx = get_tile_color_idx(x, y as u8, tile_id, ram, lcd_settings);
-                let color = palette.get_color(idx as usize);
-
-                line[i + 0] = color[0];
-                line[i + 1] = color[1];
-                line[i + 2] = color[2];
-
-                i += 4;
-                x += 1;
-            }
-
-            return;
-        }
-
         let y = scroll_y + scanline_idx;
+
         assert!(lcd_settings.windowing_on() == false);
 
         if lcd_settings.bg_on() {
@@ -248,7 +240,7 @@ impl GPU {
                 //TODO this could be 8 times faster by looking up a tile
                 //only when entering rather than all the time
                 let tile_id = get_tile(x, y, ram, lcd_settings);
-                let idx = get_tile_color_idx(x, y, tile_id, ram, lcd_settings);
+                let idx = get_tile_color_idx(x, y, tile_id, ram, false, lcd_settings);
                 let color = palette.get_color(idx as usize);
 
                 line[i + 0] = color[0];
@@ -264,7 +256,9 @@ impl GPU {
             let _palette0 = LCDPalette::from_register(ram[address::OBP0_REGISTER]);
             let _palette1 = LCDPalette::from_register(ram[address::OBP1_REGISTER]);
 
+            assert!(lcd_settings.double_obj() == false, "Not implemented yet");
             panic!("Not implemented yet");
+
         }
     }
 

@@ -120,8 +120,9 @@ impl<'a> CPU<'a> {
             if self.interrupt_change_counter > 0 {
                 self.interrupt_change_counter -= 1;
                 if self.interrupt_change_counter == 0 {
+                    self.interrupts_enabled = self.interrupts_enabled_next;
                     assert!(
-                        self.interrupts_enabled_next == false,
+                        self.interrupts_enabled == false,
                         "Interrupts not supported"
                     );
                 }

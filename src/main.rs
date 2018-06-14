@@ -135,7 +135,7 @@ fn main() {
                                 run_ticks = u64::max_value();
                             }
                         } else if k == keyboard::Key::F1 {
-                            dump_ram(&cpu.RAM);
+                            dump_ram(&cpu.RAM).unwrap();
                         }
 
                         if run_ticks == 0 {
