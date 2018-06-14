@@ -1,5 +1,5 @@
 
-use cpu::CPU;
+use cpu::*;
 use bit_field::BitField;
 
 #[allow(unused, unreachable_code)]
@@ -140,13 +140,13 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: DI
 	//----------------
-		panic!("DI not implemented");
+		cpu.enable_interrupts(false);
 	//----------------
 	}
 	{
 	// NAME: EI
 	//----------------
-		panic!("EI not implemented");
+		cpu.enable_interrupts(true);
 	//----------------
 	}
 	{
@@ -191,7 +191,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let imm0 = cpu.immediate_u16();
 			let reg0 = imm0;
 	//----------------
-		panic!("JP_u16 not implemented");
+		cpu.PC = reg0;
 	//----------------
 	}
 	{
@@ -321,7 +321,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: PREFIX
 	//----------------
-		cpu.cb_mode = true;
+		cpu.enable_cb();
 		cpu.PC += 1;
 	//----------------
 	}

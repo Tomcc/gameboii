@@ -1,3 +1,30 @@
+//          Interrupt Enable Register
+//          --------------------------- FFFF
+//          Internal RAM
+//          --------------------------- FF80
+//          Empty but unusable for I/O
+//          --------------------------- FF4C
+//          I/O ports
+//          --------------------------- FF00
+//          Empty but unusable for I/O
+//          --------------------------- FEA0
+//          Sprite Attrib Memory (OAM)
+//          --------------------------- FE00
+//          Echo of 8kB Internal RAM
+//          --------------------------- E000
+//          8kB Internal RAM
+//          --------------------------- C000
+//          8kB switchable RAM bank
+//          --------------------------- A000
+//          8kB Video RAM
+//          --------------------------- 8000 -
+//          16kB switchable ROM bank         |
+//          --------------------------- 4000 |= 32kB Cartrige
+//          16kB ROM bank #0                 |
+//          --------------------------- 0000 -
+
+//    * NOTE: b = bit, B = byte
+
 pub const VERTICAL_BLANK_INTERRUPT_START: usize = 0x40;
 pub const LCDC_STATUS_INTERRUPT_START: usize = 0x48;
 pub const SERIAL_TRANSFER_COMPLETION_INTERRUPT_START: usize = 0x58;
@@ -95,9 +122,7 @@ pub const INTERNAL_ROM_TURN_OFF: usize = 0xff50;
 
 pub const IE_REGISTER: usize = 0xffff;
 
-pub fn check_unimplemented(address: u16) {
-    let addr = address as usize;
-
+pub fn check_unimplemented(addr: usize) {
     if addr >= SPRITE_ATTRIBUTE_TABLE_START && addr < SPRITE_ATTRIBUTE_TABLE_END {
         panic!("{} unimplemented", SPRITE_ATTRIBUTE_TABLE_START);
     }
@@ -154,9 +179,6 @@ pub fn check_unimplemented(address: u16) {
     }
     if addr == TAC_REGISTER {
         panic!("{} unimplemented", TAC_REGISTER);
-    }
-    if addr == IF_REGISTER {
-        panic!("{} unimplemented", IF_REGISTER);
     }
     if addr == NR10_REGISTER {
         panic!("{} unimplemented", NR10_REGISTER);

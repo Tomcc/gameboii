@@ -381,7 +381,7 @@ impl FunctionDesc {
 }
 
 const HEADER: &str = r#"
-use cpu::CPU;
+use cpu::*;
 use bit_field::BitField;
 
 #[allow(unused, unreachable_code)]
@@ -571,7 +571,7 @@ fn write_function_stubs(
     write!(
         outfile,
         r#"
-use cpu::CPU;
+use cpu::*;
 use bit_field::BitField;
 
 #[allow(unused, unreachable_code)]

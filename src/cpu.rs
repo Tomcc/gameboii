@@ -43,7 +43,13 @@ pub struct CPU<'a> {
 
     pub RAM: [u8; RAM_SIZE],
 
-    pub cb_mode: bool,
+    boot_mode: bool,
+    cb_mode: bool,
+
+    interrupt_change_counter: u8,
+    interrupts_enabled_next: bool,
+
+    interrupts_enabled: bool,
 
     next_clock_time: Instant,
     cartridge_ROM: &'a [u8],
@@ -61,6 +67,12 @@ impl<'a> CPU<'a> {
             HL: Register { r16: 0 },
             RAM: [0; RAM_SIZE],
             cb_mode: false,
+
+            boot_mode: true,
+
+            interrupts_enabled: false,
+            interrupt_change_counter: 0,
+            interrupts_enabled_next: false,
 
             next_clock_time: Instant::now(),
             cartridge_ROM: rom,
@@ -105,9 +117,34 @@ impl<'a> CPU<'a> {
                 }
             }
 
+            if self.interrupt_change_counter > 0 {
+                self.interrupt_change_counter -= 1;
+                if self.interrupt_change_counter == 0 {
+                    assert!(
+                        self.interrupts_enabled_next == false,
+                        "Interrupts not supported"
+                    );
+                }
+            }
+
             return true;
         }
         false
+    }
+
+    pub fn enable_cb(&mut self) {
+        self.cb_mode = true;
+    }
+
+    pub fn enable_interrupts(&mut self, future_state: bool) {
+        self.interrupt_change_counter = 2;
+        self.interrupts_enabled_next = future_state;
+    }
+
+    pub fn request_interrupts(&mut self, requested: u8) {
+        if requested != 0 {
+            panic!("not implemented");
+        }
     }
 
     pub fn peek_instruction(&self) -> u8 {
@@ -132,34 +169,6 @@ impl<'a> CPU<'a> {
     }
 
     pub fn address(&self, addr: u16) -> u8 {
-        //          Interrupt Enable Register
-        //          --------------------------- FFFF
-        //          Internal RAM
-        //          --------------------------- FF80
-        //          Empty but unusable for I/O
-        //          --------------------------- FF4C
-        //          I/O ports
-        //          --------------------------- FF00
-        //          Empty but unusable for I/O
-        //          --------------------------- FEA0
-        //          Sprite Attrib Memory (OAM)
-        //          --------------------------- FE00
-        //          Echo of 8kB Internal RAM
-        //          --------------------------- E000
-        //          8kB Internal RAM
-        //          --------------------------- C000
-        //          8kB switchable RAM bank
-        //          --------------------------- A000
-        //          8kB Video RAM
-        //          --------------------------- 8000 -
-        //          16kB switchable ROM bank         |
-        //          --------------------------- 4000 |= 32kB Cartrige
-        //          16kB ROM bank #0                 |
-        //          --------------------------- 0000 -
-
-        //    * NOTE: b = bit, B = byte
-
-        //TODO the address space and interrupts are a lot more complex than that...
         self.RAM[addr as usize]
     }
 
@@ -171,22 +180,28 @@ impl<'a> CPU<'a> {
     }
 
     pub fn set_address(&mut self, addr: u16, val: u8) {
+        let addr = addr as usize;
         //TODO how to not check this for every set ever?
-        if addr == address::INTERNAL_ROM_TURN_OFF as u16 && val == 1 {
+        if self.boot_mode && addr == address::INTERNAL_ROM_TURN_OFF {
             //replace the Nintendo boot ROM with the first 256 bytes of the cart
             self.RAM[0..0x100].copy_from_slice(&self.cartridge_ROM[0..0x100]);
+            self.boot_mode = false;
+        } else if addr == address::IF_REGISTER {
+            let old = self.RAM[address::IF_REGISTER];
+            let changed = (!old) & val;
+            self.request_interrupts(changed);
+        } else {
+            address::check_unimplemented(addr);
         }
-
-        address::check_unimplemented(addr);
-
-        self.RAM[addr as usize] = val;
+        self.RAM[addr] = val;
     }
 
     pub fn set_address16(&mut self, addr: u16, val: u16) {
+        let addr = addr as usize;
         address::check_unimplemented(addr);
 
-        self.RAM[addr as usize] = val as u8;
-        self.RAM[addr as usize + 1] = (val >> 8) as u8;
+        self.RAM[addr] = val as u8;
+        self.RAM[addr + 1] = (val >> 8) as u8;
     }
 
     pub fn offset_sp(&self, _off: i8) -> u16 {
