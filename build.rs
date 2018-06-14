@@ -13,6 +13,7 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::io::BufReader;
 use std::io::Write;
+use std::path::Path;
 
 #[derive(Deserialize, Debug)]
 #[allow(non_snake_case)]
@@ -134,10 +135,14 @@ impl Parameter {
         if let Some(ref inner) = self.inner {
             return inner.write_immediate_load(outfile);
         }
-    
+
         //a bit hacky to check if immediate like this, but yeah...
         if self.fullcode == "imm0" {
-            return writeln!(outfile, "\t\t\tlet imm0 = cpu.immediate_{}();", self.param_type);
+            return writeln!(
+                outfile,
+                "\t\t\tlet imm0 = cpu.immediate_{}();",
+                self.param_type
+            );
         }
 
         Ok(())
@@ -165,9 +170,10 @@ impl Parameter {
             // for reasons.
             match offset_node.param_type {
                 ParameterType::I8 | ParameterType::U8 => {
-                    offset_node.fullcode = String::new() + "(" + &leaf_node.fullcode + " as u32 + 0xff00) as u16"
+                    offset_node.fullcode =
+                        String::new() + "(" + &leaf_node.fullcode + " as u32 + 0xff00) as u16"
                 }
-                _ => {},
+                _ => {}
             };
             offset_node.inner = Some(Box::new(leaf_node));
 
@@ -326,7 +332,6 @@ impl FunctionDesc {
     }
 
     fn write_pre(&self, outfile: &mut File) -> std::io::Result<()> {
-        
         //load the immediate first to use the old PC value
         for input in &self.inputs {
             input.write_immediate_load(outfile)?;
@@ -353,8 +358,7 @@ impl FunctionDesc {
         if let Some(parameter) = &self.output {
             if self.inputs.len() > 0 {
                 parameter.write_for_post(outfile, Some(&self.inputs[0]))?;
-            }
-            else {
+            } else {
                 parameter.write_for_post(outfile, None)?;
             }
         }
@@ -428,7 +432,7 @@ fn write_opcodes(
         }
 
         for line in &code.lines {
-            writeln!(outfile, "\t{}", line);
+            writeln!(outfile, "\t{}", line)?;
         }
 
         function.write_post(outfile)?;
@@ -476,7 +480,7 @@ fn write_interpreter(
     mut opcodes: Vec<OpCodeDesc>,
     codes: &FunctionCodeMap,
 ) -> std::io::Result<Vec<FunctionDesc>> {
-    let outfile = &mut File::create("../src/interpreter.rs")?;
+    let outfile = &mut File::create(INTERPRETER_PATH)?;
 
     //sort the opcodes between cb and non cb
     let splitpoint = itertools::partition(&mut opcodes, |opcode| opcode.prefix.is_none());
@@ -515,7 +519,9 @@ fn write_function_stub(
     Ok(())
 }
 
-const STUBS_PATH: &str = "../src/function_stubs.rs";
+const STUBS_PATH: &str = "src/function_stubs.rs";
+const INTERPRETER_PATH: &str = "src/interpreter.rs";
+const OPCODES_PATH: &str = "opcodes.json";
 
 fn parse_function_stubs() -> std::io::Result<FunctionCodeMap> {
     let name_regex = Regex::new(".*// NAME: (.*)").unwrap();
@@ -593,10 +599,15 @@ unsafe fn stubs(cpu: &mut CPU) {{
 }
 
 fn main() {
+    //things for cargo
+    println!("cargo:rerun-if-changed={}", OPCODES_PATH);
+    println!("cargo:rerun-if-changed={}", STUBS_PATH);
+    println!("cargo:rerun-if-changed={}", INTERPRETER_PATH);
+
     let codes = &parse_function_stubs().unwrap();
 
     let opcodes: Vec<OpCodeDesc> =
-        serde_json::from_reader(File::open("opcodes.json").unwrap()).unwrap();
+        serde_json::from_reader(File::open(OPCODES_PATH).unwrap()).unwrap();
 
     let functions = write_interpreter(opcodes, codes).unwrap();
 
