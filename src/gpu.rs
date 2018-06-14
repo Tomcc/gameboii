@@ -285,19 +285,6 @@ impl GPU {
             };
 
             if scanline_idx < RESOLUTION_H {
-                // use std::collections::BTreeSet;
-
-                // let mut set = BTreeSet::new();
-                // let mut min = 999999;
-                // let mut max = 0;
-                // for write in &cpu.bg_writes {
-                //     set.insert(write);
-                //     min = std::cmp::min(min, *write);
-                //     max = std::cmp::max(max, *write);
-                // }
-
-                // println!("write range: {:x},{:x}", min, max);
-
                 self.render_scanline(scanline_idx, &mut cpu.RAM);
             }
 

@@ -119,7 +119,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: DEC_u16_out_u16
 			let reg0 = cpu.SP;
-			let out;
+			let mut out;
 	//----------------
 		out = reg0.wrapping_sub(1);
 		cpu.set_z(out == 0);
@@ -129,7 +129,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: DEC_z_h_u8_out_u8
 			let reg0 = cpu.AF.r8.first;
-			let out;
+			let mut out;
 	//----------------
 		//TODO H
 		out = reg0.wrapping_sub(1);
@@ -158,7 +158,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: INC_u16_out_u16
 			let reg0 = cpu.SP;
-			let out;
+			let mut out;
 	//----------------
 		out = reg0.wrapping_add(1);
 	//----------------
@@ -167,7 +167,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: INC_z_h_u8_out_u8
 			let reg0 = cpu.AF.r8.first;
-			let out;
+			let mut out;
 	//----------------
 		out = reg0.wrapping_add(1);
 		cpu.set_z(out == 0);
@@ -242,7 +242,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	// NAME: LDH_u8_out_u8
 			let imm0 = cpu.immediate_u8();
 			let reg0 = cpu.address((imm0 as u32 + 0xff00) as u16);
-			let out;
+			let mut out;
 	//----------------
 		out = reg0;
 	//----------------
@@ -252,7 +252,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	// NAME: LD_h_c_u16_out_u16
 			let imm0 = cpu.immediate_i8();
 			let reg0 = cpu.offset_sp(imm0);
-			let out;
+			let mut out;
 	//----------------
 		panic!("LD_h_c_u16_out_u16 not implemented");
 	//----------------
@@ -261,7 +261,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: LD_u16_out_u16
 			let reg0 = cpu.HL.r16;
-			let out;
+			let mut out;
 	//----------------
 		out = reg0;
 	//----------------
@@ -271,7 +271,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	// NAME: LD_u16_out_u8
 			let imm0 = cpu.immediate_u16();
 			let reg0 = cpu.SP;
-			let out;
+			let mut out;
 	//----------------
 		out = reg0;
 	//----------------
@@ -282,7 +282,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	// NAME: LD_u8_out_u8
 			let imm0 = cpu.immediate_u16();
 			let reg0 = cpu.address(imm0);
-			let out;
+			let mut out;
 	//----------------
 		out = reg0;
 	//----------------
@@ -304,7 +304,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	}
 	{
 	// NAME: POP_out_u16
-			let out;
+			let mut out;
 	//----------------
 		out = cpu.pop16();
 	//----------------
@@ -312,7 +312,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	}
 	{
 	// NAME: POP_z_n_h_c_out_u16
-			let out;
+			let mut out;
 	//----------------
 		out = cpu.pop16();
 	//----------------
@@ -370,8 +370,10 @@ unsafe fn stubs(cpu: &mut CPU) {
 	// NAME: RLA_c
 	//----------------
 		let mut a = cpu.AF.r8.first;
+		let old_c = cpu.c();
 		cpu.set_c(a.get_bit(7));
 		a = a << 1;
+		a.set_bit(0, old_c);
 		cpu.set_z(a == 0);
 		cpu.AF.r8.first = a;
 	//----------------
@@ -392,10 +394,12 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: RL_z_c_u8_out_u8
 			let reg0 = cpu.AF.r8.first;
-			let out;
+			let mut out;
 	//----------------
+		let old_c = cpu.c();
 		cpu.set_c(reg0.get_bit(7));
 		out = reg0 << 1;
+		out.set_bit(0, old_c);
 		cpu.set_z(out == 0);
 	//----------------
 			cpu.AF.r8.first = out;

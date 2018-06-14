@@ -344,7 +344,7 @@ impl FunctionDesc {
             )?;
         }
         if let Some(_) = &self.output {
-            &writeln!(outfile, "\t\t\tlet out;")?;
+            &writeln!(outfile, "\t\t\tlet mut out;")?;
         }
         Ok(())
     }
