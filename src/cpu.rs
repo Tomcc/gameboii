@@ -89,7 +89,7 @@ impl<'a> CPU<'a> {
         cpu
     }
 
-    pub fn tick(&mut self) {
+    pub fn tick(&mut self) -> bool {
         if Instant::now() > self.next_clock_time {
             let has_log = self.log.is_some();
             if has_log {
@@ -108,7 +108,10 @@ impl<'a> CPU<'a> {
                     interpreter::interpret(self);
                 }
             }
+
+            return true;
         }
+        false
     }
 
     pub fn peek_instruction(&self) -> u8 {

@@ -29,6 +29,7 @@ use piston::input::*;
 use piston::window::WindowSettings;
 use std::fs::File;
 use std::io::Read;
+use std::io::Write;
 use std::path::Path;
 
 fn open_rom<P: AsRef<Path>>(rom_path: &P) -> std::io::Result<Vec<u8>> {
@@ -38,6 +39,14 @@ fn open_rom<P: AsRef<Path>>(rom_path: &P) -> std::io::Result<Vec<u8>> {
     //TODO unzip?
 
     Ok(content)
+}
+
+fn dump_ram(ram: &[u8]) -> std::io::Result<()> {
+    let mut file = File::create("ramdump.bin")?;
+
+    file.write(ram)?;
+
+    Ok(())
 }
 
 fn main() {
@@ -98,17 +107,46 @@ fn main() {
         ups_reset: 2,
     });
 
-    // let lslsls = EventSettings::new();
-    // let mut events = Events::new(lslsls);
+    let mut run_ticks = u64::max_value();
 
     while let Some(e) = events.next(&mut window) {
         if let Some(_) = e.update_args() {
-            cpu.tick();
-            gpu.tick(&mut cpu);
+            if run_ticks > 0 {
+                if cpu.tick() {
+                    run_ticks -= 1;
+                }
+
+                gpu.tick(&mut cpu);
+            }
         }
 
         if let Some(r) = e.render_args() {
             gpu.render(&r);
+        }
+
+        if let Some(i) = e.button_args() {
+            if i.state == ButtonState::Press {
+                match i.button {
+                    Button::Keyboard(k) => {
+                        if k == keyboard::Key::F5 {
+                            if run_ticks > 0 {
+                                run_ticks = 0;
+                            } else {
+                                run_ticks = u64::max_value();
+                            }
+                        } else if k == keyboard::Key::F1 {
+                            dump_ram(&cpu.RAM);
+                        }
+
+                        if run_ticks == 0 {
+                            if k == keyboard::Key::F10 {
+                                run_ticks = 1; //run one tick
+                            }
+                        }
+                    }
+                    _ => (),
+                }
+            }
         }
     }
 }
