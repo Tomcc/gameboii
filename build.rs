@@ -236,7 +236,7 @@ impl Parameter {
             return Parameter::new(String::from("cpu.z()"), ParameterType::Bool);
         } else if operand == "NZ" {
             return Parameter::new(String::from("!cpu.z()"), ParameterType::Bool);
-        } else if operand == "C" {
+        } else if operand == "C" || operand == "c" {
             return Parameter::new(String::from("cpu.c()"), ParameterType::Bool);
         } else if operand == "NC" {
             return Parameter::new(String::from("!cpu.c()"), ParameterType::Bool);

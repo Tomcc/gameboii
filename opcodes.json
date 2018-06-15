@@ -852,7 +852,7 @@
         "opcode": "0x38",
         "mnemonic": "JR",
         "operands": [
-            "C",
+            "c",
             "r8"
         ],
         "bytes": 2,
@@ -6984,7 +6984,7 @@
         "mnemonic": "SET",
         "operands": [
             "0",
-            "B"
+            "inout B"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7001,7 +7001,7 @@
         "mnemonic": "SET",
         "operands": [
             "0",
-            "C"
+            "inout C"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7018,7 +7018,7 @@
         "mnemonic": "SET",
         "operands": [
             "0",
-            "D"
+            "inout D"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7035,7 +7035,7 @@
         "mnemonic": "SET",
         "operands": [
             "0",
-            "E"
+            "inout E"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7052,7 +7052,7 @@
         "mnemonic": "SET",
         "operands": [
             "0",
-            "H"
+            "inout H"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7069,7 +7069,7 @@
         "mnemonic": "SET",
         "operands": [
             "0",
-            "L"
+            "inout L"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7086,7 +7086,7 @@
         "mnemonic": "SET",
         "operands": [
             "0",
-            "(HL)"
+            "inout (HL)"
         ],
         "bytes": 2,
         "cycles": 16,
@@ -7103,7 +7103,7 @@
         "mnemonic": "SET",
         "operands": [
             "0",
-            "A"
+            "inout A"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7120,7 +7120,7 @@
         "mnemonic": "SET",
         "operands": [
             "1",
-            "B"
+            "inout B"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7137,7 +7137,7 @@
         "mnemonic": "SET",
         "operands": [
             "1",
-            "C"
+            "inout C"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7154,7 +7154,7 @@
         "mnemonic": "SET",
         "operands": [
             "1",
-            "D"
+            "inout D"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7171,7 +7171,7 @@
         "mnemonic": "SET",
         "operands": [
             "1",
-            "E"
+            "inout E"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7188,7 +7188,7 @@
         "mnemonic": "SET",
         "operands": [
             "1",
-            "H"
+            "inout H"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7205,7 +7205,7 @@
         "mnemonic": "SET",
         "operands": [
             "1",
-            "L"
+            "inout L"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7222,7 +7222,7 @@
         "mnemonic": "SET",
         "operands": [
             "1",
-            "(HL)"
+            "inout (HL)"
         ],
         "bytes": 2,
         "cycles": 16,
@@ -7239,7 +7239,7 @@
         "mnemonic": "SET",
         "operands": [
             "1",
-            "A"
+            "inout A"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7256,7 +7256,7 @@
         "mnemonic": "SET",
         "operands": [
             "2",
-            "B"
+            "inout B"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7273,7 +7273,7 @@
         "mnemonic": "SET",
         "operands": [
             "2",
-            "C"
+            "inout C"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7290,7 +7290,7 @@
         "mnemonic": "SET",
         "operands": [
             "2",
-            "D"
+            "inout D"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7307,7 +7307,7 @@
         "mnemonic": "SET",
         "operands": [
             "2",
-            "E"
+            "inout E"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7324,7 +7324,7 @@
         "mnemonic": "SET",
         "operands": [
             "2",
-            "H"
+            "inout H"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7341,7 +7341,7 @@
         "mnemonic": "SET",
         "operands": [
             "2",
-            "L"
+            "inout L"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7358,7 +7358,7 @@
         "mnemonic": "SET",
         "operands": [
             "2",
-            "(HL)"
+            "inout (HL)"
         ],
         "bytes": 2,
         "cycles": 16,
@@ -7375,7 +7375,7 @@
         "mnemonic": "SET",
         "operands": [
             "2",
-            "A"
+            "inout A"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7392,7 +7392,7 @@
         "mnemonic": "SET",
         "operands": [
             "3",
-            "B"
+            "inout B"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7409,7 +7409,7 @@
         "mnemonic": "SET",
         "operands": [
             "3",
-            "C"
+            "inout C"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7426,7 +7426,7 @@
         "mnemonic": "SET",
         "operands": [
             "3",
-            "D"
+            "inout D"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7443,7 +7443,7 @@
         "mnemonic": "SET",
         "operands": [
             "3",
-            "E"
+            "inout E"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7460,7 +7460,7 @@
         "mnemonic": "SET",
         "operands": [
             "3",
-            "H"
+            "inout H"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7477,7 +7477,7 @@
         "mnemonic": "SET",
         "operands": [
             "3",
-            "L"
+            "inout L"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7494,7 +7494,7 @@
         "mnemonic": "SET",
         "operands": [
             "3",
-            "(HL)"
+            "inout (HL)"
         ],
         "bytes": 2,
         "cycles": 16,
@@ -7511,7 +7511,7 @@
         "mnemonic": "SET",
         "operands": [
             "3",
-            "A"
+            "inout A"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7528,7 +7528,7 @@
         "mnemonic": "SET",
         "operands": [
             "4",
-            "B"
+            "inout B"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7545,7 +7545,7 @@
         "mnemonic": "SET",
         "operands": [
             "4",
-            "C"
+            "inout C"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7562,7 +7562,7 @@
         "mnemonic": "SET",
         "operands": [
             "4",
-            "D"
+            "inout D"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7579,7 +7579,7 @@
         "mnemonic": "SET",
         "operands": [
             "4",
-            "E"
+            "inout E"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7596,7 +7596,7 @@
         "mnemonic": "SET",
         "operands": [
             "4",
-            "H"
+            "inout H"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7613,7 +7613,7 @@
         "mnemonic": "SET",
         "operands": [
             "4",
-            "L"
+            "inout L"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7630,7 +7630,7 @@
         "mnemonic": "SET",
         "operands": [
             "4",
-            "(HL)"
+            "inout (HL)"
         ],
         "bytes": 2,
         "cycles": 16,
@@ -7647,7 +7647,7 @@
         "mnemonic": "SET",
         "operands": [
             "4",
-            "A"
+            "inout A"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7664,7 +7664,7 @@
         "mnemonic": "SET",
         "operands": [
             "5",
-            "B"
+            "inout B"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7681,7 +7681,7 @@
         "mnemonic": "SET",
         "operands": [
             "5",
-            "C"
+            "inout C"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7698,7 +7698,7 @@
         "mnemonic": "SET",
         "operands": [
             "5",
-            "D"
+            "inout D"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7715,7 +7715,7 @@
         "mnemonic": "SET",
         "operands": [
             "5",
-            "E"
+            "inout E"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7732,7 +7732,7 @@
         "mnemonic": "SET",
         "operands": [
             "5",
-            "H"
+            "inout H"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7749,7 +7749,7 @@
         "mnemonic": "SET",
         "operands": [
             "5",
-            "L"
+            "inout L"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7766,7 +7766,7 @@
         "mnemonic": "SET",
         "operands": [
             "5",
-            "(HL)"
+            "inout (HL)"
         ],
         "bytes": 2,
         "cycles": 16,
@@ -7783,7 +7783,7 @@
         "mnemonic": "SET",
         "operands": [
             "5",
-            "A"
+            "inout A"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7800,7 +7800,7 @@
         "mnemonic": "SET",
         "operands": [
             "6",
-            "B"
+            "inout B"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7817,7 +7817,7 @@
         "mnemonic": "SET",
         "operands": [
             "6",
-            "C"
+            "inout C"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7834,7 +7834,7 @@
         "mnemonic": "SET",
         "operands": [
             "6",
-            "D"
+            "inout D"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7851,7 +7851,7 @@
         "mnemonic": "SET",
         "operands": [
             "6",
-            "E"
+            "inout E"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7868,7 +7868,7 @@
         "mnemonic": "SET",
         "operands": [
             "6",
-            "H"
+            "inout H"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7885,7 +7885,7 @@
         "mnemonic": "SET",
         "operands": [
             "6",
-            "L"
+            "inout L"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7902,7 +7902,7 @@
         "mnemonic": "SET",
         "operands": [
             "6",
-            "(HL)"
+            "inout (HL)"
         ],
         "bytes": 2,
         "cycles": 16,
@@ -7919,7 +7919,7 @@
         "mnemonic": "SET",
         "operands": [
             "6",
-            "A"
+            "inout A"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7936,7 +7936,7 @@
         "mnemonic": "SET",
         "operands": [
             "7",
-            "B"
+            "inout B"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7953,7 +7953,7 @@
         "mnemonic": "SET",
         "operands": [
             "7",
-            "C"
+            "inout C"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7970,7 +7970,7 @@
         "mnemonic": "SET",
         "operands": [
             "7",
-            "D"
+            "inout D"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -7987,7 +7987,7 @@
         "mnemonic": "SET",
         "operands": [
             "7",
-            "E"
+            "inout E"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -8004,7 +8004,7 @@
         "mnemonic": "SET",
         "operands": [
             "7",
-            "H"
+            "inout H"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -8021,7 +8021,7 @@
         "mnemonic": "SET",
         "operands": [
             "7",
-            "L"
+            "inout L"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -8038,7 +8038,7 @@
         "mnemonic": "SET",
         "operands": [
             "7",
-            "(HL)"
+            "inout (HL)"
         ],
         "bytes": 2,
         "cycles": 16,
@@ -8055,7 +8055,7 @@
         "mnemonic": "SET",
         "operands": [
             "7",
-            "A"
+            "inout A"
         ],
         "bytes": 2,
         "cycles": 8,

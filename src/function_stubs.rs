@@ -189,7 +189,9 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let reg0 = !cpu.c();
 			let reg1 = imm0;
 	//----------------
-		panic!("JP_bool_u16 not implemented");
+		if reg0 {
+			cpu.PC = reg1;
+		}
 	//----------------
 	}
 	{
@@ -211,7 +213,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: JR_bool_i8
 			let imm0 = cpu.immediate_i8();
-			let reg0 = !cpu.c();
+			let reg0 = cpu.c();
 			let reg1 = imm0;
 	//----------------
 		if reg0 {
@@ -225,15 +227,6 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let reg0 = imm0;
 	//----------------
 		cpu.PC = (cpu.PC as i32 + reg0 as i32) as u16;
-	//----------------
-	}
-	{
-	// NAME: JR_u8_i8
-			let imm0 = cpu.immediate_i8();
-			let reg0 = cpu.BC.r8.second;
-			let reg1 = imm0;
-	//----------------
-		panic!("JR_u8_i8 not implemented");
 	//----------------
 	}
 	{
@@ -463,12 +456,15 @@ unsafe fn stubs(cpu: &mut CPU) {
 	//----------------
 	}
 	{
-	// NAME: SET_u8_u8
+	// NAME: SET_u8_u8_out_u8
 			let reg0 = 7;
 			let reg1 = cpu.AF.r8.first;
+			let mut out;
 	//----------------
-		panic!("SET_u8_u8 not implemented");
+		out = reg1;
+		out.set_bit(reg0, true);
 	//----------------
+			cpu.AF.r8.first = out;
 	}
 	{
 	// NAME: SLA_z_c_u8
