@@ -243,7 +243,7 @@ impl<'a> CPU<'a> {
             self.boot_mode = false;
         } else if addr == address::IF_REGISTER {
             self.change_interrupt_flags(val);
-        } else {
+        } else if val != 0 {
             address::check_unimplemented(addr);
         }
         self.RAM[addr] = val;
