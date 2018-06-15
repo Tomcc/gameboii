@@ -353,7 +353,9 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: RETI
 	//----------------
-		panic!("RETI not implemented");
+		cpu.PC = cpu.pop16();
+		//TODO do we want the delay here?
+		cpu.enable_interrupts(true);
 	//----------------
 	}
 	{
