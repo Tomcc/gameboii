@@ -334,12 +334,15 @@ unsafe fn stubs(cpu: &mut CPU) {
 	//----------------
 	}
 	{
-	// NAME: RES_u8_u8
+	// NAME: RES_u8_u8_out_u8
 			let reg0 = 7;
 			let reg1 = cpu.AF.r8.first;
+			let mut out;
 	//----------------
-		panic!("RES_u8_u8 not implemented");
+		out = reg1;
+		out.set_bit(reg0, false);
 	//----------------
+			cpu.AF.r8.first = out;
 	}
 	{
 	// NAME: RET
