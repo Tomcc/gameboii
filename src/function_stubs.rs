@@ -23,12 +23,17 @@ unsafe fn stubs(cpu: &mut CPU) {
 	//----------------
 	}
 	{
-	// NAME: ADD_h_c_u16_u16
+	// NAME: ADD_h_c_u16_u16_out_u16
 			let reg0 = cpu.HL.r16;
 			let reg1 = cpu.SP;
+			let mut out;
 	//----------------
-		panic!("ADD_h_c_u16_u16 not implemented");
+		//TODO H
+		let (res, of) = reg0.overflowing_add(reg1);
+		out = res;
+		cpu.set_c(of);
 	//----------------
+			cpu.HL.r16 = out;
 	}
 	{
 	// NAME: ADD_z_h_c_u8_u8
@@ -189,17 +194,9 @@ unsafe fn stubs(cpu: &mut CPU) {
 	}
 	{
 	// NAME: JP_u16
-			let imm0 = cpu.immediate_u16();
-			let reg0 = imm0;
+			let reg0 = cpu.HL.r16;
 	//----------------
 		cpu.PC = reg0;
-	//----------------
-	}
-	{
-	// NAME: JP_u8
-			let reg0 = cpu.address(cpu.HL.r16);
-	//----------------
-		panic!("JP_u8 not implemented");
 	//----------------
 	}
 	{
@@ -442,7 +439,9 @@ unsafe fn stubs(cpu: &mut CPU) {
 	// NAME: RST_u16
 			let reg0 = 0x38;
 	//----------------
-		panic!("RST_u16 not implemented");
+		let pc = cpu.PC;
+		cpu.push16(pc);
+		cpu.PC = reg0;
 	//----------------
 	}
 	{
@@ -509,11 +508,14 @@ unsafe fn stubs(cpu: &mut CPU) {
 	//----------------
 	}
 	{
-	// NAME: SWAP_z_u8
+	// NAME: SWAP_z_u8_out_u8
 			let reg0 = cpu.AF.r8.first;
+			let mut out;
 	//----------------
-		panic!("SWAP_z_u8 not implemented");
+		out = (((reg0 & 0x0F) << 4) | ((reg0 & 0xF0) >> 4));
+		cpu.set_z(out == 0);
 	//----------------
+			cpu.AF.r8.first = out;
 	}
 	{
 	// NAME: XOR_z_u8

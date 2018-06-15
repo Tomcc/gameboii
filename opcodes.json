@@ -138,7 +138,7 @@
         "opcode": "0x9",
         "mnemonic": "ADD",
         "operands": [
-            "HL",
+            "inout HL",
             "BC"
         ],
         "bytes": 1,
@@ -380,7 +380,7 @@
         "opcode": "0x19",
         "mnemonic": "ADD",
         "operands": [
-            "HL",
+            "inout HL",
             "DE"
         ],
         "bytes": 1,
@@ -624,7 +624,7 @@
         "opcode": "0x29",
         "mnemonic": "ADD",
         "operands": [
-            "HL",
+            "inout HL",
             "HL"
         ],
         "bytes": 1,
@@ -868,7 +868,7 @@
         "opcode": "0x39",
         "mnemonic": "ADD",
         "operands": [
-            "HL",
+            "inout HL",
             "SP"
         ],
         "bytes": 1,
@@ -3525,7 +3525,7 @@
         "opcode": "0xe9",
         "mnemonic": "JP",
         "operands": [
-            "(HL)"
+            "HL"
         ],
         "bytes": 1,
         "cycles": 4,
@@ -4551,7 +4551,7 @@
         "opcode": "0x30",
         "mnemonic": "SWAP",
         "operands": [
-            "B"
+            "inout B"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -4567,7 +4567,7 @@
         "opcode": "0x31",
         "mnemonic": "SWAP",
         "operands": [
-            "C"
+            "inout C"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -4583,7 +4583,7 @@
         "opcode": "0x32",
         "mnemonic": "SWAP",
         "operands": [
-            "D"
+            "inout D"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -4599,7 +4599,7 @@
         "opcode": "0x33",
         "mnemonic": "SWAP",
         "operands": [
-            "E"
+            "inout E"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -4615,7 +4615,7 @@
         "opcode": "0x34",
         "mnemonic": "SWAP",
         "operands": [
-            "H"
+            "inout H"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -4631,7 +4631,7 @@
         "opcode": "0x35",
         "mnemonic": "SWAP",
         "operands": [
-            "L"
+            "inout L"
         ],
         "bytes": 2,
         "cycles": 8,
@@ -4647,7 +4647,7 @@
         "opcode": "0x36",
         "mnemonic": "SWAP",
         "operands": [
-            "(HL)"
+            "inout (HL)"
         ],
         "bytes": 2,
         "cycles": 16,
@@ -4663,7 +4663,7 @@
         "opcode": "0x37",
         "mnemonic": "SWAP",
         "operands": [
-            "A"
+            "inout A"
         ],
         "bytes": 2,
         "cycles": 8,
