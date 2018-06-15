@@ -25,6 +25,7 @@ pub union Register {
 //the RAM size is max addr + 1
 const RAM_SIZE: usize = 0xFFFF + 1;
 pub const MACHINE_HZ: u64 = 4194304;
+const BOOT_ROM_SIZE: usize = 0x100;
 
 //derived data
 const TICK_DURATION: Duration = Duration::from_nanos(1000000000 / MACHINE_HZ);
@@ -47,9 +48,9 @@ pub struct CPU<'a> {
     cb_mode: bool,
 
     interrupt_change_counter: u8,
-    interrupts_enabled_next: bool,
-
-    interrupts_enabled: bool,
+    interrupts_master_enabled_next: u8,
+    interrupts_master_enabled: u8,
+    requested_interrupts: u8,
 
     next_clock_time: Instant,
     cartridge_ROM: &'a [u8],
@@ -70,9 +71,10 @@ impl<'a> CPU<'a> {
 
             boot_mode: true,
 
-            interrupts_enabled: false,
+            interrupts_master_enabled: 0,
             interrupt_change_counter: 0,
-            interrupts_enabled_next: false,
+            interrupts_master_enabled_next: 0,
+            requested_interrupts: 0,
 
             next_clock_time: Instant::now(),
             cartridge_ROM: rom,
@@ -91,10 +93,48 @@ impl<'a> CPU<'a> {
         // override the first 256 bytes with the Nintendo boot ROM
         File::open("ROMs/DMG_ROM.bin")
             .unwrap()
-            .read_exact(&mut cpu.RAM[0..0x100])
+            .read_exact(&mut cpu.RAM[0..BOOT_ROM_SIZE])
             .unwrap();
 
         cpu
+    }
+
+    fn find_highest_prio_interrupt(&self) -> usize {
+        for i in 0..5 {
+            if self.requested_interrupts.get_bit(i) {
+                return i as usize;
+            }
+        }
+        panic!("Only call this if any interrupt is requested");
+    }
+
+    pub fn handle_interrupts(&mut self) -> bool {
+        // handle interrupts:
+        // if any bit of interrupts_requested are set and enabled, start from the
+        // highest priority (0) and switch to the interrupt routine
+        let interrupts = self.interrupts_master_enabled
+            & self.requested_interrupts
+            & self.RAM[address::IE_REGISTER];
+
+        if interrupts != 0 {
+            // interrupts are available: find the highest priority one
+            let current_interrupt = self.find_highest_prio_interrupt();
+
+            // disable the IME
+            self.enable_interrupts(false);
+            // reset the bit we handled
+            self.requested_interrupts.set_bit(current_interrupt, false);
+
+            // call the new address
+            let addr = address::INTERRUPT[current_interrupt] as u16;
+            self.call(addr);
+
+            // then wait 5 cycles (according to the wiki?)
+            self.run_cycles(5);
+
+            return true;
+        }
+        return false;
     }
 
     pub fn tick(&mut self) -> bool {
@@ -106,6 +146,11 @@ impl<'a> CPU<'a> {
                 if let Some(ref mut log) = self.log {
                     log.log_instruction(instr, pc).unwrap();
                 }
+            }
+
+            if self.handle_interrupts() {
+                //skip the rest of the "instruction" because this isn't a real instruction
+                return true;
             }
 
             unsafe {
@@ -120,9 +165,9 @@ impl<'a> CPU<'a> {
             if self.interrupt_change_counter > 0 {
                 self.interrupt_change_counter -= 1;
                 if self.interrupt_change_counter == 0 {
-                    self.interrupts_enabled = self.interrupts_enabled_next;
+                    self.interrupts_master_enabled = self.interrupts_master_enabled_next;
                     assert!(
-                        self.interrupts_enabled == false,
+                        self.interrupts_master_enabled == 0,
                         "Interrupts not supported"
                     );
                 }
@@ -139,13 +184,22 @@ impl<'a> CPU<'a> {
 
     pub fn enable_interrupts(&mut self, future_state: bool) {
         self.interrupt_change_counter = 2;
-        self.interrupts_enabled_next = future_state;
+        self.interrupts_master_enabled_next = match future_state {
+            true => u8::max_value(),
+            false => 0,
+        };
     }
 
-    pub fn request_interrupts(&mut self, requested: u8) {
-        if requested != 0 {
-            panic!("not implemented");
-        }
+    pub fn change_interrupt_flags(&mut self, new_value: u8) {
+        let old = self.RAM[address::IF_REGISTER];
+        let changed = (!old) & new_value;
+        self.requested_interrupts |= changed;
+    }
+
+    pub fn request_vblank(&mut self) {
+        let mut new_request = self.requested_interrupts;
+        new_request.set_bit(0, true);
+        self.change_interrupt_flags(new_request);
     }
 
     pub fn peek_instruction(&self) -> u8 {
@@ -185,12 +239,10 @@ impl<'a> CPU<'a> {
         //TODO how to not check this for every set ever?
         if self.boot_mode && addr == address::INTERNAL_ROM_TURN_OFF {
             //replace the Nintendo boot ROM with the first 256 bytes of the cart
-            self.RAM[0..0x100].copy_from_slice(&self.cartridge_ROM[0..0x100]);
+            self.RAM[0..BOOT_ROM_SIZE].copy_from_slice(&self.cartridge_ROM[0..BOOT_ROM_SIZE]);
             self.boot_mode = false;
         } else if addr == address::IF_REGISTER {
-            let old = self.RAM[address::IF_REGISTER];
-            let changed = (!old) & val;
-            self.request_interrupts(changed);
+            self.change_interrupt_flags(val);
         } else {
             address::check_unimplemented(addr);
         }
@@ -219,6 +271,12 @@ impl<'a> CPU<'a> {
         self.SP = self.SP.wrapping_add(2);
         let sp = self.SP;
         self.address16(sp)
+    }
+
+    pub fn call(&mut self, addr: u16) {
+        let pc = self.PC;
+        self.push16(pc);
+        self.PC = addr;
     }
 
     pub unsafe fn set_z(&mut self, val: bool) {

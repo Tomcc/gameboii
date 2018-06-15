@@ -25,10 +25,8 @@
 
 //    * NOTE: b = bit, B = byte
 
-pub const VERTICAL_BLANK_INTERRUPT_START: usize = 0x40;
-pub const LCDC_STATUS_INTERRUPT_START: usize = 0x48;
-pub const SERIAL_TRANSFER_COMPLETION_INTERRUPT_START: usize = 0x58;
-pub const HIGH_TO_LOW_P10_P13_INTERRUPT_START: usize = 0x60;
+pub const INTERRUPT: [usize; 5] = [0x40, 0x48, 0x50, 0x58, 0x60];
+
 pub const COLOR_GB_ENABLE: usize = 0x143;
 pub const SUPER_GB_ENABLE: usize = 0x146;
 pub const CARTRIDGE_TYPE: usize = 0x147;
@@ -125,21 +123,6 @@ pub const IE_REGISTER: usize = 0xffff;
 pub fn check_unimplemented(addr: usize) {
     if addr >= SPRITE_ATTRIBUTE_TABLE_START && addr < SPRITE_ATTRIBUTE_TABLE_END {
         panic!("{} unimplemented", SPRITE_ATTRIBUTE_TABLE_START);
-    }
-    if addr == VERTICAL_BLANK_INTERRUPT_START {
-        panic!("{} unimplemented", VERTICAL_BLANK_INTERRUPT_START);
-    }
-    if addr == LCDC_STATUS_INTERRUPT_START {
-        panic!("{} unimplemented", LCDC_STATUS_INTERRUPT_START);
-    }
-    if addr == SERIAL_TRANSFER_COMPLETION_INTERRUPT_START {
-        panic!(
-            "{} unimplemented",
-            SERIAL_TRANSFER_COMPLETION_INTERRUPT_START
-        );
-    }
-    if addr == HIGH_TO_LOW_P10_P13_INTERRUPT_START {
-        panic!("{} unimplemented", HIGH_TO_LOW_P10_P13_INTERRUPT_START);
     }
     if addr == COLOR_GB_ENABLE {
         panic!("{} unimplemented", COLOR_GB_ENABLE);
@@ -269,8 +252,5 @@ pub fn check_unimplemented(addr: usize) {
     }
     if addr == WY_REGISTER {
         panic!("{} unimplemented", WY_REGISTER);
-    }
-    if addr == IE_REGISTER {
-        panic!("{} unimplemented", IE_REGISTER);
     }
 }

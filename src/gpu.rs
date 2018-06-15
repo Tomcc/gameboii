@@ -284,7 +284,8 @@ impl GPU {
 
             //vblank started, swap buffers
             if scanline_idx == RESOLUTION_H {
-                std::mem::swap(&mut self.front_buffer, &mut self.back_buffer)
+                std::mem::swap(&mut self.front_buffer, &mut self.back_buffer);
+                cpu.request_vblank();
             }
 
             let ly_update_interval = VERTICAL_SYNC_INTERVAL / (LY_VALUES_COUNT as u32);
