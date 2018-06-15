@@ -9,6 +9,17 @@ use std::io::Read;
 use std::time::Duration;
 use std::time::Instant;
 
+//the RAM size is max addr + 1
+const RAM_SIZE: usize = 0xFFFF + 1;
+pub const MACHINE_HZ: u64 = 4194304;
+const BOOT_ROM_SIZE: usize = 0x100;
+
+//derived data
+const TICK_DURATION: Duration = Duration::from_nanos(1000000000 / MACHINE_HZ);
+
+const DMA_BYTE_SIZE: usize = 160;
+const DMA_ONE_BYTE_COPY_DURATION: Duration = Duration::from_micros(1);
+
 #[derive(Clone, Copy)]
 #[repr(C)]
 pub struct RegisterPair {
@@ -22,16 +33,23 @@ pub union Register {
     pub r16: u16,
 }
 
-//the RAM size is max addr + 1
-const RAM_SIZE: usize = 0xFFFF + 1;
-pub const MACHINE_HZ: u64 = 4194304;
-const BOOT_ROM_SIZE: usize = 0x100;
+#[allow(non_snake_case)]
+struct DMATransfer {
+    bytes_copied: usize,
+    current_address: usize,
+    next_copy_time: Instant,
+}
 
-//derived data
-const TICK_DURATION: Duration = Duration::from_nanos(1000000000 / MACHINE_HZ);
-
-#[allow(unused)]
-const SOUND_CHANNELS: u32 = 4;
+impl DMATransfer {
+    fn from_reg(reg: u8) -> Self {
+        DMATransfer {
+            bytes_copied: 0,
+            //the register is the top byte of the address
+            current_address: ((reg as u16) << 8) as usize,
+            next_copy_time: Instant::now(),
+        }
+    }
+}
 
 #[allow(non_snake_case)]
 pub struct CPU<'a> {
@@ -46,6 +64,7 @@ pub struct CPU<'a> {
 
     boot_mode: bool,
     cb_mode: bool,
+    DMA_transfer: Option<DMATransfer>,
 
     interrupt_change_counter: u8,
     interrupts_master_enabled_next: u8,
@@ -68,8 +87,8 @@ impl<'a> CPU<'a> {
             HL: Register { r16: 0 },
             RAM: [0; RAM_SIZE],
             cb_mode: false,
-
             boot_mode: true,
+            DMA_transfer: None,
 
             interrupts_master_enabled: 0,
             interrupt_change_counter: 0,
@@ -136,8 +155,35 @@ impl<'a> CPU<'a> {
         }
         return false;
     }
+    fn handle_dma(&mut self) {
+        //assume that this is called as fast as the machine hz, not faster
+        let mut end = false;
+        if let Some(ref mut dma) = self.DMA_transfer {
+            //copy one byte per cycle (BLAZING FAST)
+            let now = Instant::now();
+            if now >= dma.next_copy_time {
+                let src = dma.current_address + dma.bytes_copied;
+                let dst = address::SPRITE_ATTRIBUTE_TABLE_START + dma.bytes_copied;
+
+                self.RAM[dst] = self.RAM[src];
+
+                dma.bytes_copied += 1;
+                if dma.bytes_copied == DMA_BYTE_SIZE {
+                    end = true;
+                }
+
+                dma.next_copy_time += DMA_ONE_BYTE_COPY_DURATION;
+            }
+        }
+
+        if end {
+            self.DMA_transfer = None;
+        }
+    }
 
     pub fn tick(&mut self) -> bool {
+        self.handle_dma();
+
         if Instant::now() > self.next_clock_time {
             let has_log = self.log.is_some();
             if has_log {
@@ -175,6 +221,10 @@ impl<'a> CPU<'a> {
             return true;
         }
         false
+    }
+
+    pub fn is_dma_mode(&self) -> bool {
+        self.DMA_transfer.is_some()
     }
 
     pub fn enable_cb(&mut self) {
@@ -242,6 +292,8 @@ impl<'a> CPU<'a> {
             self.boot_mode = false;
         } else if addr == address::IF_REGISTER {
             self.change_interrupt_flags(val);
+        } else if addr == address::DMA_REGISTER {
+            self.DMA_transfer = Some(DMATransfer::from_reg(val));
         } else if val != 0 {
             address::check_unimplemented(addr);
         }
@@ -250,7 +302,9 @@ impl<'a> CPU<'a> {
 
     pub fn set_address16(&mut self, addr: u16, val: u16) {
         let addr = addr as usize;
-        address::check_unimplemented(addr);
+        if val != 0 {
+            address::check_unimplemented(addr);
+        }
 
         self.RAM[addr] = val as u8;
         self.RAM[addr + 1] = (val >> 8) as u8;

@@ -42,7 +42,7 @@ pub const ECHO_MEM_START: usize = 0xe000;
 pub const ECHO_MEM_END: usize = 0xfdff;
 
 pub const SPRITE_ATTRIBUTE_TABLE_START: usize = 0xfe00;
-pub const SPRITE_ATTRIBUTE_TABLE_END: usize = 0xfe0f;
+pub const SPRITE_ATTRIBUTE_TABLE_END: usize = 0xfe9f;
 
 //P10 to P15 bits are the buttons
 pub const P1_REGISTER: usize = 0xff00;
@@ -237,9 +237,6 @@ pub fn check_unimplemented(addr: usize) {
     }
     if addr == LYC_REGISTER {
         panic!("{} unimplemented", LYC_REGISTER);
-    }
-    if addr == DMA_REGISTER {
-        panic!("{} unimplemented", DMA_REGISTER);
     }
     if addr == WX_REGISTER {
         panic!("{} unimplemented", WX_REGISTER);

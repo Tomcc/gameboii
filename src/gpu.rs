@@ -215,7 +215,7 @@ impl GPU {
         }
     }
 
-    fn render_scanline(&mut self, scanline_idx: u8, ram: &[u8]) {
+    fn render_scanline(&mut self, scanline_idx: u8, ram: &[u8], dma_in_progress: bool) {
         let scroll_x = ram[address::SCX_REGISTER];
         let scroll_y = ram[address::SCY_REGISTER];
 
@@ -252,7 +252,8 @@ impl GPU {
             }
         }
 
-        if lcd_settings.obj_on() {
+        //sprites don't draw during DMA
+        if lcd_settings.obj_on() && !dma_in_progress {
             let _palette0 = LCDPalette::from_register(ram[address::OBP0_REGISTER]);
             let _palette1 = LCDPalette::from_register(ram[address::OBP1_REGISTER]);
 
@@ -279,7 +280,8 @@ impl GPU {
             };
 
             if scanline_idx < RESOLUTION_H {
-                self.render_scanline(scanline_idx, &mut cpu.RAM);
+                let dma_mode = cpu.is_dma_mode();
+                self.render_scanline(scanline_idx, &mut cpu.RAM, dma_mode);
             }
 
             //vblank started, swap buffers
