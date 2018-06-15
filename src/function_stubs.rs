@@ -48,7 +48,10 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let imm0 = cpu.immediate_u8();
 			let reg0 = imm0;
 	//----------------
-		panic!("AND_z_u8 not implemented");
+		let mut a = cpu.AF.r8.first;
+		a &= reg0;
+		cpu.set_z(a == 0);
+		cpu.AF.r8.first = a;
 	//----------------
 	}
 	{
@@ -357,7 +360,9 @@ unsafe fn stubs(cpu: &mut CPU) {
 	// NAME: RET_bool
 			let reg0 = !cpu.c();
 	//----------------
-		panic!("RET_bool not implemented");
+		if reg0 {
+			cpu.PC = cpu.pop16();
+		}
 	//----------------
 	}
 	{
