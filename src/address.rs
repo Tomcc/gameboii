@@ -1,3 +1,5 @@
+use std::ops::Range;
+
 //          Interrupt Enable Register
 //          --------------------------- FFFF
 //          Internal RAM
@@ -33,16 +35,14 @@ pub const CARTRIDGE_TYPE: usize = 0x147;
 pub const ROM_SIZE: usize = 0x148;
 pub const RAM_SIZE: usize = 0x149;
 
-pub const UNSIGNED_TILE_DATA_TABLE_START: usize = 0x8000;
-pub const SIGNED_TILE_DATA_TABLE_START: usize = 0x8800;
-pub const TILE_MAP0_START: usize = 0x9800;
-pub const TILE_MAP1_START: usize = 0x9C00;
+pub const UNSIGNED_TILE_DATA_TABLE: Range<usize> = 0x8000..0x8800;
+pub const SIGNED_TILE_DATA_TABLE: Range<usize> = 0x8800..0x9800;
+pub const TILE_MAP0: Range<usize> = 0x9800..0x9c00;
+pub const TILE_MAP1: Range<usize> = 0x9C00..0xA000;
 
-pub const ECHO_MEM_START: usize = 0xe000;
-pub const ECHO_MEM_END: usize = 0xfdff;
+pub const ECHO_MEM: Range<usize> = 0xe000..0xfe00;
 
-pub const SPRITE_ATTRIBUTE_TABLE_START: usize = 0xfe00;
-pub const SPRITE_ATTRIBUTE_TABLE_END: usize = 0xfe9f;
+pub const SPRITE_ATTRIBUTE_TABLE: Range<usize> = 0xfe00..0xfea0;
 
 //P10 to P15 bits are the buttons
 pub const P1_REGISTER: usize = 0xff00;
@@ -91,7 +91,7 @@ pub const NR44_REGISTER: usize = 0xff23;
 pub const NR50_REGISTER: usize = 0xff24;
 pub const NR51_REGISTER: usize = 0xff25;
 pub const NR52_REGISTER: usize = 0xff26;
-pub const WAVE_PATTERN_RAM: usize = 0xff30;
+pub const WAVE_PATTERN_RAM: Range<usize> = 0xff30..0xff3f;
 
 pub const LCDC_REGISTER: usize = 0xff40;
 
@@ -121,8 +121,8 @@ pub const INTERNAL_ROM_TURN_OFF: usize = 0xff50;
 pub const IE_REGISTER: usize = 0xffff;
 
 pub fn check_unimplemented(addr: usize) {
-    if addr >= SPRITE_ATTRIBUTE_TABLE_START && addr < SPRITE_ATTRIBUTE_TABLE_END {
-        panic!("{} unimplemented", SPRITE_ATTRIBUTE_TABLE_START);
+    if addr >= SPRITE_ATTRIBUTE_TABLE.start && addr < SPRITE_ATTRIBUTE_TABLE.end {
+        panic!("{} unimplemented", SPRITE_ATTRIBUTE_TABLE.start);
     }
     if addr == COLOR_GB_ENABLE {
         panic!("{} unimplemented", COLOR_GB_ENABLE);
@@ -139,11 +139,11 @@ pub fn check_unimplemented(addr: usize) {
     if addr == RAM_SIZE {
         panic!("{} unimplemented", RAM_SIZE);
     }
-    if addr >= ECHO_MEM_START && addr < ECHO_MEM_END {
-        panic!("{} unimplemented", ECHO_MEM_START);
+    if addr >= ECHO_MEM.start && addr < ECHO_MEM.end {
+        panic!("{} unimplemented", ECHO_MEM.start);
     }
     if addr == P1_REGISTER {
-        panic!("{} unimplemented", P1_REGISTER);
+        // panic!("{} unimplemented", P1_REGISTER);
     }
     if addr == SB_REGISTER {
         panic!("{} unimplemented", SB_REGISTER);
@@ -225,6 +225,9 @@ pub fn check_unimplemented(addr: usize) {
     }
     if addr == NR52_REGISTER {
         // panic!("{} unimplemented", NR52_REGISTER);
+    }
+    if addr >= WAVE_PATTERN_RAM.start && addr < WAVE_PATTERN_RAM.end {
+        panic!("{} unimplemented", WAVE_PATTERN_RAM.start);
     }
     if addr == STAT_REGISTER {
         panic!("{} unimplemented", STAT_REGISTER);

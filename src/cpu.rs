@@ -163,7 +163,7 @@ impl<'a> CPU<'a> {
             let now = Instant::now();
             if now >= dma.next_copy_time {
                 let src = dma.current_address + dma.bytes_copied;
-                let dst = address::SPRITE_ATTRIBUTE_TABLE_START + dma.bytes_copied;
+                let dst = address::SPRITE_ATTRIBUTE_TABLE.start + dma.bytes_copied;
 
                 self.RAM[dst] = self.RAM[src];
 

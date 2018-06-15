@@ -97,7 +97,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: CPL
 	//----------------
-		panic!("CPL not implemented");
+		cpu.AF.r8.first = !cpu.AF.r8.first;
 	//----------------
 	}
 	{

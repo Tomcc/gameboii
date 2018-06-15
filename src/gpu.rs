@@ -79,21 +79,21 @@ impl LCDCValues {
     }
     fn tile_map_addr(&self) -> usize {
         if self.raw.get_bit(3) {
-            address::TILE_MAP1_START
+            address::TILE_MAP1.start
         } else {
-            address::TILE_MAP0_START
+            address::TILE_MAP0.start
         }
     }
 
     fn pick_tile_bank(unsigned: bool) -> (usize, TileDataAddressing) {
         if unsigned {
             (
-                address::UNSIGNED_TILE_DATA_TABLE_START,
+                address::UNSIGNED_TILE_DATA_TABLE.start,
                 TileDataAddressing::Unsigned,
             )
         } else {
             (
-                address::SIGNED_TILE_DATA_TABLE_START,
+                address::SIGNED_TILE_DATA_TABLE.start,
                 TileDataAddressing::Signed,
             )
         }
@@ -259,7 +259,6 @@ impl GPU {
 
             assert!(lcd_settings.double_obj() == false, "Not implemented yet");
             panic!("Not implemented yet");
-
         }
     }
 
