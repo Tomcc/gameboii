@@ -173,22 +173,22 @@ pub fn check_unimplemented(addr: usize) {
         // panic!("{} unimplemented", NR12_REGISTER);
     }
     if addr == NR13_REGISTER {
-        // panic!("{} unimplemented", NR13_REGISTER);
+        // TETRIS panic!("{} unimplemented", NR13_REGISTER);
     }
     if addr == NR14_REGISTER {
-        // panic!("{} unimplemented", NR14_REGISTER);
+        // T panic!("{} unimplemented", NR14_REGISTER);
     }
     if addr == NR21_REGISTER {
         panic!("{} unimplemented", NR21_REGISTER);
     }
     if addr == NR22_REGISTER {
-        panic!("{} unimplemented", NR22_REGISTER);
+        // TETRIS panic!("{} unimplemented", NR22_REGISTER);
     }
     if addr == NR23_REGISTER {
         panic!("{} unimplemented", NR23_REGISTER);
     }
     if addr == NR24_REGISTER {
-        panic!("{} unimplemented", NR24_REGISTER);
+        // T panic!("{} unimplemented", NR24_REGISTER);
     }
     if addr == NR30_REGISTER {
         panic!("{} unimplemented", NR30_REGISTER);
@@ -209,13 +209,13 @@ pub fn check_unimplemented(addr: usize) {
         panic!("{} unimplemented", NR41_REGISTER);
     }
     if addr == NR42_REGISTER {
-        panic!("{} unimplemented", NR42_REGISTER);
+        // T panic!("{} unimplemented", NR42_REGISTER);
     }
     if addr == NR43_REGISTER {
         panic!("{} unimplemented", NR43_REGISTER);
     }
     if addr == NR44_REGISTER {
-        panic!("{} unimplemented", NR44_REGISTER);
+        // T panic!("{} unimplemented", NR44_REGISTER);
     }
     if addr == NR50_REGISTER {
         // panic!("{} unimplemented", NR50_REGISTER);
@@ -226,14 +226,8 @@ pub fn check_unimplemented(addr: usize) {
     if addr == NR52_REGISTER {
         // panic!("{} unimplemented", NR52_REGISTER);
     }
-    if addr == WAVE_PATTERN_RAM {
-        panic!("{} unimplemented", WAVE_PATTERN_RAM);
-    }
     if addr == STAT_REGISTER {
         panic!("{} unimplemented", STAT_REGISTER);
-    }
-    if addr == SCY_REGISTER {
-        // panic!("{} unimplemented", SCY_REGISTER);
     }
     if addr == SCX_REGISTER {
         panic!("{} unimplemented", SCX_REGISTER);

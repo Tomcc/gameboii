@@ -121,7 +121,7 @@ impl<'a> CPU<'a> {
             let current_interrupt = self.find_highest_prio_interrupt();
 
             // disable the IME
-            self.enable_interrupts(false);
+            self.interrupts_master_enabled = 0;
             // reset the bit we handled
             self.requested_interrupts.set_bit(current_interrupt, false);
 
@@ -148,28 +148,27 @@ impl<'a> CPU<'a> {
                 }
             }
 
-            if self.handle_interrupts() {
-                //skip the rest of the "instruction" because this isn't a real instruction
-                return true;
-            }
-
             unsafe {
                 if self.cb_mode {
                     interpreter::interpret_cb(self);
                     self.cb_mode = false;
                 } else {
+                    if self.handle_interrupts() {
+                        //skip the rest of the instruction, we'll continue after return
+                        return true;
+                    }
+
                     interpreter::interpret(self);
                 }
             }
 
-            if self.interrupt_change_counter > 0 {
-                self.interrupt_change_counter -= 1;
-                if self.interrupt_change_counter == 0 {
-                    self.interrupts_master_enabled = self.interrupts_master_enabled_next;
-                    assert!(
-                        self.interrupts_master_enabled == 0,
-                        "Interrupts not supported"
-                    );
+            //don't count the prefix itself
+            if !self.cb_mode {
+                if self.interrupt_change_counter > 0 {
+                    self.interrupt_change_counter -= 1;
+                    if self.interrupt_change_counter == 0 {
+                        self.interrupts_master_enabled = self.interrupts_master_enabled_next;
+                    }
                 }
             }
 

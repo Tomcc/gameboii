@@ -13,7 +13,6 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::io::BufReader;
 use std::io::Write;
-use std::path::Path;
 
 #[derive(Deserialize, Debug)]
 #[allow(non_snake_case)]
@@ -47,9 +46,9 @@ type FunctionCodeMap = BTreeMap<String, FunctionCode>;
 
 fn write_flag_handler(outfile: &mut File, name: &str, value: &str) -> std::io::Result<()> {
     if value == "0" {
-        writeln!(outfile, "\t\t\tcpu.set_{}(true);", name)?;
-    } else if value == "1" {
         writeln!(outfile, "\t\t\tcpu.set_{}(false);", name)?;
+    } else if value == "1" {
+        writeln!(outfile, "\t\t\tcpu.set_{}(true);", name)?;
     }
     Ok(())
 }

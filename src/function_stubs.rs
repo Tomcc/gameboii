@@ -297,7 +297,10 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let imm0 = cpu.immediate_u8();
 			let reg0 = imm0;
 	//----------------
-		panic!("OR_z_u8 not implemented");
+		let mut a = cpu.AF.r8.first;
+		a |= reg0;
+		cpu.set_z(a == 0);
+		cpu.AF.r8.first = a;
 	//----------------
 	}
 	{
