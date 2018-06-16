@@ -9,10 +9,8 @@
             "type": "lldb-mi",
             "request": "launch",
             "preLaunchTask": "cargo build",
-            "target": "./target/debug/gameboii",
-            "args": [
-                "ROMs/Tetris.gb"
-            ],
+            "target": "${workspaceRoot}/target/debug/gameboii",
+            "arguments": "ROMs/Tetris.gb",
             "cwd": "${workspaceRoot}"
         }
     ]

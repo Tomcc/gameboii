@@ -311,8 +311,8 @@ impl GPU {
             graphics::clear(GREEN, &mut self.gl);
 
             let transform = c.transform.scale(
-                args.viewport().draw_size[0] as f64 / RESOLUTION_W as f64,
-                args.viewport().draw_size[1] as f64 / RESOLUTION_H as f64,
+                args.viewport().window_size[0] as f64 / RESOLUTION_W as f64,
+                args.viewport().window_size[1] as f64 / RESOLUTION_H as f64,
             );
 
             // Draw a box rotating around the middle of the screen.
