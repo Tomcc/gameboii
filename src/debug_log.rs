@@ -32,15 +32,24 @@ impl Log {
         }
     }
 
-    pub fn log_instruction(&mut self, instr: u8, pc: u16) -> std::io::Result<()> {
+    pub fn log_instruction(&mut self, instr: u16, pc: u16) -> std::io::Result<()> {
         //compose the line
         let mut line = format!("{:04x}\t", pc);
         let text_instruction = format!("0x{:02x}", instr);
 
-        let mnemonic = &self.opcodes[&text_instruction].mnemonic;
+        println!("{}", text_instruction);
+
+        let opcode = &self.opcodes[&text_instruction];
+        let mnemonic = &opcode.mnemonic;
         line += mnemonic;
-        //append spaces to make it 4 chars
-        for _ in mnemonic.len()..4 {
+
+        for op in &opcode.operands {
+            line += " ";
+            line += op;
+        }
+
+        //append spaces to make it 10 chars
+        for _ in mnemonic.len()..10 {
             line += " ";
         }
         line += "\n";

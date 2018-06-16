@@ -140,7 +140,7 @@
         ],
         "cycles": 8
     },
-    "0xa": {
+    "0x0a": {
         "mnemonic": "LD",
         "operands": [
             "out A",
@@ -155,7 +155,7 @@
         ],
         "cycles": 8
     },
-    "0xb": {
+    "0x0b": {
         "mnemonic": "DEC",
         "operands": [
             "inout BC"
@@ -169,7 +169,7 @@
         ],
         "cycles": 8
     },
-    "0xc": {
+    "0x0c": {
         "mnemonic": "INC",
         "operands": [
             "inout C"
@@ -183,7 +183,7 @@
         ],
         "cycles": 4
     },
-    "0xd": {
+    "0x0d": {
         "mnemonic": "DEC",
         "operands": [
             "inout C"
@@ -197,7 +197,7 @@
         ],
         "cycles": 4
     },
-    "0xe": {
+    "0x0e": {
         "mnemonic": "LD",
         "operands": [
             "out C",
@@ -212,7 +212,7 @@
         ],
         "cycles": 8
     },
-    "0xf": {
+    "0x0f": {
         "mnemonic": "RRCA",
         "operands": [],
         "bytes": 1,
@@ -3663,7 +3663,7 @@
         ],
         "cycles": 8
     },
-    "0xcba": {
+    "0xcb0a": {
         "mnemonic": "RRC",
         "operands": [
             "D"
@@ -3677,7 +3677,7 @@
         ],
         "cycles": 8
     },
-    "0xcbb": {
+    "0xcb0b": {
         "mnemonic": "RRC",
         "operands": [
             "E"
@@ -3691,7 +3691,7 @@
         ],
         "cycles": 8
     },
-    "0xcbc": {
+    "0xcb0c": {
         "mnemonic": "RRC",
         "operands": [
             "H"
@@ -3705,7 +3705,7 @@
         ],
         "cycles": 8
     },
-    "0xcbd": {
+    "0xcb0d": {
         "mnemonic": "RRC",
         "operands": [
             "L"
@@ -3719,7 +3719,7 @@
         ],
         "cycles": 8
     },
-    "0xcbe": {
+    "0xcb0e": {
         "mnemonic": "RRC",
         "operands": [
             "(HL)"
@@ -3733,7 +3733,7 @@
         ],
         "cycles": 16
     },
-    "0xcbf": {
+    "0xcb0f": {
         "mnemonic": "RRC",
         "operands": [
             "A"

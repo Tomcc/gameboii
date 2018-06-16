@@ -179,14 +179,6 @@ impl<'a> CPU<'a> {
         self.handle_dma(current_clock);
 
         if current_clock >= self.next_clock {
-            if !self.boot_mode {
-                if let Some(ref mut logger) = logger {
-                    let pc = self.PC;
-                    let instr = self.peek_instruction();
-                    logger.log_instruction(instr, pc).unwrap();
-                }
-            }
-
             if self.handle_interrupts() {
                 //skip the rest of the instruction, we'll continue after return
                 return;
@@ -209,6 +201,13 @@ impl<'a> CPU<'a> {
                 self.interrupt_change_counter -= 1;
                 if self.interrupt_change_counter == 0 {
                     self.interrupts_master_enabled = self.interrupts_master_enabled_next;
+                }
+            }
+
+            if !self.boot_mode {
+                if let Some(ref mut logger) = logger {
+                    let pc = self.PC;
+                    logger.log_instruction(instr, pc).unwrap();
                 }
             }
         }
