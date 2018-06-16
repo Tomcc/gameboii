@@ -67,10 +67,27 @@ fn main() {
                 .long("log")
                 .help("Write the executable map and the log to file. Very slow"),
         )
+        .arg(
+            Arg::with_name("speed_mult")
+                .long("speed_mult")
+                .short("m")
+                .takes_value(true)
+                .default_value("1")
+                .help("A clock multiplier to speed up emulation"),
+        )
         .get_matches();
 
     //load the file from command line
     let rom_path = matches.value_of("ROMFILE").unwrap();
+
+    let speed_mult = match matches.value_of("speed_mult").unwrap().parse::<u64>() {
+        Ok(num) => num,
+        Err(e) => {
+            println!("Invalid value for speed_mult");
+            println!("{}", e);
+            std::process::exit(1);
+        }
+    };
 
     let rom = open_rom(&rom_path).unwrap_or_else(|error| {
         println!("Cannot open file: {}", rom_path);
@@ -109,7 +126,7 @@ fn main() {
 
     let mut paused = false;
     let mut current_clock = 0;
-    let speed_mult = 1;
+
     while let Some(e) = events.next(&mut window) {
         if let Some(ue) = e.update_args() {
             let clocks = (cpu::MACHINE_HZ as f64 * ue.dt) as u64 * speed_mult;
