@@ -107,17 +107,14 @@ fn main() {
         ups_reset: 2,
     });
 
-    let mut run_ticks = u64::max_value();
-
+    let mut paused = false;
+    let mut current_clock = 0;
     while let Some(e) = events.next(&mut window) {
         if let Some(_) = e.update_args() {
-            if run_ticks > 0 {
-                if cpu.tick() {
-                    run_ticks -= 1;
-                }
+            cpu.tick(current_clock);
+            gpu.tick(&mut cpu, current_clock);
 
-                gpu.tick(&mut cpu);
-            }
+            current_clock += 1;
         }
 
         if let Some(r) = e.render_args() {
@@ -129,19 +126,9 @@ fn main() {
                 match i.button {
                     Button::Keyboard(k) => {
                         if k == keyboard::Key::F5 {
-                            if run_ticks > 0 {
-                                run_ticks = 0;
-                            } else {
-                                run_ticks = u64::max_value();
-                            }
+                            paused = !paused;
                         } else if k == keyboard::Key::F1 {
                             dump_ram(&cpu.RAM).unwrap();
-                        }
-
-                        if run_ticks == 0 {
-                            if k == keyboard::Key::F10 {
-                                run_ticks = 1; //run one tick
-                            }
                         }
                     }
                     _ => (),

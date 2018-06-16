@@ -304,13 +304,6 @@ unsafe fn stubs(cpu: &mut CPU) {
 			cpu.AF.r16 = out;
 	}
 	{
-	// NAME: PREFIX
-	//----------------
-		cpu.enable_cb();
-		cpu.PC += 1;
-	//----------------
-	}
-	{
 	// NAME: PUSH_u16
 			let reg0 = cpu.AF.r16;
 	//----------------

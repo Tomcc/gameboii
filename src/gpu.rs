@@ -13,17 +13,15 @@ use opengl_graphics::OpenGL;
 use opengl_graphics::Texture;
 use opengl_graphics::TextureSettings;
 use piston::input::RenderArgs;
-use std::time::Duration;
-use std::time::Instant;
 
 const LY_VALUES_COUNT: u8 = 153 + 1;
 
 #[allow(unused)]
 const HORIZONTAL_SYNC_HZ: u64 = 9198000;
 
-const VERTICAL_SYNC_HZ: f64 = 59.73;
-const VERTICAL_SYNC_INTERVAL: Duration =
-    Duration::from_nanos((1000000000.0 / VERTICAL_SYNC_HZ) as u64);
+#[allow(unused)]
+const VSYNC_INTERVAL_CLOCKS: u64 = 70221; // ~cpu::MACHINE_HZ / 60;
+const SCANLINE_UPDATE_INTERVAL_CLOCKS: u64 = 456; // ~VSYNC_INTERVAL_CLOCKS / 154
 
 pub const RESOLUTION_W: u8 = 160;
 pub const RESOLUTION_H: u8 = 144;
@@ -32,7 +30,7 @@ pub const RESOLUTION_H: u8 = 144;
 const INTERNAL_RESOLUTION_W: u32 = 256;
 #[allow(unused)]
 const INTERNAL_RESOLUTION_H: u32 = 256;
-#[allow(unused)]
+
 const TILE_RESOLUTION_W: u8 = 32;
 #[allow(unused)]
 const TILE_RESOLUTION_H: u8 = 32;
@@ -189,8 +187,7 @@ fn get_tile_color_idx(
 #[allow(non_snake_case)]
 pub struct GPU {
     gl: GlGraphics,
-    next_scanline_time: Instant,
-    next_vsync_time: Instant,
+    next_scanline_clock: u64,
     front_buffer: RgbaImage,
     back_buffer: RgbaImage,
     screen_texture: Texture,
@@ -207,8 +204,7 @@ impl GPU {
 
         GPU {
             gl: GlGraphics::new(gl_version),
-            next_scanline_time: Instant::now(),
-            next_vsync_time: Instant::now(),
+            next_scanline_clock: 0,
             screen_texture: Texture::from_image(&img, &texture_settings),
             front_buffer: img.clone(),
             back_buffer: img,
@@ -262,62 +258,53 @@ impl GPU {
         }
     }
 
-    pub fn tick(&mut self, cpu: &mut CPU) {
-        if LCDCValues::from_ram(&cpu.RAM).lcd_on() == false {
-            return;
-        }
+    pub fn tick(&mut self, cpu: &mut CPU, current_clock: u64) {
+        if current_clock == self.next_scanline_clock {
+            if LCDCValues::from_ram(&cpu.RAM).lcd_on() {
+                //increment the LY line every fixed time
+                let scanline_idx = {
+                    let scanline_idx = &mut cpu.RAM[address::LY_REGISTER];
+                    *scanline_idx = (*scanline_idx + 1) % LY_VALUES_COUNT;
+                    *scanline_idx
+                };
 
-        let now = Instant::now();
-        if now >= self.next_scanline_time {
-            //increment the LY line every fixed time
-            let scanline_idx = {
-                let scanline_idx = &mut cpu.RAM[address::LY_REGISTER];
-                *scanline_idx = (*scanline_idx + 1) % LY_VALUES_COUNT;
-                *scanline_idx
-            };
+                if scanline_idx < RESOLUTION_H {
+                    let dma_mode = cpu.is_dma_mode();
+                    self.render_scanline(scanline_idx, &mut cpu.RAM, dma_mode);
+                }
 
-            if scanline_idx < RESOLUTION_H {
-                let dma_mode = cpu.is_dma_mode();
-                self.render_scanline(scanline_idx, &mut cpu.RAM, dma_mode);
+                //vblank started, swap buffers
+                if scanline_idx == RESOLUTION_H {
+                    std::mem::swap(&mut self.front_buffer, &mut self.back_buffer);
+                    cpu.request_vblank();
+                }
             }
 
-            //vblank started, swap buffers
-            if scanline_idx == RESOLUTION_H {
-                std::mem::swap(&mut self.front_buffer, &mut self.back_buffer);
-                cpu.request_vblank();
-            }
-
-            let ly_update_interval = VERTICAL_SYNC_INTERVAL / (LY_VALUES_COUNT as u32);
-            self.next_scanline_time += ly_update_interval;
+            self.next_scanline_clock += SCANLINE_UPDATE_INTERVAL_CLOCKS;
         }
     }
 
     pub fn render(&mut self, args: &RenderArgs) {
-        let now = Instant::now();
-        if now >= self.next_vsync_time {
-            //video update
-            use graphics::*;
+        //video update
+        use graphics::*;
 
-            const GREEN: [f32; 4] = [0.0, 1.0, 0.0, 1.0];
+        const GREEN: [f32; 4] = [0.0, 1.0, 0.0, 1.0];
 
-            //send the cpu-made texture to the CPU
-            self.screen_texture.update(&self.back_buffer);
+        //send the cpu-made texture to the CPU
+        self.screen_texture.update(&self.back_buffer);
 
-            let c = self.gl.draw_begin(args.viewport());
+        let c = self.gl.draw_begin(args.viewport());
 
-            // Clear the screen.
-            graphics::clear(GREEN, &mut self.gl);
+        // Clear the screen.
+        graphics::clear(GREEN, &mut self.gl);
 
-            let transform = c.transform.scale(
-                args.viewport().window_size[0] as f64 / RESOLUTION_W as f64,
-                args.viewport().window_size[1] as f64 / RESOLUTION_H as f64,
-            );
+        let transform = c.transform.scale(
+            args.viewport().window_size[0] as f64 / RESOLUTION_W as f64,
+            args.viewport().window_size[1] as f64 / RESOLUTION_H as f64,
+        );
 
-            // Draw a box rotating around the middle of the screen.
-            graphics::image(&self.screen_texture, transform, &mut self.gl);
-            self.gl.draw_end();
-
-            self.next_vsync_time += VERTICAL_SYNC_INTERVAL;
-        }
+        // Draw a box rotating around the middle of the screen.
+        graphics::image(&self.screen_texture, transform, &mut self.gl);
+        self.gl.draw_end();
     }
 }

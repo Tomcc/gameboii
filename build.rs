@@ -384,18 +384,8 @@ use cpu::*;
 use bit_field::BitField;
 
 #[allow(unused, unreachable_code)]
-pub unsafe fn interpret(cpu: &mut CPU) {
-    match cpu.peek_instruction() {
-"#;
-
-const FUNC_SPLIT: &str = r#"
-        _ => panic!("instruction not known")
-    }
-}
-
-#[allow(unused, unreachable_code)]
-pub unsafe fn interpret_cb(cpu: &mut CPU) {
-    match cpu.peek_instruction() {
+pub unsafe fn interpret(instruction: u16, cpu: &mut CPU) {
+    match instruction {
 "#;
 
 const FOOTER: &str = r#"
@@ -411,7 +401,12 @@ fn write_opcodes(
     let mut function_list = vec![];
 
     for opcode in opcodes {
-        writeln!(outfile, "\t\t{} => {{", opcode.opcode)?;
+        let num = &opcode.opcode[2..];
+        let prefix = match opcode.prefix {
+            Some(ref p) => &p[2..],
+            None => "" 
+        };
+        writeln!(outfile, "\t\t0x{}{} => {{", prefix, num)?;
 
         let function = FunctionDesc::from_opcode(opcode);
 
@@ -476,21 +471,14 @@ fn write_opcodes(
 }
 
 fn write_interpreter(
-    mut opcodes: Vec<OpCodeDesc>,
+    opcodes: &[OpCodeDesc],
     codes: &FunctionCodeMap,
 ) -> std::io::Result<Vec<FunctionDesc>> {
     let outfile = &mut File::create(INTERPRETER_PATH)?;
 
-    //sort the opcodes between cb and non cb
-    let splitpoint = itertools::partition(&mut opcodes, |opcode| opcode.prefix.is_none());
-
     writeln!(outfile, "{}", HEADER)?;
 
-    let mut function_list = write_opcodes(outfile, &opcodes[..splitpoint], codes)?;
-
-    writeln!(outfile, "{}", FUNC_SPLIT)?;
-
-    function_list.append(&mut write_opcodes(outfile, &opcodes[splitpoint..], codes)?);
+    let function_list = write_opcodes(outfile, &opcodes, codes)?;
 
     writeln!(outfile, "{}", FOOTER)?;
 
@@ -608,7 +596,7 @@ fn main() {
     let opcodes: Vec<OpCodeDesc> =
         serde_json::from_reader(File::open(OPCODES_PATH).unwrap()).unwrap();
 
-    let functions = write_interpreter(opcodes, codes).unwrap();
+    let functions = write_interpreter(&opcodes, codes).unwrap();
 
     write_function_stubs(&functions, codes).unwrap();
 }

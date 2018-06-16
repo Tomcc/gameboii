@@ -7,19 +7,17 @@ use interpreter;
 use std::fs::File;
 use std::io::Read;
 use std::ops::Range;
-use std::time::Duration;
-use std::time::Instant;
 
 //the RAM size is max addr + 1
 const RAM_SIZE: usize = 0xFFFF + 1;
 pub const MACHINE_HZ: u64 = 4194304;
 const BOOT_ROM: Range<usize> = 0..0x100;
 
-//derived data
-const TICK_DURATION: Duration = Duration::from_nanos(1000000000 / MACHINE_HZ);
-
 const DMA_BYTE_SIZE: usize = 160;
-const DMA_ONE_BYTE_COPY_DURATION: Duration = Duration::from_micros(1);
+const DMA_CYCLES: u64 = 671;
+//TODO this is less than real? It should end up being 671 cycles
+
+const DMA_ONE_BYTE_COPY_DURATION: u64 = DMA_CYCLES / DMA_BYTE_SIZE as u64;
 
 #[derive(Clone, Copy)]
 #[repr(C)]
@@ -38,7 +36,7 @@ pub union Register {
 struct DMATransfer {
     bytes_copied: usize,
     current_address: usize,
-    next_copy_time: Instant,
+    next_copy_clock: u64,
 }
 
 impl DMATransfer {
@@ -47,7 +45,7 @@ impl DMATransfer {
             bytes_copied: 0,
             //the register is the top byte of the address
             current_address: ((reg as u16) << 8) as usize,
-            next_copy_time: Instant::now(),
+            next_copy_clock: 0,
         }
     }
 }
@@ -64,7 +62,6 @@ pub struct CPU<'a> {
     pub RAM: [u8; RAM_SIZE],
 
     boot_mode: bool,
-    cb_mode: bool,
     DMA_transfer: Option<DMATransfer>,
 
     interrupt_change_counter: u8,
@@ -72,7 +69,7 @@ pub struct CPU<'a> {
     interrupts_master_enabled: u8,
     requested_interrupts: u8,
 
-    next_clock_time: Instant,
+    next_clock: u64,
     cartridge_ROM: &'a [u8],
     log: Option<Log>,
 }
@@ -87,7 +84,6 @@ impl<'a> CPU<'a> {
             DE: Register { r16: 0 },
             HL: Register { r16: 0 },
             RAM: [0; RAM_SIZE],
-            cb_mode: false,
             boot_mode: true,
             DMA_transfer: None,
 
@@ -96,7 +92,7 @@ impl<'a> CPU<'a> {
             interrupts_master_enabled_next: 0,
             requested_interrupts: 0,
 
-            next_clock_time: Instant::now(),
+            next_clock: 0,
             cartridge_ROM: rom,
             log: if do_log { Some(Log::new()) } else { None },
         };
@@ -156,13 +152,12 @@ impl<'a> CPU<'a> {
         }
         return false;
     }
-    fn handle_dma(&mut self) {
+    fn handle_dma(&mut self, current_clock: u64) {
         //assume that this is called as fast as the machine hz, not faster
         let mut end = false;
         if let Some(ref mut dma) = self.DMA_transfer {
             //copy one byte per cycle (BLAZING FAST)
-            let now = Instant::now();
-            if now >= dma.next_copy_time {
+            if current_clock >= dma.next_copy_clock {
                 let src = dma.current_address + dma.bytes_copied;
                 let dst = address::SPRITE_ATTRIBUTE_TABLE.start + dma.bytes_copied;
 
@@ -173,7 +168,7 @@ impl<'a> CPU<'a> {
                     end = true;
                 }
 
-                dma.next_copy_time += DMA_ONE_BYTE_COPY_DURATION;
+                dma.next_copy_clock += DMA_ONE_BYTE_COPY_DURATION;
             }
         }
 
@@ -182,10 +177,10 @@ impl<'a> CPU<'a> {
         }
     }
 
-    pub fn tick(&mut self) -> bool {
-        self.handle_dma();
+    pub fn tick(&mut self, current_clock: u64) {
+        self.handle_dma(current_clock);
 
-        if Instant::now() > self.next_clock_time {
+        if current_clock >= self.next_clock {
             let has_log = self.log.is_some();
             if has_log {
                 let pc = self.PC;
@@ -195,41 +190,35 @@ impl<'a> CPU<'a> {
                 }
             }
 
-            unsafe {
-                if self.cb_mode {
-                    interpreter::interpret_cb(self);
-                    self.cb_mode = false;
-                } else {
-                    if self.handle_interrupts() {
-                        //skip the rest of the instruction, we'll continue after return
-                        return true;
-                    }
+            if self.handle_interrupts() {
+                //skip the rest of the instruction, we'll continue after return
+                return;
+            }
 
-                    interpreter::interpret(self);
-                }
+            //handle cb
+            let mut instr = self.peek_instruction() as u16;
+            if instr == 0xcb {
+                self.PC += 1;
+                instr <<= 8;
+                instr |= self.peek_instruction() as u16;
+            }
+
+            unsafe {
+                interpreter::interpret(instr, self);
             }
 
             //don't count the prefix itself
-            if !self.cb_mode {
-                if self.interrupt_change_counter > 0 {
-                    self.interrupt_change_counter -= 1;
-                    if self.interrupt_change_counter == 0 {
-                        self.interrupts_master_enabled = self.interrupts_master_enabled_next;
-                    }
+            if self.interrupt_change_counter > 0 {
+                self.interrupt_change_counter -= 1;
+                if self.interrupt_change_counter == 0 {
+                    self.interrupts_master_enabled = self.interrupts_master_enabled_next;
                 }
             }
-
-            return true;
         }
-        false
     }
 
     pub fn is_dma_mode(&self) -> bool {
         self.DMA_transfer.is_some()
-    }
-
-    pub fn enable_cb(&mut self) {
-        self.cb_mode = true;
     }
 
     pub fn enable_interrupts(&mut self, future_state: bool) {
@@ -269,8 +258,8 @@ impl<'a> CPU<'a> {
         unsafe { std::mem::transmute::<u8, i8>(self.address(self.PC + 1)) }
     }
 
-    pub fn run_cycles(&mut self, count: usize) {
-        self.next_clock_time += TICK_DURATION * (count as u32);
+    pub fn run_cycles(&mut self, count: u64) {
+        self.next_clock += count;
     }
 
     pub fn address(&self, addr: u16) -> u8 {
