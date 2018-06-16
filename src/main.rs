@@ -21,6 +21,7 @@ mod interpreter;
 
 use clap::{App, Arg};
 use cpu::CPU;
+use debug_log::Log;
 use glutin_window::GlutinWindow;
 use gpu::GPU;
 use opengl_graphics::OpenGL;
@@ -112,8 +113,9 @@ fn main() {
         .build()
         .unwrap();
 
+    let mut log = if do_log { Some(Log::new()) } else { None };
     let mut gpu = GPU::new(gl_version);
-    let mut cpu = CPU::new(&rom, do_log);
+    let mut cpu = CPU::new(&rom);
 
     let mut events = Events::new(EventSettings {
         max_fps: 60,
@@ -131,7 +133,7 @@ fn main() {
         if let Some(ue) = e.update_args() {
             let clocks = (cpu::MACHINE_HZ as f64 * ue.dt) as u64 * speed_mult;
             for _ in 0..clocks {
-                cpu.tick(current_clock);
+                cpu.tick(current_clock, &mut log);
                 gpu.tick(&mut cpu, current_clock);
 
                 current_clock += 1;

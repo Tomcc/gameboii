@@ -20,7 +20,7 @@
             "label": "cargo build release",
             "command": "cargo",
             "args": [
-                "build"
+                "build",
                 "--release"
             ],
             "problemMatcher": [

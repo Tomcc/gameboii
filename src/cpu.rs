@@ -71,11 +71,10 @@ pub struct CPU<'a> {
 
     next_clock: u64,
     cartridge_ROM: &'a [u8],
-    log: Option<Log>,
 }
 
 impl<'a> CPU<'a> {
-    pub fn new(rom: &'a [u8], do_log: bool) -> CPU<'a> {
+    pub fn new(rom: &'a [u8]) -> CPU<'a> {
         let mut cpu = CPU {
             PC: 0,
             SP: 0,
@@ -94,7 +93,6 @@ impl<'a> CPU<'a> {
 
             next_clock: 0,
             cartridge_ROM: rom,
-            log: if do_log { Some(Log::new()) } else { None },
         };
 
         //copy the ROM in memory
@@ -177,16 +175,15 @@ impl<'a> CPU<'a> {
         }
     }
 
-    pub fn tick(&mut self, current_clock: u64) {
+    pub fn tick(&mut self, current_clock: u64, logger: &mut Option<Log>) {
         self.handle_dma(current_clock);
 
         if current_clock >= self.next_clock {
-            let has_log = self.log.is_some();
-            if has_log {
-                let pc = self.PC;
-                let instr = self.peek_instruction();
-                if let Some(ref mut log) = self.log {
-                    log.log_instruction(instr, pc).unwrap();
+            if !self.boot_mode {
+                if let Some(ref mut logger) = logger {
+                    let pc = self.PC;
+                    let instr = self.peek_instruction();
+                    logger.log_instruction(instr, pc).unwrap();
                 }
             }
 

@@ -21,17 +21,15 @@ struct OpCodeDesc {
 }
 
 pub struct Log {
-    // exec_log: File,
-    map_log: File,
+    disasm_file: File,
     opcodes: Vec<OpCodeDesc>,
 }
 
 impl Log {
     pub fn new() -> Self {
         Log {
-            // exec_log: File::create("exec_log.txt").unwrap(),
-            map_log: File::create("map_log.txt").unwrap(),
-            opcodes: serde_json::from_reader(File::open("interpreterboii/opcodes.json").unwrap()).unwrap(),
+            disasm_file: File::create("disasm_file.txt").unwrap(),
+            opcodes: serde_json::from_reader(File::open("opcodes.json").unwrap()).unwrap(),
         }
     }
 
@@ -55,18 +53,16 @@ impl Log {
         let line_end = pc as u64 * (line.len() + 1) as u64;
 
         //expand the file as needed
-        while self.map_log.metadata()?.len() < line_end {
+        while self.disasm_file.metadata()?.len() < line_end {
             let mut v = vec![' ' as u8; line.len()];
             v[line.len() - 1] = '\n' as u8;
-            self.map_log.write(&v)?;
+            self.disasm_file.write(&v)?;
         }
 
         //seek to this entry line
-        self.map_log.seek(SeekFrom::Start(line_index))?;
+        self.disasm_file.seek(SeekFrom::Start(line_index))?;
 
-        write!(self.map_log, "{}", line)?;
-
-        // self.map_log.sync_all()?;
+        write!(self.disasm_file, "{}", line)?;
 
         Ok(())
     }
