@@ -6,13 +6,14 @@ use debug_log::Log;
 use interpreter;
 use std::fs::File;
 use std::io::Read;
+use std::ops::Range;
 use std::time::Duration;
 use std::time::Instant;
 
 //the RAM size is max addr + 1
 const RAM_SIZE: usize = 0xFFFF + 1;
 pub const MACHINE_HZ: u64 = 4194304;
-const BOOT_ROM_SIZE: usize = 0x100;
+const BOOT_ROM: Range<usize> = 0..0x100;
 
 //derived data
 const TICK_DURATION: Duration = Duration::from_nanos(1000000000 / MACHINE_HZ);
@@ -112,7 +113,7 @@ impl<'a> CPU<'a> {
         // override the first 256 bytes with the Nintendo boot ROM
         File::open("ROMs/DMG_ROM.bin")
             .unwrap()
-            .read_exact(&mut cpu.RAM[0..BOOT_ROM_SIZE])
+            .read_exact(&mut cpu.RAM[BOOT_ROM])
             .unwrap();
 
         cpu
@@ -288,7 +289,7 @@ impl<'a> CPU<'a> {
         //TODO how to not check this for every set ever?
         if self.boot_mode && addr == address::INTERNAL_ROM_TURN_OFF {
             //replace the Nintendo boot ROM with the first 256 bytes of the cart
-            self.RAM[0..BOOT_ROM_SIZE].copy_from_slice(&self.cartridge_ROM[0..BOOT_ROM_SIZE]);
+            self.RAM[BOOT_ROM].copy_from_slice(&self.cartridge_ROM[BOOT_ROM]);
             self.boot_mode = false;
         } else if addr == address::IF_REGISTER {
             self.change_interrupt_flags(val);

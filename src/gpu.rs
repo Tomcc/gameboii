@@ -270,8 +270,6 @@ impl GPU {
         let now = Instant::now();
         if now >= self.next_scanline_time {
             //increment the LY line every fixed time
-            //TODO actually use this value to copy a line to the screen
-
             let scanline_idx = {
                 let scanline_idx = &mut cpu.RAM[address::LY_REGISTER];
                 *scanline_idx = (*scanline_idx + 1) % LY_VALUES_COUNT;
