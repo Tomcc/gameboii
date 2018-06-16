@@ -17,8 +17,6 @@ use std::io::Write;
 #[derive(Deserialize, Debug)]
 #[allow(non_snake_case)]
 struct OpCodeDesc {
-    prefix: Option<String>,
-    opcode: String,
     mnemonic: String,
     operands: Vec<String>,
     bytes: Option<usize>,
@@ -395,18 +393,13 @@ const FOOTER: &str = r#"
 
 fn write_opcodes(
     outfile: &mut File,
-    opcodes: &[OpCodeDesc],
+    opcodes: &BTreeMap<String, OpCodeDesc>,
     codes: &FunctionCodeMap,
 ) -> std::io::Result<Vec<FunctionDesc>> {
     let mut function_list = vec![];
 
-    for opcode in opcodes {
-        let num = &opcode.opcode[2..];
-        let prefix = match opcode.prefix {
-            Some(ref p) => &p[2..],
-            None => "" 
-        };
-        writeln!(outfile, "\t\t0x{}{} => {{", prefix, num)?;
+    for (name, opcode) in opcodes {
+        writeln!(outfile, "\t\t{} => {{", name)?;
 
         let function = FunctionDesc::from_opcode(opcode);
 
@@ -418,7 +411,8 @@ fn write_opcodes(
         function.write_pre(outfile)?;
 
         if let Some(mut bytes) = opcode.bytes {
-            if opcode.prefix.is_some() {
+            //things with a prefix need to be shorter because they're counting the prefix
+            if name.len() > 4 {
                 bytes -= 1;
             }
 
@@ -471,14 +465,14 @@ fn write_opcodes(
 }
 
 fn write_interpreter(
-    opcodes: &[OpCodeDesc],
+    opcodes: &BTreeMap<String, OpCodeDesc>,
     codes: &FunctionCodeMap,
 ) -> std::io::Result<Vec<FunctionDesc>> {
     let outfile = &mut File::create(INTERPRETER_PATH)?;
 
     writeln!(outfile, "{}", HEADER)?;
 
-    let function_list = write_opcodes(outfile, &opcodes, codes)?;
+    let function_list = write_opcodes(outfile, opcodes, codes)?;
 
     writeln!(outfile, "{}", FOOTER)?;
 
@@ -593,7 +587,7 @@ fn main() {
 
     let codes = &parse_function_stubs().unwrap();
 
-    let opcodes: Vec<OpCodeDesc> =
+    let opcodes: BTreeMap<String, OpCodeDesc> =
         serde_json::from_reader(File::open(OPCODES_PATH).unwrap()).unwrap();
 
     let functions = write_interpreter(&opcodes, codes).unwrap();

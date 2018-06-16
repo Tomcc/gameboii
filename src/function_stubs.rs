@@ -115,24 +115,24 @@ unsafe fn stubs(cpu: &mut CPU) {
 	}
 	{
 	// NAME: DEC_u16_out_u16
-			let reg0 = cpu.SP;
+			let reg0 = cpu.BC.r16;
 			let mut out;
 	//----------------
 		out = reg0.wrapping_sub(1);
 		cpu.set_z(out == 0);
 	//----------------
-			cpu.SP = out;
+			cpu.BC.r16 = out;
 	}
 	{
 	// NAME: DEC_z_h_u8_out_u8
-			let reg0 = cpu.AF.r8.first;
+			let reg0 = cpu.BC.r8.second;
 			let mut out;
 	//----------------
 		//TODO H
 		out = reg0.wrapping_sub(1);
 		cpu.set_z(out == 0);
 	//----------------
-			cpu.AF.r8.first = out;
+			cpu.BC.r8.second = out;
 	}
 	{
 	// NAME: DI
@@ -163,7 +163,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	}
 	{
 	// NAME: INC_z_h_u8_out_u8
-			let reg0 = cpu.AF.r8.first;
+			let reg0 = cpu.BC.r8.second;
 			let mut out;
 	//----------------
 		out = reg0.wrapping_add(1);
@@ -172,7 +172,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 		// TODO H - Set if carry from bit 3.
 
 	//----------------
-			cpu.AF.r8.first = out;
+			cpu.BC.r8.second = out;
 	}
 	{
 	// NAME: JP_bool_u16
