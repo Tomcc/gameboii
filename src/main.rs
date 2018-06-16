@@ -100,7 +100,7 @@ fn main() {
 
     let mut events = Events::new(EventSettings {
         max_fps: 60,
-        ups: cpu::MACHINE_HZ, //TODO it would be neat to use events to push the clock and the gpu
+        ups: 200,
         bench_mode: false,
         lazy: false,
         swap_buffers: true,
@@ -110,17 +110,20 @@ fn main() {
     let mut paused = false;
     let mut current_clock = 0;
     while let Some(e) = events.next(&mut window) {
-        if let Some(_) = e.update_args() {
-            cpu.tick(current_clock);
-            gpu.tick(&mut cpu, current_clock);
+        if let Some(ue) = e.update_args() {
+            let clocks = (cpu::MACHINE_HZ as f64 * ue.dt) as u64;
+            for _ in 0..clocks {
+                cpu.tick(current_clock);
+                gpu.tick(&mut cpu, current_clock);
 
-            current_clock += 1;
-        }
-
+                current_clock += 1;
+            }
+        } 
+        
         if let Some(r) = e.render_args() {
             gpu.render(&r);
         }
-
+        
         if let Some(i) = e.button_args() {
             if i.state == ButtonState::Press {
                 match i.button {
