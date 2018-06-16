@@ -109,21 +109,22 @@ fn main() {
 
     let mut paused = false;
     let mut current_clock = 0;
+    let speed_mult = 1;
     while let Some(e) = events.next(&mut window) {
         if let Some(ue) = e.update_args() {
-            let clocks = (cpu::MACHINE_HZ as f64 * ue.dt) as u64;
+            let clocks = (cpu::MACHINE_HZ as f64 * ue.dt) as u64 * speed_mult;
             for _ in 0..clocks {
                 cpu.tick(current_clock);
                 gpu.tick(&mut cpu, current_clock);
 
                 current_clock += 1;
             }
-        } 
-        
+        }
+
         if let Some(r) = e.render_args() {
             gpu.render(&r);
         }
-        
+
         if let Some(i) = e.button_args() {
             if i.state == ButtonState::Press {
                 match i.button {
