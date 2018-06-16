@@ -70,7 +70,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: CALL_bool_u16
 			let imm0 = cpu.immediate_u16();
-			let reg0 = !cpu.c();
+			let reg0 = cpu.c();
 			let reg1 = imm0;
 	//----------------
 		panic!("CALL_bool_u16 not implemented");
@@ -82,15 +82,6 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let reg0 = imm0;
 	//----------------
 		cpu.call(reg0);
-	//----------------
-	}
-	{
-	// NAME: CALL_u8_u16
-			let imm0 = cpu.immediate_u16();
-			let reg0 = cpu.BC.r8.second;
-			let reg1 = imm0;
-	//----------------
-		panic!("CALL_u8_u16 not implemented");
 	//----------------
 	}
 	{
@@ -353,18 +344,11 @@ unsafe fn stubs(cpu: &mut CPU) {
 	}
 	{
 	// NAME: RET_bool
-			let reg0 = !cpu.c();
+			let reg0 = cpu.c();
 	//----------------
 		if reg0 {
 			cpu.PC = cpu.pop16();
 		}
-	//----------------
-	}
-	{
-	// NAME: RET_u8
-			let reg0 = cpu.BC.r8.second;
-	//----------------
-		panic!("RET_u8 not implemented");
 	//----------------
 	}
 	{
