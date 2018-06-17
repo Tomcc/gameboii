@@ -128,7 +128,11 @@ impl LCDPalette {
     }
 
     fn get_color(&self, idx: usize) -> Rgba<u8> {
-        match self.palette[idx] {
+        LCDPalette::get_color_absolute(self.palette[idx] as usize)
+    }
+
+    fn get_color_absolute(idx: usize) -> Rgba<u8> {
+        match idx {
             3 => Rgba::from_channels(0, 0, 0, 255),
             2 => Rgba::from_channels(84, 84, 84, 255),
             1 => Rgba::from_channels(167, 167, 167, 255),
@@ -191,12 +195,13 @@ pub struct GPU {
     front_buffer: RgbaImage,
     back_buffer: RgbaImage,
     screen_texture: Texture,
+    lcd_was_on: bool,
 }
 
 impl GPU {
     pub fn new(gl_version: OpenGL) -> Self {
-        let img = RgbaImage::from_fn(RESOLUTION_W as u32, RESOLUTION_H as u32, |x, _| {
-            Rgba::from_channels(10, 100 * (x % 2) as u8, 200, 255)
+        let img = RgbaImage::from_fn(RESOLUTION_W as u32, RESOLUTION_H as u32, |_, _| {
+            LCDPalette::get_color_absolute(3)
         });
 
         let mut texture_settings = TextureSettings::new();
@@ -208,6 +213,7 @@ impl GPU {
             screen_texture: Texture::from_image(&img, &texture_settings),
             front_buffer: img.clone(),
             back_buffer: img,
+            lcd_was_on: false,
         }
     }
 
@@ -260,7 +266,20 @@ impl GPU {
 
     pub fn tick(&mut self, cpu: &mut CPU, current_clock: u64) {
         if current_clock == self.next_scanline_clock {
-            if LCDCValues::from_ram(&cpu.RAM).lcd_on() {
+            let lcd_on = LCDCValues::from_ram(&cpu.RAM).lcd_on();
+
+            if lcd_on != self.lcd_was_on {
+                self.lcd_was_on = lcd_on;
+                if !lcd_on {
+                    //blank the screen
+                    for c in self.front_buffer.pixels_mut() {
+                        *c = LCDPalette::get_color_absolute(0);
+                    }
+                    std::mem::swap(&mut self.front_buffer, &mut self.back_buffer);
+                }
+            }
+
+            if lcd_on {
                 //increment the LY line every fixed time
                 let scanline_idx = {
                     let scanline_idx = &mut cpu.RAM[address::LY_REGISTER];
