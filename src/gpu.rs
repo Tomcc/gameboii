@@ -264,22 +264,25 @@ impl GPU {
         }
     }
 
+    fn handle_lcd_on(&mut self, ram: &[u8]) -> bool {
+        let lcd_on = LCDCValues::from_ram(&ram).lcd_on();
+
+        if lcd_on != self.lcd_was_on {
+            self.lcd_was_on = lcd_on;
+            if !lcd_on {
+                //blank the screen
+                for c in self.front_buffer.pixels_mut() {
+                    *c = LCDPalette::get_color_absolute(0);
+                }
+                std::mem::swap(&mut self.front_buffer, &mut self.back_buffer);
+            }
+        }
+        lcd_on
+    }
+
     pub fn tick(&mut self, cpu: &mut CPU, current_clock: u64) {
         if current_clock == self.next_scanline_clock {
-            let lcd_on = LCDCValues::from_ram(&cpu.RAM).lcd_on();
-
-            if lcd_on != self.lcd_was_on {
-                self.lcd_was_on = lcd_on;
-                if !lcd_on {
-                    //blank the screen
-                    for c in self.front_buffer.pixels_mut() {
-                        *c = LCDPalette::get_color_absolute(0);
-                    }
-                    std::mem::swap(&mut self.front_buffer, &mut self.back_buffer);
-                }
-            }
-
-            if lcd_on {
+            if self.handle_lcd_on(&cpu.RAM) {
                 //increment the LY line every fixed time
                 let scanline_idx = {
                     let scanline_idx = &mut cpu.RAM[address::LY_REGISTER];

@@ -16,13 +16,13 @@ use std::time::Instant;
 struct OpCodeDesc {
     mnemonic: String,
     operands: Vec<String>,
-    bytes: Option<usize>,
-    cycles: Option<usize>,
+    bytes: usize,
+    cycles: usize,
     flagsZNHC: Vec<String>,
 }
 
 impl OpCodeDesc {
-    fn shorthand(&self, immediate: &[u8]) -> String {
+    fn shorthand(&self, immediate: &[u8], pc: usize) -> String {
         let mut line = String::new();
         let mnemonic = &self.mnemonic;
         line += mnemonic;
@@ -58,13 +58,13 @@ impl OpCodeDesc {
             if op.contains("r8") {
                 op = op.replace(
                     "r8",
-                    &format!("{:x}", unsafe {
-                        std::mem::transmute::<u8, i8>(immediate[0])
+                    &format!("0x{:04x}", unsafe {
+                        std::mem::transmute::<u8, i8>(immediate[0]) as i32 + pc as i32
                     }),
                 );
             }
             if op.contains("a8") {
-                op = op.replace("a8", &format!("0xff00 + 0x{:02x}", immediate[0]));
+                op = op.replace("a8", &format!("0x{:04x}", immediate[0] as usize + 0xff00));
             }
 
             line += " ";
@@ -127,11 +127,9 @@ impl Log {
             let mut line = format!("{:04x}\t", pc);
             let text_instruction = format!("0x{:02x}", instr);
 
-            println!("{}", text_instruction);
-
             let opcode = &self.opcodes[&text_instruction];
 
-            line += &opcode.shorthand(immediate);
+            line += &opcode.shorthand(immediate, pc + opcode.bytes);
 
             self.disassembly.insert(pc, line);
         }

@@ -12,6 +12,8 @@ use std::ops::Range;
 const RAM_SIZE: usize = 0xFFFF + 1;
 pub const MACHINE_HZ: u64 = 4194304;
 const BOOT_ROM: Range<usize> = 0..0x100;
+const ROM_BANK0: Range<usize> = 0..0x4000;
+const ROM_BANK1: Range<usize> = 0x4000..0x8000;
 
 const DMA_BYTE_SIZE: usize = 160;
 const DMA_CYCLES: u64 = 671;
@@ -50,6 +52,38 @@ impl DMATransfer {
     }
 }
 
+const MBC1_MEMORY_MODE_SELECT: Range<usize> = 0x6000..0x8000;
+const MBC1_ROM_BANK_SELECT: Range<usize> = 0x2000..0x4000;
+
+//TODO RAM switching for MBC1 + RAM
+
+#[allow(non_snake_case)]
+struct MBC1<'a> {
+    cartridge_rom: &'a [u8],
+}
+
+impl<'a> MBC1<'a> {
+    fn from_cart(cart: &'a [u8]) -> MBC1<'a> {
+        MBC1 {
+            cartridge_rom: cart,
+        }
+    }
+
+    fn handle_write(&self, addr: usize, ram: &mut [u8]) {
+        if address::in_range(MBC1_ROM_BANK_SELECT, addr) {
+            //TODO copy the selected bank into ram
+            panic!("Not implemented");
+        } else if address::in_range(MBC1_MEMORY_MODE_SELECT, addr) {
+            panic!("Not implemented");
+        }
+    }
+}
+
+enum ROMController<'a> {
+    ROMOnly,
+    MBC1(MBC1<'a>),
+}
+
 #[allow(non_snake_case)]
 pub struct CPU<'a> {
     pub PC: u16,
@@ -60,6 +94,8 @@ pub struct CPU<'a> {
     pub HL: Register,
 
     pub RAM: [u8; RAM_SIZE],
+
+    rom_controller: ROMController<'a>,
 
     boot_mode: bool,
     DMA_transfer: Option<DMATransfer>,
@@ -74,6 +110,24 @@ pub struct CPU<'a> {
 }
 
 impl<'a> CPU<'a> {
+    fn setup_rom_controller(&mut self, rom: &'a [u8]) {
+        //first bank is always there
+        self.RAM[ROM_BANK0].copy_from_slice(&rom[ROM_BANK0]);
+
+        let cart_type = rom[address::CARTRIDGE_TYPE];
+        match cart_type {
+            0x0 => {
+                //no MBC. copy second bank and done
+                self.RAM[ROM_BANK1].copy_from_slice(&rom[ROM_BANK1]);
+            }
+            0x1 => {
+                //ROM+MBC1. create a MBC1 and give it the ROM
+                self.rom_controller = ROMController::MBC1(MBC1::from_cart(rom));
+            }
+            _ => panic!("Cartridge type not yet supported"),
+        }
+    }
+
     pub fn new(rom: &'a [u8]) -> CPU<'a> {
         let mut cpu = CPU {
             PC: 0,
@@ -83,6 +137,9 @@ impl<'a> CPU<'a> {
             DE: Register { r16: 0 },
             HL: Register { r16: 0 },
             RAM: [0; RAM_SIZE],
+
+            rom_controller: ROMController::ROMOnly,
+
             boot_mode: true,
             DMA_transfer: None,
 
@@ -95,14 +152,7 @@ impl<'a> CPU<'a> {
             cartridge_ROM: rom,
         };
 
-        //copy the ROM in memory
-        cpu.RAM[0..rom.len()].copy_from_slice(rom);
-
-        //setup stuff
-        assert!(
-            rom[address::CARTRIDGE_TYPE] == 0,
-            "Not a ROM-Only ROM, not supported"
-        );
+        cpu.setup_rom_controller(rom);
 
         // override the first 256 bytes with the Nintendo boot ROM
         File::open("ROMs/DMG_ROM.bin")
@@ -200,7 +250,7 @@ impl<'a> CPU<'a> {
                         .unwrap();
                 }
             }
-            
+
             unsafe {
                 interpreter::interpret(instr, self);
             }
@@ -271,6 +321,17 @@ impl<'a> CPU<'a> {
         (b2 << 8) | b1
     }
 
+    pub fn handle_rom_controller(&mut self, addr: usize) {
+        match self.rom_controller {
+            ROMController::ROMOnly => {
+                if addr >= ROM_BANK0.start && addr < ROM_BANK1.end {
+                    panic!("MBC not implemented, can't write to the ROM");
+                }
+            }
+            ROMController::MBC1(ref mut mbc) => mbc.handle_write(addr, &mut self.RAM),
+        }
+    }
+
     pub fn set_address(&mut self, addr: u16, val: u8) {
         let addr = addr as usize;
         //TODO how to not check this for every set ever?
@@ -284,12 +345,22 @@ impl<'a> CPU<'a> {
             self.DMA_transfer = Some(DMATransfer::from_reg(val));
         } else if val != 0 {
             address::check_unimplemented(addr);
+        } else {
+            self.handle_rom_controller(addr);
         }
+
+        if addr == address::LCDC_REGISTER {
+            let lol = 1;
+        }
+
         self.RAM[addr] = val;
     }
 
     pub fn set_address16(&mut self, addr: u16, val: u16) {
         let addr = addr as usize;
+
+        self.handle_rom_controller(addr);
+
         if val != 0 {
             address::check_unimplemented(addr);
         }

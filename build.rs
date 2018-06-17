@@ -19,8 +19,8 @@ use std::io::Write;
 struct OpCodeDesc {
     mnemonic: String,
     operands: Vec<String>,
-    bytes: Option<usize>,
-    cycles: Option<usize>,
+    bytes: usize,
+    cycles: usize,
     flagsZNHC: Vec<String>,
 }
 
@@ -410,14 +410,12 @@ fn write_opcodes(
 
         function.write_pre(outfile)?;
 
-        if let Some(mut bytes) = opcode.bytes {
-            //things with a prefix need to be shorter because they're counting the prefix
-            if name.len() > 4 {
-                bytes -= 1;
-            }
-
-            writeln!(outfile, "\t\t\tcpu.PC += {};", bytes)?;
+        //things with a prefix need to be shorter because they're counting the prefix
+        let mut bytes = opcode.bytes;
+        if name.len() > 4 {
+            bytes -= 1;
         }
+        writeln!(outfile, "\t\t\tcpu.PC += {};", bytes)?;
 
         for line in &code.lines {
             writeln!(outfile, "\t{}", line)?;
@@ -455,9 +453,7 @@ fn write_opcodes(
         write_flag_handler(outfile, "c", &opcode.flagsZNHC[3])?;
 
         //cycle
-        if let Some(cycles) = opcode.cycles {
-            writeln!(outfile, "\t\t\tcpu.run_cycles({});", cycles)?;
-        }
+        writeln!(outfile, "\t\t\tcpu.run_cycles({});", opcode.cycles)?;
 
         writeln!(outfile, "\t\t}},")?;
     }

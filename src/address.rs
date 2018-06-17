@@ -120,6 +120,10 @@ pub const INTERNAL_ROM_TURN_OFF: usize = 0xff50;
 
 pub const IE_REGISTER: usize = 0xffff;
 
+pub fn in_range(range: Range<usize>, addr: usize) -> bool {
+    addr >= range.start && addr < range.end
+}
+
 pub fn check_unimplemented(addr: usize) {
     if addr >= SPRITE_ATTRIBUTE_TABLE.start && addr < SPRITE_ATTRIBUTE_TABLE.end {
         panic!("{} unimplemented", SPRITE_ATTRIBUTE_TABLE.start);
