@@ -73,7 +73,9 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let reg0 = cpu.c();
 			let reg1 = imm0;
 	//----------------
-		panic!("CALL_bool_u16 not implemented");
+		if reg0 {
+			cpu.call(reg1);
+		}
 	//----------------
 	}
 	{
@@ -385,7 +387,13 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: RRA_c
 	//----------------
-		panic!("RRA_c not implemented");
+		let mut a = cpu.AF.r8.first;
+		let old_c = cpu.c();
+		cpu.set_c(a.get_bit(0));
+		a = a >> 1;
+		a.set_bit(7, old_c);
+		cpu.set_z(a == 0);
+		cpu.AF.r8.first = a;
 	//----------------
 	}
 	{
@@ -402,11 +410,17 @@ unsafe fn stubs(cpu: &mut CPU) {
 	//----------------
 	}
 	{
-	// NAME: RR_z_c_u8
+	// NAME: RR_z_c_u8_out_u8
 			let reg0 = cpu.AF.r8.first;
+			let mut out;
 	//----------------
-		panic!("RR_z_c_u8 not implemented");
+		let old_c = cpu.c();
+		cpu.set_c(reg0.get_bit(0));
+		out = reg0 >> 1;
+		out.set_bit(7, old_c);
+		cpu.set_z(out == 0);
 	//----------------
+			cpu.AF.r8.first = out;
 	}
 	{
 	// NAME: RST_u16
@@ -458,11 +472,15 @@ unsafe fn stubs(cpu: &mut CPU) {
 	//----------------
 	}
 	{
-	// NAME: SRL_z_c_u8
+	// NAME: SRL_z_c_u8_out_u8
 			let reg0 = cpu.AF.r8.first;
+			let mut out;
 	//----------------
-		panic!("SRL_z_c_u8 not implemented");
+		cpu.set_c(reg0.get_bit(0));
+		out = reg0 >> 1;
+		cpu.set_z(out == 0);
 	//----------------
+			cpu.AF.r8.first = out;
 	}
 	{
 	// NAME: STOP_u8

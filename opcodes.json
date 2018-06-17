@@ -3862,7 +3862,7 @@
     "0xcb18": {
         "mnemonic": "RR",
         "operands": [
-            "B"
+            "inout B"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -3876,7 +3876,7 @@
     "0xcb19": {
         "mnemonic": "RR",
         "operands": [
-            "C"
+            "inout C"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -3890,7 +3890,7 @@
     "0xcb1a": {
         "mnemonic": "RR",
         "operands": [
-            "D"
+            "inout D"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -3904,7 +3904,7 @@
     "0xcb1b": {
         "mnemonic": "RR",
         "operands": [
-            "E"
+            "inout E"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -3918,7 +3918,7 @@
     "0xcb1c": {
         "mnemonic": "RR",
         "operands": [
-            "H"
+            "inout H"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -3932,7 +3932,7 @@
     "0xcb1d": {
         "mnemonic": "RR",
         "operands": [
-            "L"
+            "inout L"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -3946,7 +3946,7 @@
     "0xcb1e": {
         "mnemonic": "RR",
         "operands": [
-            "(HL)"
+            "inout (HL)"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -3960,7 +3960,7 @@
     "0xcb1f": {
         "mnemonic": "RR",
         "operands": [
-            "A"
+            "inout A"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -4310,7 +4310,7 @@
     "0xcb38": {
         "mnemonic": "SRL",
         "operands": [
-            "B"
+            "inout B"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -4324,7 +4324,7 @@
     "0xcb39": {
         "mnemonic": "SRL",
         "operands": [
-            "C"
+            "inout C"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -4338,7 +4338,7 @@
     "0xcb3a": {
         "mnemonic": "SRL",
         "operands": [
-            "D"
+            "inout D"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -4352,7 +4352,7 @@
     "0xcb3b": {
         "mnemonic": "SRL",
         "operands": [
-            "E"
+            "inout E"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -4366,7 +4366,7 @@
     "0xcb3c": {
         "mnemonic": "SRL",
         "operands": [
-            "H"
+            "inout H"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -4380,7 +4380,7 @@
     "0xcb3d": {
         "mnemonic": "SRL",
         "operands": [
-            "L"
+            "inout L"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -4394,7 +4394,7 @@
     "0xcb3e": {
         "mnemonic": "SRL",
         "operands": [
-            "(HL)"
+            "inout (HL)"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -4408,7 +4408,7 @@
     "0xcb3f": {
         "mnemonic": "SRL",
         "operands": [
-            "A"
+            "inout A"
         ],
         "bytes": 2,
         "flagsZNHC": [
