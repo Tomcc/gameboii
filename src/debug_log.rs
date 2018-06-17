@@ -8,6 +8,8 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::io::SeekFrom;
 use std::io::Write;
+use std::time::Duration;
+use std::time::Instant;
 
 #[derive(Deserialize, Debug)]
 #[allow(non_snake_case)]
@@ -73,11 +75,17 @@ impl OpCodeDesc {
     }
 }
 
-const FIXED_LINE_LEN: usize = 100;
-
 pub struct Log {
     disasm_file: File,
     opcodes: BTreeMap<String, OpCodeDesc>,
+    disassembly: BTreeMap<usize, String>,
+    next_write_time: Instant,
+}
+
+impl Drop for Log {
+    fn drop(&mut self) {
+        self.write_to_file().unwrap(); //can't return an error here
+    }
 }
 
 impl Log {
@@ -85,7 +93,27 @@ impl Log {
         Log {
             disasm_file: File::create("disasm_file.txt").unwrap(),
             opcodes: serde_json::from_reader(File::open("opcodes.json").unwrap()).unwrap(),
+            disassembly: BTreeMap::new(),
+            next_write_time: Instant::now(),
         }
+    }
+
+    fn write_to_file(&mut self) -> std::io::Result<()> {
+        self.disasm_file.seek(SeekFrom::Start(0))?;
+        let mut last_addr = 0;
+        for (addr, text) in &self.disassembly {
+            if *addr > last_addr + 4 {
+                writeln!(self.disasm_file, "")?;
+                writeln!(self.disasm_file, "...")?;
+                writeln!(self.disasm_file, "")?;
+            }
+
+            writeln!(self.disasm_file, "{}", text)?;
+            last_addr = *addr;
+        }
+
+        self.next_write_time += Duration::from_secs(1);
+        Ok(())
     }
 
     pub fn log_instruction(
@@ -95,37 +123,21 @@ impl Log {
         pc: usize,
     ) -> std::io::Result<()> {
         //compose the line
-        let mut line = format!("{:04x}\t", pc);
-        let text_instruction = format!("0x{:02x}", instr);
+        {
+            let mut line = format!("{:04x}\t", pc);
+            let text_instruction = format!("0x{:02x}", instr);
 
-        println!("{}", text_instruction);
+            println!("{}", text_instruction);
 
-        let opcode = &self.opcodes[&text_instruction];
+            let opcode = &self.opcodes[&text_instruction];
 
-        line += &opcode.shorthand(immediate);
+            line += &opcode.shorthand(immediate);
 
-        assert!(line.len() <= FIXED_LINE_LEN);
-
-        //append spaces to make it 10 chars
-        for _ in line.len()..FIXED_LINE_LEN {
-            line += " ";
+            self.disassembly.insert(pc, line);
         }
-        line += "\n";
-
-        let line_index = pc * line.len();
-        let line_end = pc * (line.len() + 1);
-
-        //expand the file as needed
-        while self.disasm_file.metadata()?.len() < line_end as u64 {
-            let mut v = vec![' ' as u8; line.len()];
-            v[line.len() - 1] = '\n' as u8;
-            self.disasm_file.write(&v)?;
+        if Instant::now() > self.next_write_time {
+            self.write_to_file()?;
         }
-
-        //seek to this entry line
-        self.disasm_file.seek(SeekFrom::Start(line_index as u64))?;
-
-        write!(self.disasm_file, "{}", line)?;
 
         Ok(())
     }
