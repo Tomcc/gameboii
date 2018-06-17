@@ -19,6 +19,62 @@ struct OpCodeDesc {
     flagsZNHC: Vec<String>,
 }
 
+impl OpCodeDesc {
+    fn shorthand(&self, immediate: &[u8]) -> String {
+        let mut line = String::new();
+        let mnemonic = &self.mnemonic;
+        line += mnemonic;
+
+        for op in &self.operands {
+            let mut op = op.clone();
+
+            if op.contains("inout ") {
+                op = op.replace("inout ", "");
+            } else if op.contains("out ") {
+                op = op.replace("out ", "");
+            }
+            if op.contains("d8") {
+                op = op.replace("d8", &format!("0x{:02x}", immediate[0]));
+            }
+            if op.contains("d16") {
+                op = op.replace(
+                    "d16",
+                    &format!(
+                        "0x{:04x}",
+                        ((immediate[1] as u16) << 8) | (immediate[0] as u16)
+                    ),
+                );
+            } else if op.contains("a16") {
+                op = op.replace(
+                    "a16",
+                    &format!(
+                        "0x{:04x}",
+                        ((immediate[1] as u16) << 8) | (immediate[0] as u16)
+                    ),
+                );
+            }
+            if op.contains("r8") {
+                op = op.replace(
+                    "r8",
+                    &format!("{:x}", unsafe {
+                        std::mem::transmute::<u8, i8>(immediate[0])
+                    }),
+                );
+            }
+            if op.contains("a8") {
+                op = op.replace("a8", &format!("0xff00 + 0x{:02x}", immediate[0]));
+            }
+
+            line += " ";
+            line += &op;
+        }
+
+        line
+    }
+}
+
+const FIXED_LINE_LEN: usize = 100;
+
 pub struct Log {
     disasm_file: File,
     opcodes: BTreeMap<String, OpCodeDesc>,
@@ -32,7 +88,12 @@ impl Log {
         }
     }
 
-    pub fn log_instruction(&mut self, instr: u16, pc: u16) -> std::io::Result<()> {
+    pub fn log_instruction(
+        &mut self,
+        instr: u16,
+        immediate: &[u8],
+        pc: usize,
+    ) -> std::io::Result<()> {
         //compose the line
         let mut line = format!("{:04x}\t", pc);
         let text_instruction = format!("0x{:02x}", instr);
@@ -40,32 +101,29 @@ impl Log {
         println!("{}", text_instruction);
 
         let opcode = &self.opcodes[&text_instruction];
-        let mnemonic = &opcode.mnemonic;
-        line += mnemonic;
 
-        for op in &opcode.operands {
-            line += " ";
-            line += op;
-        }
+        line += &opcode.shorthand(immediate);
+
+        assert!(line.len() <= FIXED_LINE_LEN);
 
         //append spaces to make it 10 chars
-        for _ in mnemonic.len()..10 {
+        for _ in line.len()..FIXED_LINE_LEN {
             line += " ";
         }
         line += "\n";
 
-        let line_index = pc as u64 * line.len() as u64;
-        let line_end = pc as u64 * (line.len() + 1) as u64;
+        let line_index = pc * line.len();
+        let line_end = pc * (line.len() + 1);
 
         //expand the file as needed
-        while self.disasm_file.metadata()?.len() < line_end {
+        while self.disasm_file.metadata()?.len() < line_end as u64 {
             let mut v = vec![' ' as u8; line.len()];
             v[line.len() - 1] = '\n' as u8;
             self.disasm_file.write(&v)?;
         }
 
         //seek to this entry line
-        self.disasm_file.seek(SeekFrom::Start(line_index))?;
+        self.disasm_file.seek(SeekFrom::Start(line_index as u64))?;
 
         write!(self.disasm_file, "{}", line)?;
 

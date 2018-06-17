@@ -192,6 +192,15 @@ impl<'a> CPU<'a> {
                 instr |= self.peek_instruction() as u16;
             }
 
+            if !self.boot_mode {
+                if let Some(ref mut logger) = logger {
+                    let pc = self.PC as usize;
+                    logger
+                        .log_instruction(instr, &self.RAM[pc + 1..pc + 3], pc)
+                        .unwrap();
+                }
+            }
+            
             unsafe {
                 interpreter::interpret(instr, self);
             }
@@ -201,13 +210,6 @@ impl<'a> CPU<'a> {
                 self.interrupt_change_counter -= 1;
                 if self.interrupt_change_counter == 0 {
                     self.interrupts_master_enabled = self.interrupts_master_enabled_next;
-                }
-            }
-
-            if !self.boot_mode {
-                if let Some(ref mut logger) = logger {
-                    let pc = self.PC;
-                    logger.log_instruction(instr, pc).unwrap();
                 }
             }
         }
