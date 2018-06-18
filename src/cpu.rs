@@ -232,8 +232,24 @@ impl<'a> CPU<'a> {
         }
     }
 
+    fn handle_serial_transfer(&mut self) {
+        //for now, just copy out immediately
+        if self.RAM[address::SC_REGISTER].get_bit(7) {
+            let mut out = 0;
+            std::mem::swap(&mut out, &mut self.RAM[address::SB_REGISTER]);
+
+            //whatever the game might want to say? Let's assume it's chars
+            print!("{}", out as char);
+
+            //and stop the transfer
+            //TODO do it after a bunch of clocks
+            self.RAM[address::SC_REGISTER].set_bit(7, false);
+        }
+    }
+
     pub fn tick(&mut self, current_clock: u64, logger: &mut Option<Log>) {
         self.handle_dma(current_clock);
+        self.handle_serial_transfer();
 
         if current_clock >= self.next_clock {
             if self.handle_interrupts() {
@@ -328,7 +344,7 @@ impl<'a> CPU<'a> {
         (b2 << 8) | b1
     }
 
-    pub fn handle_rom_controller(&mut self, addr: usize) {
+    fn handle_rom_controller(&mut self, addr: usize) {
         match self.rom_controller {
             ROMController::ROMOnly => {
                 if addr >= ROM_BANK0.start && addr < ROM_BANK1.end {
@@ -337,6 +353,11 @@ impl<'a> CPU<'a> {
             }
             ROMController::MBC1(ref mut mbc) => mbc.handle_write(addr, &mut self.RAM),
         }
+    }
+
+    fn start_serial_transfer(&mut self, val: u8) {
+        //TODO setup the clocks and the other parameters...
+        //for now handle() will just print out the register when anything is there
     }
 
     pub fn set_address(&mut self, addr: u16, val: u8) {
@@ -350,14 +371,14 @@ impl<'a> CPU<'a> {
             self.change_interrupt_flags(val);
         } else if addr == address::DMA_REGISTER {
             self.DMA_transfer = Some(DMATransfer::from_reg(val));
-        } else if val != 0 {
-            address::check_unimplemented(addr);
+        } else if addr == address::SC_REGISTER {
+            self.start_serial_transfer(val);
         } else {
             self.handle_rom_controller(addr);
         }
 
-        if addr == address::LCDC_REGISTER {
-            let lol = 1;
+        if val != 0 {
+            address::check_unimplemented(addr);
         }
 
         self.RAM[addr] = val;
