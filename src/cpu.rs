@@ -70,6 +70,10 @@ impl<'a> MBC1<'a> {
     }
 
     fn handle_write(&self, addr: usize, ram: &mut [u8]) {
+        if addr >= ROM_BANK0.start && addr < ROM_BANK1.end {
+            panic!("Not implemented");
+        }
+
         if address::in_range(MBC1_ROM_BANK_SELECT, addr) {
             //TODO copy the selected bank into ram
             panic!("Not implemented");
@@ -114,11 +118,14 @@ impl<'a> CPU<'a> {
         //first bank is always there
         self.RAM[ROM_BANK0].copy_from_slice(&rom[ROM_BANK0]);
 
+        //MBC's also default to bank 1 being bank 1
+        //TODO correct?
+        self.RAM[ROM_BANK1].copy_from_slice(&rom[ROM_BANK1]);
+
         let cart_type = rom[address::CARTRIDGE_TYPE];
         match cart_type {
             0x0 => {
-                //no MBC. copy second bank and done
-                self.RAM[ROM_BANK1].copy_from_slice(&rom[ROM_BANK1]);
+                //No MBC, nothing to do
             }
             0x1 => {
                 //ROM+MBC1. create a MBC1 and give it the ROM
@@ -369,10 +376,6 @@ impl<'a> CPU<'a> {
         self.RAM[addr + 1] = (val >> 8) as u8;
     }
 
-    pub fn offset_sp(&self, _off: i8) -> u16 {
-        panic!("not implemented");
-    }
-
     pub fn push16(&mut self, val: u16) {
         let sp = self.SP;
         self.set_address16(sp, val);
@@ -409,5 +412,10 @@ impl<'a> CPU<'a> {
     }
     pub unsafe fn c(&self) -> bool {
         self.AF.r8.second.get_bit(4)
+    }
+
+    pub fn stop(&mut self) {
+        //assume we just press the button after a while
+        //TODO implement?
     }
 }

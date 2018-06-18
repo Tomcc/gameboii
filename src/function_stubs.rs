@@ -13,10 +13,10 @@ unsafe fn stubs(cpu: &mut CPU) {
 	//----------------
 		//TODO I really don't know if this is correct
 		//TODO H
-		let added = reg1 + cpu.c() as u8;
-		let (a, of) = reg0.overflowing_add(added);
+		let (added, of1) = reg1.overflowing_add(cpu.c() as u8);
+		let (a, of2) = reg0.overflowing_add(added);
 		out = a;
-		cpu.set_c(of);
+		cpu.set_c(of1 || of2);
 		cpu.set_z(out == 0);
 	//----------------
 			cpu.AF.r8.first = out;
@@ -241,12 +241,22 @@ unsafe fn stubs(cpu: &mut CPU) {
 			cpu.AF.r8.first = out;
 	}
 	{
-	// NAME: LD_h_c_u16_out_u16
+	// NAME: LD_h_c_i8_out_u16
 			let imm0 = cpu.immediate_i8();
-			let reg0 = cpu.offset_sp(imm0);
+			let reg0 = imm0;
 			let mut out;
 	//----------------
-		panic!("LD_h_c_u16_out_u16 not implemented");
+		let (res, of) = if reg0 < 0 {
+			cpu.SP.overflowing_sub((-reg0) as u16)
+		}
+		else {
+			cpu.SP.overflowing_add(reg0 as u16)
+		};
+
+		out = res;
+		//TODO H
+		cpu.set_c(of);
+
 	//----------------
 			cpu.HL.r16 = out;
 	}
@@ -369,7 +379,13 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: RLCA_c
 	//----------------
-		panic!("RLCA_c not implemented");
+	//TODO I don't get what should the difference be between this and RLA
+		let mut a = cpu.AF.r8.first;
+		let old_c = cpu.c();
+		cpu.set_c(a.get_bit(7));
+		a = a.rotate_left(1);
+		cpu.set_z(a == 0);
+		cpu.AF.r8.first = a;
 	//----------------
 	}
 	{
@@ -494,7 +510,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	// NAME: STOP_u8
 			let reg0 = 0;
 	//----------------
-		panic!("STOP_u8 not implemented");
+		cpu.stop();
 	//----------------
 	}
 	{

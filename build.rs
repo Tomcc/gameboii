@@ -190,13 +190,7 @@ impl Parameter {
             param.hl = Some(HLMagic::Dec);
             return param;
         } else if operand == "SP+r8" {
-            let param = Self::from_operand("r8");
-            let mut outer = Parameter::new(
-                format!("cpu.offset_sp({})", param.fullcode),
-                ParameterType::U16,
-            );
-            outer.inner = Some(Box::new(param));
-            return outer;
+            return Self::from_operand("r8");
         } else if operand == "d8" {
             return Parameter::immediate(ParameterType::U8);
         } else if operand == "d16" {
