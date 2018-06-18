@@ -11,7 +11,6 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let reg1 = imm0;
 			let mut out;
 	//----------------
-		//TODO I really don't know if this is correct
 		//TODO H
 		let (added, of1) = reg1.overflowing_add(cpu.c() as u8);
 		let (a, of2) = reg0.overflowing_add(added);
@@ -367,7 +366,6 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: RLCA_c
 	//----------------
-		//TODO I don't get what should the difference be between this and RLA
 		let mut a = cpu.AF.r8.first;
 		let old_c = cpu.c();
 		cpu.set_c(a.get_bit(7));

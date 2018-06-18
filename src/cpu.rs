@@ -70,16 +70,16 @@ impl<'a> MBC1<'a> {
     }
 
     fn handle_write(&self, addr: usize, val: u8, ram: &mut [u8]) {
-        if addr >= ROM_BANK0.start && addr < ROM_BANK1.end {
-            panic!("Not implemented");
-        }
+        // if addr >= ROM_BANK0.start && addr < ROM_BANK1.end {
+        //     panic!("Not implemented");
+        // }
 
-        if address::in_range(MBC1_ROM_BANK_SELECT, addr) {
-            //TODO copy the selected bank into ram
-            panic!("Not implemented");
-        } else if address::in_range(MBC1_MEMORY_MODE_SELECT, addr) {
-            panic!("Not implemented");
-        }
+        // if address::in_range(MBC1_ROM_BANK_SELECT, addr) {
+        //     //TODO copy the selected bank into ram
+        //     panic!("Not implemented");
+        // } else if address::in_range(MBC1_MEMORY_MODE_SELECT, addr) {
+        //     panic!("Not implemented");
+        // }
     }
 }
 
@@ -318,7 +318,10 @@ impl<'a> CPU<'a> {
 
     pub fn immediate_u16(&self) -> u16 {
         //assuming that the PC is at the start of the instruction
-        self.address16(self.PC + 1)
+        let lo = self.address(self.PC + 1) as u16;
+        let hi = self.address(self.PC + 2) as u16;
+
+        (hi << 8) | lo
     }
     pub fn immediate_u8(&self) -> u8 {
         //assuming that the PC is at the start of the instruction
@@ -335,13 +338,6 @@ impl<'a> CPU<'a> {
 
     pub fn address(&self, addr: u16) -> u8 {
         self.RAM[addr as usize]
-    }
-
-    pub fn address16(&self, addr: u16) -> u16 {
-        let b1 = self.address(addr) as u16;
-        let b2 = self.address(addr + 1) as u16;
-
-        (b2 << 8) | b1
     }
 
     fn handle_rom_controller(&mut self, addr: usize, val: u8) {
@@ -384,27 +380,31 @@ impl<'a> CPU<'a> {
         self.RAM[addr] = val;
     }
 
-    pub fn set_address16(&mut self, addr: u16, val: u16) {
-        let addr = addr as usize;
-
-        if val != 0 {
-            address::check_unimplemented(addr);
-        }
-
-        self.RAM[addr] = val as u8;
-        self.RAM[addr + 1] = (val >> 8) as u8;
+    pub fn set_address16(&mut self, mut addr: u16, val: u16) {
+        self.set_address(addr, (val >> 8) as u8);
+        addr = addr.wrapping_add(1);
+        self.set_address(addr, val as u8);
     }
 
     pub fn push16(&mut self, val: u16) {
-        let sp = self.SP;
-        self.set_address16(sp, val);
-        self.SP = self.SP.wrapping_sub(2);
+        let mut sp = self.SP;
+        let hi = (val >> 8) as u8;
+        let lo = val as u8;
+
+        sp = sp.wrapping_sub(1);
+        self.set_address(sp, hi);
+        sp = sp.wrapping_sub(1);
+        self.set_address(sp, lo);
+        self.SP = sp;
     }
 
     pub fn pop16(&mut self) -> u16 {
-        self.SP = self.SP.wrapping_add(2);
-        let sp = self.SP;
-        self.address16(sp)
+        let lo = self.address(self.SP) as u16;
+        self.SP = self.SP.wrapping_add(1);
+        let hi = self.address(self.SP) as u16;
+        self.SP = self.SP.wrapping_add(1);
+
+        (hi << 8) | lo
     }
 
     pub fn call(&mut self, addr: u16) {
