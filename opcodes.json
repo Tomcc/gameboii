@@ -3126,7 +3126,7 @@
     "0xda": {
         "mnemonic": "JP",
         "operands": [
-            "C",
+            "c",
             "a16"
         ],
         "bytes": 3,

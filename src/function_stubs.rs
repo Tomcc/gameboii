@@ -187,7 +187,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: JP_bool_u16
 			let imm0 = cpu.immediate_u16();
-			let reg0 = !cpu.c();
+			let reg0 = cpu.c();
 			let reg1 = imm0;
 	//----------------
 		if reg0 {
@@ -200,15 +200,6 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let reg0 = cpu.HL.r16;
 	//----------------
 		cpu.PC = reg0;
-	//----------------
-	}
-	{
-	// NAME: JP_u8_u16
-			let imm0 = cpu.immediate_u16();
-			let reg0 = cpu.BC.r8.second;
-			let reg1 = imm0;
-	//----------------
-		panic!("JP_u8_u16 not implemented");
 	//----------------
 	}
 	{
