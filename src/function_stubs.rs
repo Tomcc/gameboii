@@ -199,6 +199,8 @@ unsafe fn stubs(cpu: &mut CPU) {
 	// NAME: JP_u16
 			let reg0 = cpu.HL.r16;
 	//----------------
+		// despite all the material using the (HL) notation, this just loads HL itself
+		// not the byte pointed by it
 		cpu.PC = reg0;
 	//----------------
 	}
@@ -209,7 +211,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let reg1 = imm0;
 	//----------------
 		if reg0 {
-			cpu.PC = (cpu.PC as i32 + reg1 as i32) as u16;
+			cpu.PC = CPU::signed_offset(cpu.PC, reg1).0;
 		}
 	//----------------
 	}
@@ -218,13 +220,13 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let imm0 = cpu.immediate_i8();
 			let reg0 = imm0;
 	//----------------
-		cpu.PC = (cpu.PC as i32 + reg0 as i32) as u16;
+		cpu.PC = CPU::signed_offset(cpu.PC, reg0).0;
 	//----------------
 	}
 	{
 	// NAME: LDH_u8_out_u8
 			let imm0 = cpu.immediate_u8();
-			let reg0 = cpu.address((imm0 as u32 + 0xff00) as u16);
+			let reg0 = cpu.address((imm0 as u16).wrapping_add(0xff00));
 			let mut out;
 	//----------------
 		out = reg0;
@@ -237,12 +239,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let reg0 = imm0;
 			let mut out;
 	//----------------
-		let (res, of) = if reg0 < 0 {
-			cpu.SP.overflowing_sub((-reg0) as u16)
-		}
-		else {
-			cpu.SP.overflowing_add(reg0 as u16)
-		};
+		let (res, of) = CPU::signed_offset(cpu.SP, reg0);
 
 		out = res;
 		//TODO H
@@ -370,7 +367,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: RLCA_c
 	//----------------
-	//TODO I don't get what should the difference be between this and RLA
+		//TODO I don't get what should the difference be between this and RLA
 		let mut a = cpu.AF.r8.first;
 		let old_c = cpu.c();
 		cpu.set_c(a.get_bit(7));

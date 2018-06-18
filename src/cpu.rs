@@ -69,7 +69,7 @@ impl<'a> MBC1<'a> {
         }
     }
 
-    fn handle_write(&self, addr: usize, ram: &mut [u8]) {
+    fn handle_write(&self, addr: usize, val: u8, ram: &mut [u8]) {
         if addr >= ROM_BANK0.start && addr < ROM_BANK1.end {
             panic!("Not implemented");
         }
@@ -344,14 +344,14 @@ impl<'a> CPU<'a> {
         (b2 << 8) | b1
     }
 
-    fn handle_rom_controller(&mut self, addr: usize) {
+    fn handle_rom_controller(&mut self, addr: usize, val: u8) {
         match self.rom_controller {
             ROMController::ROMOnly => {
                 if addr >= ROM_BANK0.start && addr < ROM_BANK1.end {
                     panic!("MBC not implemented, can't write to the ROM");
                 }
             }
-            ROMController::MBC1(ref mut mbc) => mbc.handle_write(addr, &mut self.RAM),
+            ROMController::MBC1(ref mut mbc) => mbc.handle_write(addr, val, &mut self.RAM),
         }
     }
 
@@ -374,7 +374,7 @@ impl<'a> CPU<'a> {
         } else if addr == address::SC_REGISTER {
             self.start_serial_transfer(val);
         } else {
-            self.handle_rom_controller(addr);
+            self.handle_rom_controller(addr, val);
         }
 
         if val != 0 {
@@ -386,8 +386,6 @@ impl<'a> CPU<'a> {
 
     pub fn set_address16(&mut self, addr: u16, val: u16) {
         let addr = addr as usize;
-
-        self.handle_rom_controller(addr);
 
         if val != 0 {
             address::check_unimplemented(addr);
@@ -438,5 +436,14 @@ impl<'a> CPU<'a> {
     pub fn stop(&mut self) {
         //assume we just press the button after a while
         //TODO implement?
+    }
+
+    pub fn signed_offset(addr: u16, off: i8) -> (u16, bool) {
+        let off = off as i16;
+        if off < 0 {
+            addr.overflowing_sub((-off) as u16)
+        } else {
+            addr.overflowing_add(off as u16)
+        }
     }
 }

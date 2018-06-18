@@ -168,7 +168,7 @@ impl Parameter {
             match offset_node.param_type {
                 ParameterType::I8 | ParameterType::U8 => {
                     offset_node.fullcode =
-                        String::new() + "(" + &leaf_node.fullcode + " as u32 + 0xff00) as u16"
+                        String::new() + "(" + &leaf_node.fullcode + " as u16).wrapping_add(0xff00)"
                 }
                 _ => {}
             };
