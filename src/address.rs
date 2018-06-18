@@ -149,11 +149,9 @@ pub fn check_unimplemented(addr: usize) {
     if addr == P1_REGISTER {
         // panic!("{} unimplemented", P1_REGISTER);
     }
-    if addr == SB_REGISTER {
-        panic!("{} unimplemented", SB_REGISTER);
-    }
     if addr == SC_REGISTER {
-        panic!("{} unimplemented", SC_REGISTER);
+        //Blargg's tests (for automation)
+        // panic!("{} unimplemented", SC_REGISTER);
     }
     if addr == DIV_REGISTER {
         panic!("{} unimplemented", DIV_REGISTER);

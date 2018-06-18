@@ -5,13 +5,21 @@ use bit_field::BitField;
 #[allow(unused, unreachable_code)]
 unsafe fn stubs(cpu: &mut CPU) {
 	{
-	// NAME: ADC_z_h_c_u8_u8
+	// NAME: ADC_z_h_c_u8_u8_out_u8
 			let imm0 = cpu.immediate_u8();
 			let reg0 = cpu.AF.r8.first;
 			let reg1 = imm0;
+			let mut out;
 	//----------------
-		panic!("ADC_z_h_c_u8_u8 not implemented");
+		//TODO I really don't know if this is correct
+		//TODO H
+		let added = reg1 + cpu.c() as u8;
+		let (a, of) = reg0.overflowing_add(added);
+		out = a;
+		cpu.set_c(of);
+		cpu.set_z(out == 0);
 	//----------------
+			cpu.AF.r8.first = out;
 	}
 	{
 	// NAME: ADD_h_c_u16_i8

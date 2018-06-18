@@ -1986,7 +1986,7 @@
     "0x88": {
         "mnemonic": "ADC",
         "operands": [
-            "A",
+            "inout A",
             "B"
         ],
         "bytes": 1,
@@ -2001,7 +2001,7 @@
     "0x89": {
         "mnemonic": "ADC",
         "operands": [
-            "A",
+            "inout A",
             "C"
         ],
         "bytes": 1,
@@ -2016,7 +2016,7 @@
     "0x8a": {
         "mnemonic": "ADC",
         "operands": [
-            "A",
+            "inout A",
             "D"
         ],
         "bytes": 1,
@@ -2031,7 +2031,7 @@
     "0x8b": {
         "mnemonic": "ADC",
         "operands": [
-            "A",
+            "inout A",
             "E"
         ],
         "bytes": 1,
@@ -2046,7 +2046,7 @@
     "0x8c": {
         "mnemonic": "ADC",
         "operands": [
-            "A",
+            "inout A",
             "H"
         ],
         "bytes": 1,
@@ -2061,7 +2061,7 @@
     "0x8d": {
         "mnemonic": "ADC",
         "operands": [
-            "A",
+            "inout A",
             "L"
         ],
         "bytes": 1,
@@ -2076,7 +2076,7 @@
     "0x8e": {
         "mnemonic": "ADC",
         "operands": [
-            "A",
+            "inout A",
             "(HL)"
         ],
         "bytes": 1,
@@ -2091,7 +2091,7 @@
     "0x8f": {
         "mnemonic": "ADC",
         "operands": [
-            "A",
+            "inout A",
             "A"
         ],
         "bytes": 1,
@@ -2971,7 +2971,7 @@
     "0xce": {
         "mnemonic": "ADC",
         "operands": [
-            "A",
+            "inout A",
             "d8"
         ],
         "bytes": 2,

@@ -230,7 +230,7 @@ impl GPU {
         let lcd_settings = LCDCValues::from_ram(ram);
 
         let mut x = scroll_x;
-        let y = scroll_y + scanline_idx;
+        let y = scroll_y.wrapping_add(scanline_idx);
 
         assert!(lcd_settings.windowing_on() == false);
 
