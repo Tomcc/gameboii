@@ -69,17 +69,19 @@ impl<'a> MBC1<'a> {
         }
     }
 
-    fn handle_write(&self, addr: usize, val: u8, ram: &mut [u8]) {
-        // if addr >= ROM_BANK0.start && addr < ROM_BANK1.end {
-        //     panic!("Not implemented");
-        // }
+    fn handle_write(&self, addr: usize, val: u8, ram: &mut [u8]) -> bool {
+        if addr >= ROM_BANK0.start && addr < ROM_BANK1.end {
+            panic!("Not implemented");
+        }
 
-        // if address::in_range(MBC1_ROM_BANK_SELECT, addr) {
-        //     //TODO copy the selected bank into ram
-        //     panic!("Not implemented");
-        // } else if address::in_range(MBC1_MEMORY_MODE_SELECT, addr) {
-        //     panic!("Not implemented");
-        // }
+        if address::in_range(MBC1_ROM_BANK_SELECT, addr) {
+            //TODO copy the selected bank into ram
+            panic!("Not implemented");
+        } else if address::in_range(MBC1_MEMORY_MODE_SELECT, addr) {
+            panic!("Not implemented");
+        }
+
+        false
     }
 }
 
@@ -111,6 +113,7 @@ pub struct CPU<'a> {
 
     next_clock: u64,
     cartridge_ROM: &'a [u8],
+    pub should_exit: bool,
 }
 
 impl<'a> CPU<'a> {
@@ -157,6 +160,8 @@ impl<'a> CPU<'a> {
 
             next_clock: 0,
             cartridge_ROM: rom,
+
+            should_exit: false,
         };
 
         cpu.setup_rom_controller(rom);
@@ -340,14 +345,16 @@ impl<'a> CPU<'a> {
         self.RAM[addr as usize]
     }
 
-    fn handle_rom_controller(&mut self, addr: usize, val: u8) {
+    fn handle_rom_controller(&mut self, addr: usize, val: u8) -> bool {
         match self.rom_controller {
             ROMController::ROMOnly => {
                 if addr >= ROM_BANK0.start && addr < ROM_BANK1.end {
-                    panic!("MBC not implemented, can't write to the ROM");
+                    //do nothing
+                    return true;
                 }
+                return false;
             }
-            ROMController::MBC1(ref mut mbc) => mbc.handle_write(addr, val, &mut self.RAM),
+            ROMController::MBC1(ref mut mbc) => return mbc.handle_write(addr, val, &mut self.RAM),
         }
     }
 
@@ -370,7 +377,10 @@ impl<'a> CPU<'a> {
         } else if addr == address::SC_REGISTER {
             self.start_serial_transfer(val);
         } else {
-            self.handle_rom_controller(addr, val);
+            if self.handle_rom_controller(addr, val) {
+                //no need to do anything, it was handled
+                return;
+            }
         }
 
         if val != 0 {

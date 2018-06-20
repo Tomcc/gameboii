@@ -49,7 +49,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let reg1 = imm0;
 	//----------------
 		//TODO H
-		let (a, overflow) = reg0.overflowing_add(reg0);
+		let (a, overflow) = reg0.overflowing_add(reg1);
 		cpu.AF.r8.first = a;
 		cpu.set_z(a == 0);
 		cpu.set_c(overflow);
@@ -111,9 +111,9 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let reg0 = imm0;
 	//----------------
 		//TODO H
-		let a = cpu.AF.r8.first;
-		cpu.set_z(reg0 == a);
-		cpu.set_c(reg0 < a);
+		let (a, overflow) = cpu.AF.r8.first.overflowing_sub(reg0);
+		cpu.set_z(a == 0);
+		cpu.set_c(overflow);
 	//----------------
 	}
 	{
@@ -128,7 +128,6 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let mut out;
 	//----------------
 		out = reg0.wrapping_sub(1);
-		cpu.set_z(out == 0);
 	//----------------
 			cpu.SP = out;
 	}

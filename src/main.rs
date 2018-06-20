@@ -137,6 +137,10 @@ fn main() {
                 gpu.tick(&mut cpu, current_clock);
 
                 current_clock += 1;
+
+                if cpu.should_exit {
+                    return;
+                }
             }
         }
 
