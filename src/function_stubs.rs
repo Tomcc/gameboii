@@ -26,7 +26,10 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let reg0 = cpu.SP;
 			let reg1 = imm0;
 	//----------------
-		panic!("ADD_h_c_u16_i8 not implemented");
+		//TODO H
+		let (a, of) = CPU::signed_offset(reg0, reg1);
+		cpu.set_c(of);
+		cpu.SP = a;
 	//----------------
 	}
 	{
