@@ -40,6 +40,7 @@ pub const SIGNED_TILE_DATA_TABLE: Range<usize> = 0x8800..0x9800;
 pub const TILE_MAP0: Range<usize> = 0x9800..0x9c00;
 pub const TILE_MAP1: Range<usize> = 0x9C00..0xA000;
 
+pub const ECHO_MEM_TARGET: Range<usize> = 0xc000..0xde00;
 pub const ECHO_MEM: Range<usize> = 0xe000..0xfe00;
 
 pub const SPRITE_ATTRIBUTE_TABLE: Range<usize> = 0xfe00..0xfea0;
@@ -142,9 +143,6 @@ pub fn check_unimplemented(addr: usize) {
     }
     if addr == RAM_SIZE {
         panic!("{} unimplemented", RAM_SIZE);
-    }
-    if addr >= ECHO_MEM.start && addr < ECHO_MEM.end {
-        panic!("{} unimplemented", ECHO_MEM.start);
     }
     if addr == P1_REGISTER {
         // panic!("{} unimplemented", P1_REGISTER);

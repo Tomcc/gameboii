@@ -376,6 +376,12 @@ impl<'a> CPU<'a> {
             self.DMA_transfer = Some(DMATransfer::from_reg(val));
         } else if addr == address::SC_REGISTER {
             self.start_serial_transfer(val);
+        } else if address::in_range(address::ECHO_MEM, addr) {
+            let echo_addr = (addr - address::ECHO_MEM.start) + address::ECHO_MEM_TARGET.start;
+            self.RAM[echo_addr] = val;
+        } else if address::in_range(address::ECHO_MEM_TARGET, addr) {
+            let echo_addr = (addr - address::ECHO_MEM_TARGET.start) + address::ECHO_MEM.start;
+            self.RAM[echo_addr] = val;
         } else {
             if self.handle_rom_controller(addr, val) {
                 //no need to do anything, it was handled
