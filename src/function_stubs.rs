@@ -305,7 +305,8 @@ unsafe fn stubs(cpu: &mut CPU) {
 	// NAME: POP_z_n_h_c_out_u16
 			let mut out;
 	//----------------
-		out = cpu.pop16();
+		//mask out the first unusable nibble of AF
+		out = cpu.pop16() & 0xFFF0;
 	//----------------
 			cpu.AF.r16 = out;
 	}
