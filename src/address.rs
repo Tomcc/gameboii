@@ -127,124 +127,109 @@ pub fn in_range(range: Range<usize>, addr: usize) -> bool {
 
 pub fn check_unimplemented(addr: usize) {
     if addr >= SPRITE_ATTRIBUTE_TABLE.start && addr < SPRITE_ATTRIBUTE_TABLE.end {
-        panic!("{} unimplemented", SPRITE_ATTRIBUTE_TABLE.start);
-    }
-    if addr == COLOR_GB_ENABLE {
-        panic!("{} unimplemented", COLOR_GB_ENABLE);
-    }
-    if addr == SUPER_GB_ENABLE {
-        panic!("{} unimplemented", SUPER_GB_ENABLE);
-    }
-    if addr == CARTRIDGE_TYPE {
-        panic!("{} unimplemented", CARTRIDGE_TYPE);
-    }
-    if addr == ROM_SIZE {
-        panic!("{} unimplemented", ROM_SIZE);
-    }
-    if addr == RAM_SIZE {
-        panic!("{} unimplemented", RAM_SIZE);
+        panic!("{:04x} address unimplemented", SPRITE_ATTRIBUTE_TABLE.start);
     }
     if addr == P1_REGISTER {
-        // panic!("{} unimplemented", P1_REGISTER);
+        // panic!("{:04x} address unimplemented", P1_REGISTER);
     }
     if addr == SC_REGISTER {
         //Blargg's tests (for automation)
-        // panic!("{} unimplemented", SC_REGISTER);
+        // panic!("{:04x} address unimplemented", SC_REGISTER);
     }
     if addr == DIV_REGISTER {
-        panic!("{} unimplemented", DIV_REGISTER);
+        panic!("{:04x} address unimplemented", DIV_REGISTER);
     }
     if addr == TIMA_REGISTER {
-        panic!("{} unimplemented", TIMA_REGISTER);
+        panic!("{:04x} address unimplemented", TIMA_REGISTER);
     }
     if addr == TMA_REGISTER {
-        panic!("{} unimplemented", TMA_REGISTER);
+        panic!("{:04x} address unimplemented", TMA_REGISTER);
     }
     if addr == TAC_REGISTER {
-        panic!("{} unimplemented", TAC_REGISTER);
+        panic!("{:04x} address unimplemented", TAC_REGISTER);
     }
     if addr == NR10_REGISTER {
-        panic!("{} unimplemented", NR10_REGISTER);
+        panic!("{:04x} address unimplemented", NR10_REGISTER);
     }
     if addr == NR11_REGISTER {
-        // panic!("{} unimplemented", NR11_REGISTER);
+        // panic!("{:04x} address unimplemented", NR11_REGISTER);
     }
     if addr == NR12_REGISTER {
-        // panic!("{} unimplemented", NR12_REGISTER);
+        // panic!("{:04x} address unimplemented", NR12_REGISTER);
     }
     if addr == NR13_REGISTER {
-        // TETRIS panic!("{} unimplemented", NR13_REGISTER);
+        // TETRIS panic!("{:04x} address unimplemented", NR13_REGISTER);
     }
     if addr == NR14_REGISTER {
-        // T panic!("{} unimplemented", NR14_REGISTER);
+        // T panic!("{:04x} address unimplemented", NR14_REGISTER);
     }
     if addr == NR21_REGISTER {
-        panic!("{} unimplemented", NR21_REGISTER);
+        panic!("{:04x} address unimplemented", NR21_REGISTER);
     }
     if addr == NR22_REGISTER {
-        // TETRIS panic!("{} unimplemented", NR22_REGISTER);
+        // TETRIS panic!("{:04x} address unimplemented", NR22_REGISTER);
     }
     if addr == NR23_REGISTER {
-        panic!("{} unimplemented", NR23_REGISTER);
+        panic!("{:04x} address unimplemented", NR23_REGISTER);
     }
     if addr == NR24_REGISTER {
-        // T panic!("{} unimplemented", NR24_REGISTER);
+        // T panic!("{:04x} address unimplemented", NR24_REGISTER);
     }
     if addr == NR30_REGISTER {
-        panic!("{} unimplemented", NR30_REGISTER);
+        panic!("{:04x} address unimplemented", NR30_REGISTER);
     }
     if addr == NR31_REGISTER {
-        panic!("{} unimplemented", NR31_REGISTER);
+        panic!("{:04x} address unimplemented", NR31_REGISTER);
     }
     if addr == NR32_REGISTER {
-        panic!("{} unimplemented", NR32_REGISTER);
+        panic!("{:04x} address unimplemented", NR32_REGISTER);
     }
     if addr == NR33_REGISTER {
-        panic!("{} unimplemented", NR33_REGISTER);
+        panic!("{:04x} address unimplemented", NR33_REGISTER);
     }
     if addr == NR34_REGISTER {
-        panic!("{} unimplemented", NR34_REGISTER);
+        panic!("{:04x} address unimplemented", NR34_REGISTER);
     }
     if addr == NR41_REGISTER {
-        panic!("{} unimplemented", NR41_REGISTER);
+        panic!("{:04x} address unimplemented", NR41_REGISTER);
     }
     if addr == NR42_REGISTER {
-        // T panic!("{} unimplemented", NR42_REGISTER);
+        // T panic!("{:04x} address unimplemented", NR42_REGISTER);
     }
     if addr == NR43_REGISTER {
-        panic!("{} unimplemented", NR43_REGISTER);
+        panic!("{:04x} address unimplemented", NR43_REGISTER);
     }
     if addr == NR44_REGISTER {
-        // T panic!("{} unimplemented", NR44_REGISTER);
+        // T panic!("{:04x} address unimplemented", NR44_REGISTER);
     }
     if addr == NR50_REGISTER {
-        // panic!("{} unimplemented", NR50_REGISTER);
+        // panic!("{:04x} address unimplemented", NR50_REGISTER);
     }
     if addr == NR51_REGISTER {
-        // panic!("{} unimplemented", NR51_REGISTER);
+        // panic!("{:04x} address unimplemented", NR51_REGISTER);
     }
     if addr == NR52_REGISTER {
-        // panic!("{} unimplemented", NR52_REGISTER);
+        // panic!("{:04x} address unimplemented", NR52_REGISTER);
     }
     if addr >= WAVE_PATTERN_RAM.start && addr < WAVE_PATTERN_RAM.end {
-        panic!("{} unimplemented", WAVE_PATTERN_RAM.start);
+        panic!("{:04x} address unimplemented", WAVE_PATTERN_RAM.start);
     }
     if addr == STAT_REGISTER {
-        panic!("{} unimplemented", STAT_REGISTER);
+        panic!("{:04x} address unimplemented", STAT_REGISTER);
     }
     if addr == SCX_REGISTER {
-        panic!("{} unimplemented", SCX_REGISTER);
+        panic!("{:04x} address unimplemented", SCX_REGISTER);
     }
     if addr == LY_REGISTER {
-        panic!("{} unimplemented", LY_REGISTER);
+        panic!("{:04x} address unimplemented", LY_REGISTER);
     }
     if addr == LYC_REGISTER {
-        panic!("{} unimplemented", LYC_REGISTER);
+        panic!("{:04x} address unimplemented", LYC_REGISTER);
     }
     if addr == WX_REGISTER {
-        panic!("{} unimplemented", WX_REGISTER);
+        panic!("{:04x} address unimplemented", WX_REGISTER);
     }
     if addr == WY_REGISTER {
-        panic!("{} unimplemented", WY_REGISTER);
+        panic!("{:04x} address unimplemented", WY_REGISTER);
     }
 }

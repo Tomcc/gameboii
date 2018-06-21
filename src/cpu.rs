@@ -55,6 +55,15 @@ impl DMATransfer {
 const MBC1_MEMORY_MODE_SELECT: Range<usize> = 0x6000..0x8000;
 const MBC1_ROM_BANK_SELECT: Range<usize> = 0x2000..0x4000;
 
+fn find_highest_prio_interrupt(enabled_and_requested: u8) -> usize {
+    for i in 0..5 {
+        if enabled_and_requested.get_bit(i) {
+            return i as usize;
+        }
+    }
+    panic!("Only call this if any interrupt is requested");
+}
+
 //TODO RAM switching for MBC1 + RAM
 
 #[allow(non_snake_case)]
@@ -175,15 +184,6 @@ impl<'a> CPU<'a> {
         cpu
     }
 
-    fn find_highest_prio_interrupt(&self) -> usize {
-        for i in 0..5 {
-            if self.requested_interrupts.get_bit(i) {
-                return i as usize;
-            }
-        }
-        panic!("Only call this if any interrupt is requested");
-    }
-
     pub fn handle_interrupts(&mut self) -> bool {
         // handle interrupts:
         // if any bit of interrupts_requested are set and enabled, start from the
@@ -194,12 +194,13 @@ impl<'a> CPU<'a> {
 
         if interrupts != 0 {
             // interrupts are available: find the highest priority one
-            let current_interrupt = self.find_highest_prio_interrupt();
+            let current_interrupt = find_highest_prio_interrupt(interrupts);
 
             // disable the IME
             self.interrupts_master_enabled = 0;
             // reset the bit we handled
             self.requested_interrupts.set_bit(current_interrupt, false);
+            self.RAM[address::IF_REGISTER].set_bit(current_interrupt, false);
 
             // call the new address
             let addr = address::INTERRUPT[current_interrupt] as u16;
