@@ -119,7 +119,31 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: DAA_z_c
 	//----------------
-		panic!("DAA_z_c not implemented");
+		//TODO pass blargg's test 01, it only fails on this instruction
+		// this code doesn't seem to work
+		let mut a = cpu.AF.r8.first;
+		let mut correction = if cpu.c() { 0x60 } else { 0x00 };
+
+		if (cpu.h()) {
+			correction |= 0x06;
+		}
+
+		if (!cpu.n()) {
+			if ((a & 0x0F) > 0x09) {
+				correction |= 0x06;
+			}
+			if (a > 0x99) {
+				correction |= 0x60;
+			}
+
+			a = a.wrapping_add(correction);
+		} else {
+			a = a.wrapping_sub(correction);
+		}
+
+		cpu.set_c(correction > 0x6 && correction < 0xfa);
+		cpu.set_z(a == 0);
+		
 	//----------------
 	}
 	{

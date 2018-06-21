@@ -188,9 +188,9 @@ impl<'a> CPU<'a> {
         // handle interrupts:
         // if any bit of interrupts_requested are set and enabled, start from the
         // highest priority (0) and switch to the interrupt routine
-        let interrupts = self.interrupts_master_enabled
-            & self.requested_interrupts
-            & self.RAM[address::IE_REGISTER];
+        let enabled_interrupts = self.RAM[address::IE_REGISTER];
+        let interrupts =
+            self.interrupts_master_enabled & self.requested_interrupts & enabled_interrupts;
 
         if interrupts != 0 {
             // interrupts are available: find the highest priority one
@@ -444,6 +444,12 @@ impl<'a> CPU<'a> {
 
     pub unsafe fn z(&self) -> bool {
         self.AF.r8.second.get_bit(7)
+    }
+    pub unsafe fn n(&self) -> bool {
+        self.AF.r8.second.get_bit(6)
+    }
+    pub unsafe fn h(&self) -> bool {
+        self.AF.r8.second.get_bit(5)
     }
     pub unsafe fn c(&self) -> bool {
         self.AF.r8.second.get_bit(4)
