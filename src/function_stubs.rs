@@ -358,7 +358,6 @@ unsafe fn stubs(cpu: &mut CPU) {
 		cpu.set_c(a.get_bit(7));
 		a = a << 1;
 		a.set_bit(0, old_c);
-		cpu.set_z(a == 0);
 		cpu.AF.r8.first = a;
 	//----------------
 	}
@@ -366,11 +365,8 @@ unsafe fn stubs(cpu: &mut CPU) {
 	// NAME: RLCA_c
 	//----------------
 		let mut a = cpu.AF.r8.first;
-		let old_c = cpu.c();
 		cpu.set_c(a.get_bit(7));
-		a = a.rotate_left(1);
-		cpu.set_z(a == 0);
-		cpu.AF.r8.first = a;
+		cpu.AF.r8.first = a.rotate_left(1);
 	//----------------
 	}
 	{
@@ -401,7 +397,6 @@ unsafe fn stubs(cpu: &mut CPU) {
 		cpu.set_c(a.get_bit(0));
 		a = a >> 1;
 		a.set_bit(7, old_c);
-		cpu.set_z(a == 0);
 		cpu.AF.r8.first = a;
 	//----------------
 	}
