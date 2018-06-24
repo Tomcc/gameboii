@@ -11,12 +11,15 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let reg1 = imm0;
 			let mut out;
 	//----------------
-		//TODO H
 		let (added, of1) = reg1.overflowing_add(cpu.c() as u8);
 		let (a, of2) = reg0.overflowing_add(added);
 		out = a;
+
+		let h = ((reg0 & 0x0F) + (reg1 & 0x0F) + cpu.c() as u8) > 0x0F;
+
 		cpu.set_c(of1 || of2);
 		cpu.set_z(out == 0);
+		cpu.set_h(h);
 	//----------------
 			cpu.AF.r8.first = out;
 	}
@@ -53,11 +56,12 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let reg0 = cpu.AF.r8.first;
 			let reg1 = imm0;
 	//----------------
-		//TODO H
-		let (a, overflow) = reg0.overflowing_add(reg1);
+		let (a, c, h) = CPU::add8(reg0, reg1);
 		cpu.AF.r8.first = a;
+
 		cpu.set_z(a == 0);
-		cpu.set_c(overflow);
+		cpu.set_c(c);
+		cpu.set_h(h);
 	//----------------
 	}
 	{
@@ -484,12 +488,19 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let reg1 = imm0;
 			let mut out;
 	//----------------
-		//TODO H
+
 		let (added, of1) = reg1.overflowing_sub(cpu.c() as u8);
 		let (a, of2) = reg0.overflowing_sub(added);
 		out = a;
+
+		let a = (reg0 & 0x0F) as i32;
+		let b = (reg1 & 0x0F) as i32;
+		let c = cpu.c() as i32;
+		
+		cpu.set_h(a - b - c < 0);
 		cpu.set_c(of1 || of2);
 		cpu.set_z(out == 0);
+
 	//----------------
 			cpu.AF.r8.first = out;
 	}
@@ -553,11 +564,12 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let imm0 = cpu.immediate_u8();
 			let reg0 = imm0;
 	//----------------
-		//TODO H
-		let (a, overflow) = cpu.AF.r8.first.overflowing_sub(reg0);
+		let (a, c, h) = CPU::sub8(cpu.AF.r8.first, reg0);
 		cpu.AF.r8.first = a;
+
 		cpu.set_z(a == 0);
-		cpu.set_c(overflow);
+		cpu.set_c(c);
+		cpu.set_h(h);
 	//----------------
 	}
 	{

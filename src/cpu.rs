@@ -470,6 +470,12 @@ impl<'a> CPU<'a> {
         //TODO implement?
     }
 
+    pub fn add8(reg0: u8, reg1: u8) -> (u8, bool, bool) {
+        let (res, c) = reg0.overflowing_add(reg1);
+        let h = (reg0 & 0x0F) + (reg1 & 0x0F) > 0x0F;
+        (res, c, h)
+    }
+
     pub fn add16(reg0: u16, reg1: u16) -> (u16, bool, bool) {
         let (res, c) = reg0.overflowing_add(reg1);
         let h = (reg0 & 0x0FFF) + (reg1 & 0x0FFF) > 0x0FFF;
