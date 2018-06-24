@@ -38,10 +38,10 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let reg1 = cpu.SP;
 			let mut out;
 	//----------------
-		//TODO H
-		let (res, of) = reg0.overflowing_add(reg1);
+		let (res, c, h) = CPU::add16(reg0, reg1);
 		out = res;
-		cpu.set_c(of);
+		cpu.set_c(c);
+		cpu.set_h(h);
 	//----------------
 			cpu.HL.r16 = out;
 	}

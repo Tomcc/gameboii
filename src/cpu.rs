@@ -478,4 +478,10 @@ impl<'a> CPU<'a> {
             addr.overflowing_add(off as u16)
         }
     }
+
+    pub fn add16(reg0: u16, reg1: u16) -> (u16, bool, bool) {
+        let (res, c) = reg0.overflowing_add(reg1);
+        let h = (reg0 & 0x0FFF) + (reg1 & 0x0FFF) > 0x0FFF;
+        (res, c, h)
+    }
 }
