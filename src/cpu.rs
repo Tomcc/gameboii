@@ -407,9 +407,9 @@ impl<'a> CPU<'a> {
     }
 
     pub fn set_address16(&mut self, mut addr: u16, val: u16) {
-        self.set_address(addr, (val >> 8) as u8);
-        addr = addr.wrapping_add(1);
         self.set_address(addr, val as u8);
+        addr = addr.wrapping_add(1);
+        self.set_address(addr, (val >> 8) as u8);
     }
 
     pub fn push16(&mut self, val: u16) {

@@ -573,7 +573,6 @@ fn main() {
     //things for cargo
     println!("cargo:rerun-if-changed={}", OPCODES_PATH);
     println!("cargo:rerun-if-changed={}", STUBS_PATH);
-    println!("cargo:rerun-if-changed={}", INTERPRETER_PATH);
 
     let codes = &parse_function_stubs().unwrap();
 
