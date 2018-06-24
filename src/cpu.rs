@@ -470,18 +470,30 @@ impl<'a> CPU<'a> {
         //TODO implement?
     }
 
-    pub fn signed_offset(addr: u16, off: i8) -> (u16, bool) {
-        let off = off as i16;
-        if off < 0 {
-            addr.overflowing_sub((-off) as u16)
-        } else {
-            addr.overflowing_add(off as u16)
-        }
-    }
-
     pub fn add16(reg0: u16, reg1: u16) -> (u16, bool, bool) {
         let (res, c) = reg0.overflowing_add(reg1);
         let h = (reg0 & 0x0FFF) + (reg1 & 0x0FFF) > 0x0FFF;
         (res, c, h)
+    }
+
+    pub fn sub8(reg0: u8, reg1: u8) -> (u8, bool, bool) {
+        let (res, c) = reg0.overflowing_sub(reg1);
+        let h = ((reg0 & 0x0F) as i32 - (reg1 & 0x0F) as i32) < 0;
+        (res, c, h)
+    }
+
+    pub fn sub16(reg0: u16, reg1: u16) -> (u16, bool, bool) {
+        let (res, c) = reg0.overflowing_sub(reg1);
+        //TODO h
+        (res, c, false)
+    }
+
+    pub fn signed_offset(addr: u16, off: i8) -> (u16, bool, bool) {
+        let off = off as i16;
+        if off < 0 {
+            CPU::sub16(addr, (-off) as u16)
+        } else {
+            CPU::add16(addr, off as u16)
+        }
     }
 }

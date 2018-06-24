@@ -26,10 +26,12 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let reg0 = cpu.SP;
 			let reg1 = imm0;
 	//----------------
-		//TODO H
-		let (a, of) = CPU::signed_offset(reg0, reg1);
-		cpu.set_c(of);
+		let (a, c, h) = CPU::signed_offset(reg0, reg1);
+
 		cpu.SP = a;
+
+		cpu.set_c(c);
+		cpu.set_h(h);
 	//----------------
 	}
 	{
@@ -114,10 +116,10 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let imm0 = cpu.immediate_u8();
 			let reg0 = imm0;
 	//----------------
-		//TODO H
-		let (a, overflow) = cpu.AF.r8.first.overflowing_sub(reg0);
+		let (a, c, h) = CPU::sub8(cpu.AF.r8.first, reg0);
 		cpu.set_z(a == 0);
-		cpu.set_c(overflow);
+		cpu.set_c(c);
+		cpu.set_h(h);
 	//----------------
 	}
 	{
@@ -265,12 +267,11 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let reg0 = imm0;
 			let mut out;
 	//----------------
-		let (res, of) = CPU::signed_offset(cpu.SP, reg0);
+		let (res, c, h) = CPU::signed_offset(cpu.SP, reg0);
 
 		out = res;
-		//TODO H
-		cpu.set_c(of);
-
+		cpu.set_c(c);
+		cpu.set_h(h);
 	//----------------
 			cpu.HL.r16 = out;
 	}
