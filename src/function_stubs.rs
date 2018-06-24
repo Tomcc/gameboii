@@ -489,8 +489,8 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let mut out;
 	//----------------
 
-		let (added, of1) = reg1.overflowing_sub(cpu.c() as u8);
-		let (a, of2) = reg0.overflowing_sub(added);
+		let (a, of2) = reg0.overflowing_sub(reg1);
+		let (a, of1) = a.overflowing_sub(cpu.c() as u8);
 		out = a;
 
 		let a = (reg0 & 0x0F) as i32;
