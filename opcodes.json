@@ -2218,7 +2218,7 @@
     "0x98": {
         "mnemonic": "SBC",
         "operands": [
-            "A",
+            "inout A",
             "B"
         ],
         "bytes": 1,
@@ -2233,7 +2233,7 @@
     "0x99": {
         "mnemonic": "SBC",
         "operands": [
-            "A",
+            "inout A",
             "C"
         ],
         "bytes": 1,
@@ -2248,7 +2248,7 @@
     "0x9a": {
         "mnemonic": "SBC",
         "operands": [
-            "A",
+            "inout A",
             "D"
         ],
         "bytes": 1,
@@ -2263,7 +2263,7 @@
     "0x9b": {
         "mnemonic": "SBC",
         "operands": [
-            "A",
+            "inout A",
             "E"
         ],
         "bytes": 1,
@@ -2278,7 +2278,7 @@
     "0x9c": {
         "mnemonic": "SBC",
         "operands": [
-            "A",
+            "inout A",
             "H"
         ],
         "bytes": 1,
@@ -2293,7 +2293,7 @@
     "0x9d": {
         "mnemonic": "SBC",
         "operands": [
-            "A",
+            "inout A",
             "L"
         ],
         "bytes": 1,
@@ -2308,7 +2308,7 @@
     "0x9e": {
         "mnemonic": "SBC",
         "operands": [
-            "A",
+            "inout A",
             "(HL)"
         ],
         "bytes": 1,
@@ -2323,7 +2323,7 @@
     "0x9f": {
         "mnemonic": "SBC",
         "operands": [
-            "A",
+            "inout A",
             "A"
         ],
         "bytes": 1,
@@ -3156,7 +3156,7 @@
     "0xde": {
         "mnemonic": "SBC",
         "operands": [
-            "A",
+            "inout A",
             "d8"
         ],
         "bytes": 2,

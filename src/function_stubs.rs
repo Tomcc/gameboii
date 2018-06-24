@@ -464,13 +464,20 @@ unsafe fn stubs(cpu: &mut CPU) {
 	//----------------
 	}
 	{
-	// NAME: SBC_z_h_c_u8_u8
+	// NAME: SBC_z_h_c_u8_u8_out_u8
 			let imm0 = cpu.immediate_u8();
 			let reg0 = cpu.AF.r8.first;
 			let reg1 = imm0;
+			let mut out;
 	//----------------
-		panic!("SBC_z_h_c_u8_u8 not implemented");
+		//TODO H
+		let (added, of1) = reg1.overflowing_sub(cpu.c() as u8);
+		let (a, of2) = reg0.overflowing_sub(added);
+		out = a;
+		cpu.set_c(of1 || of2);
+		cpu.set_z(out == 0);
 	//----------------
+			cpu.AF.r8.first = out;
 	}
 	{
 	// NAME: SCF
