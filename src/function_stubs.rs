@@ -99,7 +99,8 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: CCF_c
 	//----------------
-		panic!("CCF_c not implemented");
+		let c = cpu.c();
+		cpu.set_c(!c);
 	//----------------
 	}
 	{
@@ -146,7 +147,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 
 		cpu.set_c(correction > 0x6 && correction < 0xfa);
 		cpu.set_z(a == 0);
-		
+
 	//----------------
 	}
 	{
@@ -398,11 +399,15 @@ unsafe fn stubs(cpu: &mut CPU) {
 	//----------------
 	}
 	{
-	// NAME: RLC_z_c_u8
+	// NAME: RLC_z_c_u8_out_u8
 			let reg0 = cpu.AF.r8.first;
+			let mut out;
 	//----------------
-		panic!("RLC_z_c_u8 not implemented");
+
+		cpu.set_c(reg0.get_bit(7));
+		out = reg0.rotate_left(1);
 	//----------------
+			cpu.AF.r8.first = out;
 	}
 	{
 	// NAME: RL_z_c_u8_out_u8
@@ -431,15 +436,20 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: RRCA_c
 	//----------------
-		panic!("RRCA_c not implemented");
+		let mut a = cpu.AF.r8.first;
+		cpu.set_c(a.get_bit(0));
+		cpu.AF.r8.first = a.rotate_right(1);
 	//----------------
 	}
 	{
-	// NAME: RRC_z_c_u8
+	// NAME: RRC_z_c_u8_out_u8
 			let reg0 = cpu.AF.r8.first;
+			let mut out;
 	//----------------
-		panic!("RRC_z_c_u8 not implemented");
+		cpu.set_c(reg0.get_bit(0));
+		out = reg0.rotate_right(1);
 	//----------------
+			cpu.AF.r8.first = out;
 	}
 	{
 	// NAME: RR_z_c_u8_out_u8
@@ -482,7 +492,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: SCF
 	//----------------
-		panic!("SCF not implemented");
+		//no code, just set C
 	//----------------
 	}
 	{

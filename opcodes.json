@@ -3526,7 +3526,7 @@
     "0xcb00": {
         "mnemonic": "RLC",
         "operands": [
-            "B"
+            "inout B"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -3540,7 +3540,7 @@
     "0xcb01": {
         "mnemonic": "RLC",
         "operands": [
-            "C"
+            "inout C"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -3554,7 +3554,7 @@
     "0xcb02": {
         "mnemonic": "RLC",
         "operands": [
-            "D"
+            "inout D"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -3568,7 +3568,7 @@
     "0xcb03": {
         "mnemonic": "RLC",
         "operands": [
-            "E"
+            "inout E"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -3582,7 +3582,7 @@
     "0xcb04": {
         "mnemonic": "RLC",
         "operands": [
-            "H"
+            "inout H"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -3596,7 +3596,7 @@
     "0xcb05": {
         "mnemonic": "RLC",
         "operands": [
-            "L"
+            "inout L"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -3610,7 +3610,7 @@
     "0xcb06": {
         "mnemonic": "RLC",
         "operands": [
-            "(HL)"
+            "inout (HL)"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -3624,7 +3624,7 @@
     "0xcb07": {
         "mnemonic": "RLC",
         "operands": [
-            "A"
+            "inout A"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -3638,7 +3638,7 @@
     "0xcb08": {
         "mnemonic": "RRC",
         "operands": [
-            "B"
+            "inout B"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -3652,7 +3652,7 @@
     "0xcb09": {
         "mnemonic": "RRC",
         "operands": [
-            "C"
+            "inout C"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -3666,7 +3666,7 @@
     "0xcb0a": {
         "mnemonic": "RRC",
         "operands": [
-            "D"
+            "inout D"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -3680,7 +3680,7 @@
     "0xcb0b": {
         "mnemonic": "RRC",
         "operands": [
-            "E"
+            "inout E"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -3694,7 +3694,7 @@
     "0xcb0c": {
         "mnemonic": "RRC",
         "operands": [
-            "H"
+            "inout H"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -3708,7 +3708,7 @@
     "0xcb0d": {
         "mnemonic": "RRC",
         "operands": [
-            "L"
+            "inout L"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -3722,7 +3722,7 @@
     "0xcb0e": {
         "mnemonic": "RRC",
         "operands": [
-            "(HL)"
+            "inout (HL)"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -3736,7 +3736,7 @@
     "0xcb0f": {
         "mnemonic": "RRC",
         "operands": [
-            "A"
+            "inout A"
         ],
         "bytes": 2,
         "flagsZNHC": [
