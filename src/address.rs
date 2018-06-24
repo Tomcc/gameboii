@@ -32,8 +32,6 @@ pub const INTERRUPT: [usize; 5] = [0x40, 0x48, 0x50, 0x58, 0x60];
 pub const COLOR_GB_ENABLE: usize = 0x143;
 pub const SUPER_GB_ENABLE: usize = 0x146;
 pub const CARTRIDGE_TYPE: usize = 0x147;
-pub const ROM_SIZE: usize = 0x148;
-pub const RAM_SIZE: usize = 0x149;
 
 pub const UNSIGNED_TILE_DATA_TABLE: Range<usize> = 0x8000..0x8800;
 pub const SIGNED_TILE_DATA_TABLE: Range<usize> = 0x8800..0x9800;

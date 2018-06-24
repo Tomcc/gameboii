@@ -68,17 +68,17 @@ fn find_highest_prio_interrupt(enabled_and_requested: u8) -> usize {
 
 #[allow(non_snake_case)]
 struct MBC1<'a> {
-    cartridge_rom: &'a [u8],
+    _cartridge_rom: &'a [u8],
 }
 
 impl<'a> MBC1<'a> {
     fn from_cart(cart: &'a [u8]) -> MBC1<'a> {
         MBC1 {
-            cartridge_rom: cart,
+            _cartridge_rom: cart,
         }
     }
 
-    fn handle_write(&self, addr: usize, val: u8, ram: &mut [u8]) -> bool {
+    fn handle_write(&self, addr: usize, _val: u8, _ram: &mut [u8]) -> bool {
         if addr >= ROM_BANK0.start && addr < ROM_BANK1.end {
             panic!("Not implemented");
         }
@@ -172,6 +172,15 @@ impl<'a> CPU<'a> {
 
             should_exit: false,
         };
+
+        assert!(
+            cpu.RAM[address::COLOR_GB_ENABLE] != 0x80,
+            "GBC not supported"
+        );
+        assert!(
+            cpu.RAM[address::SUPER_GB_ENABLE] != 0x03,
+            "SGB not supported"
+        );
 
         cpu.setup_rom_controller(rom);
 
@@ -359,7 +368,7 @@ impl<'a> CPU<'a> {
         }
     }
 
-    fn start_serial_transfer(&mut self, val: u8) {
+    fn start_serial_transfer(&mut self, _val: u8) {
         //TODO setup the clocks and the other parameters...
         //for now handle() will just print out the register when anything is there
     }
