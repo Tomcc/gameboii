@@ -280,6 +280,9 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let mut out;
 	//----------------
 		out = reg0;
+		if out == 0xDF7E {
+			let lol = 1;
+		}
 	//----------------
 			cpu.SP = out;
 	}
@@ -507,18 +510,24 @@ unsafe fn stubs(cpu: &mut CPU) {
 			cpu.AF.r8.first = out;
 	}
 	{
-	// NAME: SLA_z_c_u8
+	// NAME: SLA_z_c_u8_out_u8
 			let reg0 = cpu.AF.r8.first;
+			let mut out;
 	//----------------
-		panic!("SLA_z_c_u8 not implemented");
+		cpu.set_c(reg0.get_bit(7));
+		out = reg0 << 1;
 	//----------------
+			cpu.AF.r8.first = out;
 	}
 	{
-	// NAME: SRA_z_u8
+	// NAME: SRA_z_u8_out_u8
 			let reg0 = cpu.AF.r8.first;
+			let mut out;
 	//----------------
-		panic!("SRA_z_u8 not implemented");
+		cpu.set_c(reg0.get_bit(0));
+		out = reg0 >> 1;
 	//----------------
+			cpu.AF.r8.first = out;
 	}
 	{
 	// NAME: SRL_z_c_u8_out_u8

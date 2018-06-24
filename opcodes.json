@@ -3974,7 +3974,7 @@
     "0xcb20": {
         "mnemonic": "SLA",
         "operands": [
-            "B"
+            "inout B"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -3988,7 +3988,7 @@
     "0xcb21": {
         "mnemonic": "SLA",
         "operands": [
-            "C"
+            "inout C"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -4002,7 +4002,7 @@
     "0xcb22": {
         "mnemonic": "SLA",
         "operands": [
-            "D"
+            "inout D"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -4016,7 +4016,7 @@
     "0xcb23": {
         "mnemonic": "SLA",
         "operands": [
-            "E"
+            "inout E"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -4030,7 +4030,7 @@
     "0xcb24": {
         "mnemonic": "SLA",
         "operands": [
-            "H"
+            "inout H"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -4044,7 +4044,7 @@
     "0xcb25": {
         "mnemonic": "SLA",
         "operands": [
-            "L"
+            "inout L"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -4058,7 +4058,7 @@
     "0xcb26": {
         "mnemonic": "SLA",
         "operands": [
-            "(HL)"
+            "inout (HL)"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -4072,7 +4072,7 @@
     "0xcb27": {
         "mnemonic": "SLA",
         "operands": [
-            "A"
+            "inout A"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -4086,7 +4086,7 @@
     "0xcb28": {
         "mnemonic": "SRA",
         "operands": [
-            "B"
+            "inout B"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -4100,7 +4100,7 @@
     "0xcb29": {
         "mnemonic": "SRA",
         "operands": [
-            "C"
+            "inout C"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -4114,7 +4114,7 @@
     "0xcb2a": {
         "mnemonic": "SRA",
         "operands": [
-            "D"
+            "inout D"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -4128,7 +4128,7 @@
     "0xcb2b": {
         "mnemonic": "SRA",
         "operands": [
-            "E"
+            "inout E"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -4142,7 +4142,7 @@
     "0xcb2c": {
         "mnemonic": "SRA",
         "operands": [
-            "H"
+            "inout H"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -4156,7 +4156,7 @@
     "0xcb2d": {
         "mnemonic": "SRA",
         "operands": [
-            "L"
+            "inout L"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -4170,7 +4170,7 @@
     "0xcb2e": {
         "mnemonic": "SRA",
         "operands": [
-            "(HL)"
+            "inout (HL)"
         ],
         "bytes": 2,
         "flagsZNHC": [
@@ -4184,7 +4184,7 @@
     "0xcb2f": {
         "mnemonic": "SRA",
         "operands": [
-            "A"
+            "inout A"
         ],
         "bytes": 2,
         "flagsZNHC": [
