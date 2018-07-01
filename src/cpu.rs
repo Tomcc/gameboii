@@ -474,6 +474,10 @@ impl<'a> CPU<'a> {
         //TODO implement?
     }
 
+    pub fn halt(&mut self) {
+        panic!("HALT not implemented");
+    }
+
     pub fn add8(reg0: u8, reg1: u8) -> (u8, bool, bool) {
         let (res, c) = reg0.overflowing_add(reg1);
         let h = (reg0 & 0x0F) + (reg1 & 0x0F) > 0x0F;

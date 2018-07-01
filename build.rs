@@ -372,6 +372,7 @@ const HEADER: &str = r#"
 use cpu::*;
 use bit_field::BitField;
 
+#[allow(unreachable_code)]
 pub unsafe fn interpret(instruction: u16, cpu: &mut CPU) {
     match instruction {
 "#;
@@ -408,7 +409,7 @@ fn write_opcodes(
         writeln!(outfile, "\t\t\tcpu.PC += {};", bytes)?;
 
         for line in &code.lines {
-            writeln!(outfile, "\t{}", line)?;
+            writeln!(outfile, "{}", line)?;
         }
 
         function.write_post(outfile)?;
@@ -471,17 +472,17 @@ fn write_function_stub(
     code: &FunctionCode,
 ) -> std::io::Result<()> {
     //compose the parameters
-    writeln!(outfile, "\t{{")?;
-    writeln!(outfile, "\t// NAME: {}", function.name)?;
+    writeln!(outfile, "\t\t\"{}\" => {{", function.name)?;
     function.write_pre(outfile)?;
 
-    writeln!(outfile, "\t//----------------")?;
+    writeln!(outfile, "\t\t\t//----------------")?;
     for line in &code.lines {
         writeln!(outfile, "{}", line)?;
     }
-    writeln!(outfile, "\t//----------------")?;
+    writeln!(outfile, "\t\t\t//----------------")?;
     function.write_post(outfile)?;
-    writeln!(outfile, "\t}}")?;
+    writeln!(outfile, "\t\t}}")?;
+    writeln!(outfile, "")?;
 
     Ok(())
 }
@@ -491,7 +492,8 @@ const INTERPRETER_PATH: &str = "src/interpreter.rs";
 const OPCODES_PATH: &str = "opcodes.json";
 
 fn parse_function_stubs() -> std::io::Result<FunctionCodeMap> {
-    let name_regex = Regex::new(".*// NAME: (.*)").unwrap();
+    // let name_regex = Regex::new(".*// NAME: (.*)").unwrap();
+    let name_regex = Regex::new("\\s+\"(.*)\" => \\{").unwrap();
 
     let mut stubs = BTreeMap::new();
 
@@ -542,7 +544,8 @@ use cpu::*;
 use bit_field::BitField;
 
 #[allow(dead_code)]
-unsafe fn stubs(cpu: &mut CPU) {{
+unsafe fn stubs(cpu: &mut CPU, dummy: &str) {{
+    match dummy {{
 "#
     )?;
 
@@ -556,10 +559,14 @@ unsafe fn stubs(cpu: &mut CPU) {{
                 .unwrap_or(&FunctionCode::not_found(&func.name)),
         )?;
     }
+
     writeln!(
         outfile,
         r#"
-}}"#
+        _ => ()
+    }}
+}}
+    "#
     )?;
 
     Ok(())
