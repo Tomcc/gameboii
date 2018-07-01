@@ -359,7 +359,10 @@ impl<'a> CPU<'a> {
     }
 
     pub fn address(&self, addr: u16) -> u8 {
-        self.RAM[addr as usize]
+        let addr = addr as usize;
+        address::check_unimplemented_read(addr);
+
+        self.RAM[addr]
     }
 
     fn handle_rom_controller(&mut self, addr: usize, val: u8) -> bool {

@@ -129,6 +129,9 @@ unsafe fn stubs(cpu: &mut CPU) {
 	{
 	// NAME: DAA_z_c
 	//----------------
+
+		panic!("DAA Not working");
+
 		//TODO pass blargg's test 01, it only fails on this instruction
 		// this code doesn't seem to work
 		let mut a = cpu.AF.r8.first;

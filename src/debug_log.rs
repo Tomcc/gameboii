@@ -78,7 +78,7 @@ impl OpCodeDesc {
 pub struct Log {
     disasm_file: File,
     opcodes: BTreeMap<String, OpCodeDesc>,
-    disassembly: BTreeMap<usize, String>,
+    disassembly: BTreeMap<usize, (String, usize)>,
     next_write_time: Instant,
 }
 
@@ -101,7 +101,7 @@ impl Log {
     fn write_to_file(&mut self) -> std::io::Result<()> {
         self.disasm_file.seek(SeekFrom::Start(0))?;
         let mut last_addr = 0;
-        for (addr, text) in &self.disassembly {
+        for (addr, (text, count)) in &self.disassembly {
             if *addr > last_addr + 4 {
                 writeln!(self.disasm_file, "")?;
                 writeln!(self.disasm_file, "...")?;
@@ -124,14 +124,19 @@ impl Log {
     ) -> std::io::Result<()> {
         //compose the line
         {
-            let mut line = format!("{:04x}\t", pc);
+            let mut count = 0;
+            if let Some((_, c)) = self.disassembly.get(&pc) {
+                count = c + 1;
+            }
+
+            let mut line = format!("{:04x}\t({:05})\t", pc, count);
             let text_instruction = format!("0x{:02x}", instr);
 
             let opcode = &self.opcodes[&text_instruction];
 
             line += &opcode.shorthand(immediate, pc + opcode.bytes);
 
-            self.disassembly.insert(pc, line);
+            self.disassembly.insert(pc, (line, count));
         }
         if Instant::now() > self.next_write_time {
             self.write_to_file()?;

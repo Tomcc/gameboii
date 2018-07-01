@@ -270,11 +270,14 @@ impl GPU {
         if lcd_on != self.lcd_was_on {
             self.lcd_was_on = lcd_on;
             if !lcd_on {
+                println!("Screen turned OFF");
                 //blank the screen
                 for c in self.front_buffer.pixels_mut() {
                     *c = LCDPalette::get_color_absolute(0);
                 }
                 std::mem::swap(&mut self.front_buffer, &mut self.back_buffer);
+            } else {
+                println!("Screen turned ON");
             }
         }
         lcd_on

@@ -123,6 +123,49 @@ pub fn in_range(range: Range<usize>, addr: usize) -> bool {
     addr >= range.start && addr < range.end
 }
 
+pub fn check_unimplemented_read(addr: usize) {
+
+    if addr == P1_REGISTER {
+        // panic!("{:04x} address unimplemented", P1_REGISTER);
+    }
+    if addr == DIV_REGISTER {
+        panic!("{:04x} address unimplemented", DIV_REGISTER);
+    }
+    if addr == TIMA_REGISTER {
+        panic!("{:04x} address unimplemented", TIMA_REGISTER);
+    }
+    if addr == NR11_REGISTER {
+        panic!("{:04x} address unimplemented", NR11_REGISTER);
+    }
+    if addr == NR14_REGISTER {
+        panic!("{:04x} address unimplemented", NR14_REGISTER);
+    }
+    if addr == NR21_REGISTER {
+        panic!("{:04x} address unimplemented", NR21_REGISTER);
+    }
+    if addr == NR24_REGISTER {
+        panic!("{:04x} address unimplemented", NR24_REGISTER);
+    }
+    if addr == NR30_REGISTER {
+        panic!("{:04x} address unimplemented", NR30_REGISTER);
+    }
+    if addr == NR32_REGISTER {
+        panic!("{:04x} address unimplemented", NR32_REGISTER);
+    }
+    if addr == NR34_REGISTER {
+        panic!("{:04x} address unimplemented", NR34_REGISTER);
+    }
+    if addr == NR44_REGISTER {
+        panic!("{:04x} address unimplemented", NR44_REGISTER);
+    }
+    if addr == NR52_REGISTER {
+        panic!("{:04x} address unimplemented", NR52_REGISTER);
+    }
+    if addr == STAT_REGISTER {
+        panic!("{:04x} address unimplemented", STAT_REGISTER);
+    }
+}
+
 pub fn check_unimplemented(addr: usize) {
     if addr >= SPRITE_ATTRIBUTE_TABLE.start && addr < SPRITE_ATTRIBUTE_TABLE.end {
         panic!("{:04x} address unimplemented", SPRITE_ATTRIBUTE_TABLE.start);
