@@ -266,6 +266,9 @@ impl<'a> CPU<'a> {
             //and stop the transfer
             //TODO do it after a bunch of clocks
             self.RAM[address::SC_REGISTER].set_bit(7, false);
+
+            //trigger an interrupt //TODO let time pass
+            self.request_serial_transfer_interrupt();
         }
     }
 
@@ -331,6 +334,12 @@ impl<'a> CPU<'a> {
     pub fn request_vblank(&mut self) {
         let mut new_request = self.requested_interrupts;
         new_request.set_bit(0, true);
+        self.change_interrupt_flags(new_request);
+    }
+
+    fn request_serial_transfer_interrupt(&mut self) {
+        let mut new_request = self.requested_interrupts;
+        new_request.set_bit(3, true);
         self.change_interrupt_flags(new_request);
     }
 

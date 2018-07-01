@@ -14,7 +14,8 @@ use opengl_graphics::Texture;
 use opengl_graphics::TextureSettings;
 use piston::input::RenderArgs;
 
-const LY_VALUES_COUNT: u8 = 153 + 1;
+const MAX_SCANLINES: u8 = 153;
+const LY_VALUES_COUNT: u8 = MAX_SCANLINES + 1;
 
 #[allow(unused)]
 const HORIZONTAL_SYNC_HZ: u64 = 9198000;
@@ -91,7 +92,7 @@ impl LCDCValues {
             )
         } else {
             (
-                address::SIGNED_TILE_DATA_TABLE.start,
+                address::SIGNED_TILE_DATA_TABLE.start + 0x800,
                 TileDataAddressing::Signed,
             )
         }
@@ -154,18 +155,18 @@ fn get_level_in_tile(x: u8, y: u8, tile_data: &[u8]) -> u8 {
     (bit1 << 1) | bit2
 }
 
-fn get_tile(x: u8, y: u8, ram: &[u8], lcd_settings: LCDCValues) -> usize {
+fn get_tile(x: u8, y: u8, ram: &[u8], lcd_settings: LCDCValues) -> u8 {
     let tile_x = x / 8;
     let tile_y = y / 8;
     let tile_idx = tile_x as u16 + tile_y as u16 * TILE_RESOLUTION_W as u16;
 
-    ram[lcd_settings.tile_map_addr() + tile_idx as usize] as usize
+    ram[lcd_settings.tile_map_addr() + tile_idx as usize]
 }
 
 fn get_tile_color_idx(
     x: u8,
     y: u8,
-    tile_id: usize,
+    tile_id: u8,
     ram: &[u8],
     window: bool,
     lcd_settings: LCDCValues,
@@ -176,10 +177,15 @@ fn get_tile_color_idx(
         lcd_settings.tile_data_addr_and_addressing()
     };
 
-    //TODO all the absolute madness about tile address mode
-    assert!(addressing == TileDataAddressing::Unsigned);
+    //some banks use signed addressing, for no good reason at all
+    let signed_id = unsafe {
+        match addressing {
+            TileDataAddressing::Unsigned => tile_id as i32,
+            TileDataAddressing::Signed => std::mem::transmute::<u8, i8>(tile_id) as i32,
+        }
+    };
 
-    let tile_data_start = base_addr + (tile_id * TILE_SIZE_BYTES);
+    let tile_data_start = (base_addr as i32 + (signed_id * TILE_SIZE_BYTES as i32)) as usize;
     let tile_data_end = tile_data_start + TILE_SIZE_BYTES;
     let tile_data = &ram[tile_data_start..tile_data_end];
 
@@ -195,7 +201,7 @@ pub struct GPU {
     front_buffer: RgbaImage,
     back_buffer: RgbaImage,
     screen_texture: Texture,
-    lcd_was_on: bool,
+    lcd_on: bool,
 }
 
 impl GPU {
@@ -213,7 +219,7 @@ impl GPU {
             screen_texture: Texture::from_image(&img, &texture_settings),
             front_buffer: img.clone(),
             back_buffer: img,
-            lcd_was_on: false,
+            lcd_on: false,
         }
     }
 
@@ -260,32 +266,15 @@ impl GPU {
             let _palette1 = LCDPalette::from_register(ram[address::OBP1_REGISTER]);
 
             assert!(lcd_settings.double_obj() == false, "Not implemented yet");
-            panic!("Not implemented yet");
+            // panic!("Not implemented yet");
         }
-    }
-
-    fn handle_lcd_on(&mut self, ram: &[u8]) -> bool {
-        let lcd_on = LCDCValues::from_ram(&ram).lcd_on();
-
-        if lcd_on != self.lcd_was_on {
-            self.lcd_was_on = lcd_on;
-            if !lcd_on {
-                println!("Screen turned OFF");
-                //blank the screen
-                for c in self.front_buffer.pixels_mut() {
-                    *c = LCDPalette::get_color_absolute(0);
-                }
-                std::mem::swap(&mut self.front_buffer, &mut self.back_buffer);
-            } else {
-                println!("Screen turned ON");
-            }
-        }
-        lcd_on
     }
 
     pub fn tick(&mut self, cpu: &mut CPU, current_clock: u64) {
         if current_clock == self.next_scanline_clock {
-            if self.handle_lcd_on(&cpu.RAM) {
+            let new_lcd_on = LCDCValues::from_ram(&cpu.RAM).lcd_on();
+            let new_lcd_on = true;
+            if self.lcd_on {
                 //increment the LY line every fixed time
                 let scanline_idx = {
                     let scanline_idx = &mut cpu.RAM[address::LY_REGISTER];
@@ -296,13 +285,27 @@ impl GPU {
                 if scanline_idx < RESOLUTION_H {
                     let dma_mode = cpu.is_dma_mode();
                     self.render_scanline(scanline_idx, &mut cpu.RAM, dma_mode);
-                }
+                } else {
+                    //vblank state
 
-                //vblank started, swap buffers
-                if scanline_idx == RESOLUTION_H {
-                    std::mem::swap(&mut self.front_buffer, &mut self.back_buffer);
-                    cpu.request_vblank();
+                    //vblank started, swap buffers
+                    if scanline_idx == RESOLUTION_H {
+                        std::mem::swap(&mut self.front_buffer, &mut self.back_buffer);
+                        cpu.request_vblank();
+                    } else if scanline_idx == MAX_SCANLINES && new_lcd_on == false {
+                        //if we're done with vblank but the screen has been turned off, go to sleep
+                        self.lcd_on = false;
+
+                        // blank the screen
+                        for c in self.front_buffer.pixels_mut() {
+                            *c = LCDPalette::get_color_absolute(0);
+                        }
+                        std::mem::swap(&mut self.front_buffer, &mut self.back_buffer);
+                    }
                 }
+            } else if new_lcd_on {
+                //turn on ASAP if it's off?
+                self.lcd_on = true;
             }
 
             self.next_scanline_clock += SCANLINE_UPDATE_INTERVAL_CLOCKS;
