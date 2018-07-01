@@ -101,7 +101,7 @@ impl Log {
     fn write_to_file(&mut self) -> std::io::Result<()> {
         self.disasm_file.seek(SeekFrom::Start(0))?;
         let mut last_addr = 0;
-        for (addr, (text, count)) in &self.disassembly {
+        for (addr, (text, _)) in &self.disassembly {
             if *addr > last_addr + 4 {
                 writeln!(self.disasm_file, "")?;
                 writeln!(self.disasm_file, "...")?;

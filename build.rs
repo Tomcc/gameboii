@@ -339,9 +339,6 @@ impl FunctionDesc {
                 idx, self.inputs[idx].fullcode
             )?;
         }
-        if let Some(_) = &self.output {
-            &writeln!(outfile, "\t\t\tlet mut out;")?;
-        }
         Ok(())
     }
 
@@ -375,7 +372,6 @@ const HEADER: &str = r#"
 use cpu::*;
 use bit_field::BitField;
 
-#[allow(unused, unreachable_code)]
 pub unsafe fn interpret(instruction: u16, cpu: &mut CPU) {
     match instruction {
 "#;
@@ -545,7 +541,7 @@ fn write_function_stubs(
 use cpu::*;
 use bit_field::BitField;
 
-#[allow(unused, unreachable_code)]
+#[allow(dead_code)]
 unsafe fn stubs(cpu: &mut CPU) {{
 "#
     )?;

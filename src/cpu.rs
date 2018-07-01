@@ -465,17 +465,11 @@ impl<'a> CPU<'a> {
     pub unsafe fn z(&self) -> bool {
         self.AF.r8.second.get_bit(7)
     }
-    pub unsafe fn n(&self) -> bool {
-        self.AF.r8.second.get_bit(6)
-    }
-    pub unsafe fn h(&self) -> bool {
-        self.AF.r8.second.get_bit(5)
-    }
     pub unsafe fn c(&self) -> bool {
         self.AF.r8.second.get_bit(4)
     }
 
-    pub fn stop(&mut self) {
+    pub fn stop(&mut self, _val: u8) {
         //assume we just press the button after a while
         //TODO implement?
     }
