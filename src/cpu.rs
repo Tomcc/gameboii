@@ -197,9 +197,16 @@ impl<'a> CPU<'a> {
         // handle interrupts:
         // if any bit of interrupts_requested are set and enabled, start from the
         // highest priority (0) and switch to the interrupt routine
-        let enabled_interrupts = self.RAM[address::IE_REGISTER];
-        let interrupts =
-            self.interrupts_master_enabled & self.requested_interrupts & enabled_interrupts;
+        let enabled_interrupts = self.RAM[address::IE_REGISTER] & self.interrupts_master_enabled;
+
+        //TODO tetris wants serial transfer?
+
+        // assert!(
+        //     enabled_interrupts <= 0x1,
+        //     "Other interrupts are not supported"
+        // );
+
+        let interrupts = self.requested_interrupts & enabled_interrupts;
 
         if interrupts != 0 {
             // interrupts are available: find the highest priority one

@@ -170,9 +170,11 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let reg0 = cpu.AF.r8.first;
 			let mut out;
 	//----------------
-		//TODO H
-		out = reg0.wrapping_sub(1);
-		cpu.set_z(out == 0);
+		let (a, c, h) = CPU::sub8(reg0, 1);
+		out = a;
+
+		cpu.set_z(a == 0);
+		cpu.set_h(h);
 	//----------------
 			cpu.AF.r8.first = out;
 	}
@@ -208,11 +210,11 @@ unsafe fn stubs(cpu: &mut CPU) {
 			let reg0 = cpu.AF.r8.first;
 			let mut out;
 	//----------------
-		out = reg0.wrapping_add(1);
-		cpu.set_z(out == 0);
+		let (a, c, h) = CPU::add8(reg0, 1);
+		out = a;
 
-		// TODO H - Set if carry from bit 3.
-
+		cpu.set_z(a == 0);
+		cpu.set_h(h);
 	//----------------
 			cpu.AF.r8.first = out;
 	}
@@ -414,6 +416,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 
 		cpu.set_c(reg0.get_bit(7));
 		out = reg0.rotate_left(1);
+		cpu.set_z(out == 0);
 	//----------------
 			cpu.AF.r8.first = out;
 	}
@@ -456,6 +459,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 	//----------------
 		cpu.set_c(reg0.get_bit(0));
 		out = reg0.rotate_right(1);
+		cpu.set_z(out == 0);
 	//----------------
 			cpu.AF.r8.first = out;
 	}
@@ -496,7 +500,7 @@ unsafe fn stubs(cpu: &mut CPU) {
 		let a = (reg0 & 0x0F) as i32;
 		let b = (reg1 & 0x0F) as i32;
 		let c = cpu.c() as i32;
-		
+
 		cpu.set_h(a - b - c < 0);
 		cpu.set_c(of1 || of2);
 		cpu.set_z(out == 0);
@@ -528,16 +532,22 @@ unsafe fn stubs(cpu: &mut CPU) {
 	//----------------
 		cpu.set_c(reg0.get_bit(7));
 		out = reg0 << 1;
+		cpu.set_z(out == 0);
 	//----------------
 			cpu.AF.r8.first = out;
 	}
 	{
-	// NAME: SRA_z_u8_out_u8
+	// NAME: SRA_z_c_u8_out_u8
 			let reg0 = cpu.AF.r8.first;
 			let mut out;
 	//----------------
+		//the MSB doesn't change, it's not zeroed
+		let old_msb = reg0.get_bit(7);
+
 		cpu.set_c(reg0.get_bit(0));
 		out = reg0 >> 1;
+		out.set_bit(7, old_msb);
+		cpu.set_z(out == 0);
 	//----------------
 			cpu.AF.r8.first = out;
 	}
