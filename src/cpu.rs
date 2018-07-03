@@ -392,7 +392,7 @@ impl<'a> CPU<'a> {
         //for now handle() will just print out the register when anything is there
     }
 
-    pub fn set_address(&mut self, addr: u16, val: u8) {
+    pub fn set_address(&mut self, addr: u16, mut val: u8) {
         let addr = addr as usize;
         //TODO how to not check this for every set ever?
         if self.boot_mode && addr == address::INTERNAL_ROM_TURN_OFF {
@@ -411,13 +411,14 @@ impl<'a> CPU<'a> {
         } else if address::in_range(address::ECHO_MEM_TARGET, addr) {
             let echo_addr = (addr - address::ECHO_MEM_TARGET.start) + address::ECHO_MEM.start;
             self.RAM[echo_addr] = val;
-        } else {
-            if self.handle_rom_controller(addr, val) {
-                //no need to do anything, it was handled
-                return;
-            }
+        } else if addr == address::LY_REGISTER {
+            //writing to LY resets the counter
+            val = 0;
+        } else if self.handle_rom_controller(addr, val) {
+            //no need to do anything, it was handled
+            return;
         }
-
+        
         if val != 0 {
             address::check_unimplemented(addr);
         }

@@ -17,12 +17,12 @@ use piston::input::RenderArgs;
 const MAX_SCANLINES: u8 = 153;
 const LY_VALUES_COUNT: u8 = MAX_SCANLINES + 1;
 
-#[allow(unused)]
-const HORIZONTAL_SYNC_HZ: u64 = 9198000;
-
-#[allow(unused)]
-const VSYNC_INTERVAL_CLOCKS: u64 = 70221; // ~cpu::MACHINE_HZ / 60;
-const SCANLINE_UPDATE_INTERVAL_CLOCKS: u64 = 456; // ~VSYNC_INTERVAL_CLOCKS / 154
+const OAM_SEARCH_PHASE_DURATION_CLOCKS: u64 = 20 * 4;
+const PIXEL_TRANSFER_PHASE_DURATION_CLOCKS: u64 = 43 * 4;
+const H_BLANK_PHASE_DURATION_CLOCKS: u64 = 51 * 4;
+const V_BLANK_PHASE_DURATION_CLOCKS: u64 = OAM_SEARCH_PHASE_DURATION_CLOCKS
+    + PIXEL_TRANSFER_PHASE_DURATION_CLOCKS
+    + H_BLANK_PHASE_DURATION_CLOCKS;
 
 pub const RESOLUTION_W: u8 = 160;
 pub const RESOLUTION_H: u8 = 144;
@@ -135,11 +135,15 @@ impl LCDPalette {
     fn get_color_absolute(idx: usize) -> Rgba<u8> {
         match idx {
             3 => Rgba::from_channels(0, 0, 0, 255),
-            2 => Rgba::from_channels(84, 84, 84, 255),
-            1 => Rgba::from_channels(167, 167, 167, 255),
-            0 => Rgba::from_channels(255, 255, 255, 255),
+            2 => Rgba::from_channels(69, 69, 69, 255),
+            1 => Rgba::from_channels(152, 152, 152, 255),
+            0 => Rgba::from_channels(240, 240, 240, 255),
             _ => panic!("Invalid level"),
         }
+    }
+
+    fn get_background_color() -> Rgba<u8> {
+        Rgba::from_channels(0, 0, 0, 255)
     }
 }
 
@@ -194,70 +198,63 @@ fn get_tile_color_idx(
     get_level_in_tile(inner_x, inner_y, tile_data)
 }
 
-#[allow(non_snake_case)]
-pub struct GPU {
-    gl: GlGraphics,
-    next_scanline_clock: u64,
-    front_buffer: RgbaImage,
-    back_buffer: RgbaImage,
-    screen_texture: Texture,
-    lcd_on: bool,
+#[derive(Eq, PartialEq)]
+enum State {
+    OAMSearch,
+    PixelTransfer,
+    HBlank,
+    VBlank,
+    Off,
 }
 
-impl GPU {
-    pub fn new(gl_version: OpenGL) -> Self {
-        let img = RgbaImage::from_fn(RESOLUTION_W as u32, RESOLUTION_H as u32, |_, _| {
-            LCDPalette::get_color_absolute(3)
-        });
+#[allow(non_snake_case)]
+pub struct PPU {
+    gl: GlGraphics,
+    next_scanline_change_clock: u64,
+    screen_buffer: RgbaImage,
+    screen_texture: Texture,
+    state: State,
+    current_pixel_x: u8,
+}
 
+impl PPU {
+    pub fn new(gl_version: OpenGL) -> Self {
         let mut texture_settings = TextureSettings::new();
         texture_settings.set_filter(Filter::Nearest);
 
-        GPU {
+        let img = RgbaImage::from_fn(RESOLUTION_W as u32, RESOLUTION_H as u32, |_, _| {
+            LCDPalette::get_background_color()
+        });
+
+        PPU {
             gl: GlGraphics::new(gl_version),
-            next_scanline_clock: 0,
+            next_scanline_change_clock: 0,
+            state: State::Off,
+            current_pixel_x: 0,
             screen_texture: Texture::from_image(&img, &texture_settings),
-            front_buffer: img.clone(),
-            back_buffer: img,
-            lcd_on: false,
+            screen_buffer: img,
         }
     }
 
-    fn render_scanline(&mut self, scanline_idx: u8, ram: &[u8], dma_in_progress: bool) {
+    fn render_pixel(&self, current_pixel_y: u8, ram: &[u8], dma_in_progress: bool) -> Rgba<u8> {
         let scroll_x = ram[address::SCX_REGISTER];
         let scroll_y = ram[address::SCY_REGISTER];
 
-        let pitch = RESOLUTION_W as usize * 4;
-        let start_idx = scanline_idx as usize * pitch;
-        let end_idx = start_idx + pitch;
-
-        let line = self.front_buffer.get_mut(start_idx..end_idx).unwrap();
-
         let lcd_settings = LCDCValues::from_ram(ram);
 
-        let mut x = scroll_x;
-        let y = scroll_y.wrapping_add(scanline_idx);
+        let x = self.current_pixel_x.wrapping_add(scroll_x);
+        let y = current_pixel_y.wrapping_add(scroll_y);
 
         assert!(lcd_settings.windowing_on() == false);
+
+        let mut color = LCDPalette::get_color_absolute(0);
 
         if lcd_settings.bg_on() {
             let palette = LCDPalette::from_register(ram[address::BGP_REGISTER]);
 
-            let mut i = 0;
-            while i < line.len() {
-                //TODO this could be 8 times faster by looking up a tile
-                //only when entering rather than all the time
-                let tile_id = get_tile(x, y, ram, lcd_settings);
-                let idx = get_tile_color_idx(x, y, tile_id, ram, false, lcd_settings);
-                let color = palette.get_color(idx as usize);
-
-                line[i + 0] = color[0];
-                line[i + 1] = color[1];
-                line[i + 2] = color[2];
-
-                i += 4;
-                x += 1;
-            }
+            let tile_id = get_tile(x, y, ram, lcd_settings);
+            let idx = get_tile_color_idx(x, y, tile_id, ram, false, lcd_settings);
+            color = palette.get_color(idx as usize);
         }
 
         //sprites don't draw during DMA
@@ -268,47 +265,132 @@ impl GPU {
             assert!(lcd_settings.double_obj() == false, "Not implemented yet");
             // panic!("Not implemented yet");
         }
+
+        //TODO also do color mixing using alpha
+
+        color
     }
 
     pub fn tick(&mut self, cpu: &mut CPU, current_clock: u64) {
-        if current_clock == self.next_scanline_clock {
-            let new_lcd_on = LCDCValues::from_ram(&cpu.RAM).lcd_on();
-            let new_lcd_on = true;
-            if self.lcd_on {
-                //increment the LY line every fixed time
-                let scanline_idx = {
-                    let scanline_idx = &mut cpu.RAM[address::LY_REGISTER];
-                    *scanline_idx = (*scanline_idx + 1) % LY_VALUES_COUNT;
-                    *scanline_idx
-                };
+        //state transition
+        let lcd_control = LCDCValues::from_ram(&cpu.RAM);
+        let current_pixel_y = cpu.RAM[address::LY_REGISTER];
 
-                if scanline_idx < RESOLUTION_H {
-                    let dma_mode = cpu.is_dma_mode();
-                    self.render_scanline(scanline_idx, &mut cpu.RAM, dma_mode);
+        let new_state = match self.state {
+            State::OAMSearch => {
+                if current_clock == self.next_scanline_change_clock {
+                    State::PixelTransfer
                 } else {
-                    //vblank state
+                    State::OAMSearch
+                }
+            }
+            State::PixelTransfer => {
+                // TODO emulate clock accurate FIFO?
+                let pixel = self.render_pixel(current_pixel_y, &cpu.RAM, cpu.is_dma_mode());
 
-                    //vblank started, swap buffers
-                    if scanline_idx == RESOLUTION_H {
-                        std::mem::swap(&mut self.front_buffer, &mut self.back_buffer);
-                        cpu.request_vblank();
-                    } else if scanline_idx == MAX_SCANLINES && new_lcd_on == false {
-                        //if we're done with vblank but the screen has been turned off, go to sleep
-                        self.lcd_on = false;
+                self.screen_buffer.put_pixel(
+                    self.current_pixel_x as u32,
+                    current_pixel_y as u32,
+                    pixel,
+                );
 
-                        // blank the screen
-                        for c in self.front_buffer.pixels_mut() {
-                            *c = LCDPalette::get_color_absolute(0);
+                self.current_pixel_x += 1;
+
+                // PixelTransfer doesn't have a fixed duration,
+                // rather it's done when all pixels in a line are done
+                if self.current_pixel_x == RESOLUTION_W {
+                    State::HBlank
+                } else {
+                    State::PixelTransfer
+                }
+            }
+            State::HBlank => {
+                if current_clock == self.next_scanline_change_clock {
+                    if current_pixel_y == RESOLUTION_H - 1 {
+                        State::VBlank
+                    } else {
+                        State::OAMSearch
+                    }
+                } else {
+                    State::HBlank
+                }
+            }
+            State::VBlank => {
+                if current_clock == self.next_scanline_change_clock {
+                    if lcd_control.lcd_on() {
+                        let y = &mut cpu.RAM[address::LY_REGISTER];
+                        *y += 1;
+
+                        if *y == LY_VALUES_COUNT {
+                            // start next frame
+                            *y = 0;
+                            State::OAMSearch
+                        } else {
+                            //wait more
+                            self.next_scanline_change_clock =
+                                current_clock + V_BLANK_PHASE_DURATION_CLOCKS;
+                            State::VBlank
                         }
-                        std::mem::swap(&mut self.front_buffer, &mut self.back_buffer);
+                    } else {
+                        State::Off
+                    }
+                } else {
+                    State::VBlank
+                }
+            }
+            State::Off => {
+                //TODO can the LCD really be turned on at any time?
+                if lcd_control.lcd_on() {
+                    State::OAMSearch
+                } else {
+                    State::Off
+                }
+            }
+        };
+
+        if new_state != self.state {
+            // state end
+            match self.state {
+                State::OAMSearch => {}
+                State::PixelTransfer => {}
+                State::HBlank => {
+                    let y = &mut cpu.RAM[address::LY_REGISTER];
+                    *y += 1;
+                }
+                State::VBlank => {}
+                State::Off => {
+                    cpu.RAM[address::LY_REGISTER] = 0;
+                    self.current_pixel_x = 0;
+                }
+            }
+            // state start
+            match new_state {
+                State::OAMSearch => {
+                    self.next_scanline_change_clock =
+                        current_clock + OAM_SEARCH_PHASE_DURATION_CLOCKS;
+                    self.current_pixel_x = 0;
+                }
+                State::PixelTransfer => {
+                    self.next_scanline_change_clock =
+                        current_clock + PIXEL_TRANSFER_PHASE_DURATION_CLOCKS;
+                }
+                State::HBlank => {
+                    self.next_scanline_change_clock = current_clock + H_BLANK_PHASE_DURATION_CLOCKS;
+                }
+                State::VBlank => {
+                    self.next_scanline_change_clock = current_clock + V_BLANK_PHASE_DURATION_CLOCKS;
+                    cpu.request_vblank();
+                }
+                State::Off => {
+                    // blank the screen
+                    let off_color = LCDPalette::get_background_color();
+                    for c in self.screen_buffer.pixels_mut() {
+                        *c = off_color;
                     }
                 }
-            } else if new_lcd_on {
-                //turn on ASAP if it's off?
-                self.lcd_on = true;
             }
 
-            self.next_scanline_clock += SCANLINE_UPDATE_INTERVAL_CLOCKS;
+            self.state = new_state;
         }
     }
 
@@ -319,7 +401,7 @@ impl GPU {
         const GREEN: [f32; 4] = [0.0, 1.0, 0.0, 1.0];
 
         //send the cpu-made texture to the CPU
-        self.screen_texture.update(&self.back_buffer);
+        self.screen_texture.update(&self.screen_buffer);
 
         let c = self.gl.draw_begin(args.viewport());
 

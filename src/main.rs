@@ -16,14 +16,14 @@ mod address;
 mod cpu;
 mod debug_log;
 mod function_stubs;
-mod gpu;
+mod ppu;
 mod interpreter;
 
 use clap::{App, Arg};
 use cpu::CPU;
 use debug_log::Log;
 use glutin_window::GlutinWindow;
-use gpu::GPU;
+use ppu::PPU;
 use opengl_graphics::OpenGL;
 use piston::event_loop::*;
 use piston::input::*;
@@ -105,8 +105,8 @@ fn main() {
     let mut window: GlutinWindow = WindowSettings::new(
         "gameboii",
         [
-            gpu::RESOLUTION_W as u32 * scale,
-            gpu::RESOLUTION_H as u32 * scale,
+            ppu::RESOLUTION_W as u32 * scale,
+            ppu::RESOLUTION_H as u32 * scale,
         ],
     ).opengl(gl_version)
         .exit_on_esc(true)
@@ -114,7 +114,7 @@ fn main() {
         .unwrap();
 
     let mut log = if do_log { Some(Log::new()) } else { None };
-    let mut gpu = GPU::new(gl_version);
+    let mut ppu = PPU::new(gl_version);
     let mut cpu = CPU::new(&rom);
 
     let mut events = Events::new(EventSettings {
@@ -134,7 +134,7 @@ fn main() {
             let clocks = (cpu::MACHINE_HZ as f64 * ue.dt) as u64 * speed_mult;
             for _ in 0..clocks {
                 cpu.tick(current_clock, &mut log);
-                gpu.tick(&mut cpu, current_clock);
+                ppu.tick(&mut cpu, current_clock);
 
                 current_clock += 1;
 
@@ -145,7 +145,7 @@ fn main() {
         }
 
         if let Some(r) = e.render_args() {
-            gpu.render(&r);
+            ppu.render(&r);
         }
 
         if let Some(i) = e.button_args() {
