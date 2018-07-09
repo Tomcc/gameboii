@@ -7,12 +7,8 @@ use cpu::CPU;
 use image::Pixel;
 use image::Rgba;
 use image::RgbaImage;
-use opengl_graphics::Filter;
-use opengl_graphics::GlGraphics;
-use opengl_graphics::OpenGL;
-use opengl_graphics::Texture;
-use opengl_graphics::TextureSettings;
 use piston::input::RenderArgs;
+use window::Window;
 
 const MAX_SCANLINES: u8 = 153;
 const LY_VALUES_COUNT: u8 = MAX_SCANLINES + 1;
@@ -112,7 +108,7 @@ impl LCDCValues {
     }
 }
 
-struct LCDPalette {
+pub struct LCDPalette {
     palette: [u8; 4],
 }
 
@@ -142,7 +138,7 @@ impl LCDPalette {
         }
     }
 
-    fn get_background_color() -> Rgba<u8> {
+    pub fn get_background_color() -> Rgba<u8> {
         Rgba::from_channels(0, 0, 0, 255)
     }
 }
@@ -209,29 +205,22 @@ enum State {
 
 #[allow(non_snake_case)]
 pub struct PPU {
-    gl: GlGraphics,
     next_scanline_change_clock: u64,
     screen_buffer: RgbaImage,
-    screen_texture: Texture,
     state: State,
     current_pixel_x: u8,
 }
 
 impl PPU {
-    pub fn new(gl_version: OpenGL) -> Self {
-        let mut texture_settings = TextureSettings::new();
-        texture_settings.set_filter(Filter::Nearest);
-
+    pub fn new() -> Self {
         let img = RgbaImage::from_fn(RESOLUTION_W as u32, RESOLUTION_H as u32, |_, _| {
             LCDPalette::get_background_color()
         });
 
         PPU {
-            gl: GlGraphics::new(gl_version),
             next_scanline_change_clock: 0,
             state: State::Off,
             current_pixel_x: 0,
-            screen_texture: Texture::from_image(&img, &texture_settings),
             screen_buffer: img,
         }
     }
@@ -394,19 +383,19 @@ impl PPU {
         }
     }
 
-    pub fn render(&mut self, args: &RenderArgs) {
+    pub fn render(&mut self, args: &RenderArgs, window: &mut Window) {
         //video update
         use graphics::*;
 
         const GREEN: [f32; 4] = [0.0, 1.0, 0.0, 1.0];
 
         //send the cpu-made texture to the CPU
-        self.screen_texture.update(&self.screen_buffer);
+        window.screen_texture.update(&self.screen_buffer);
 
-        let c = self.gl.draw_begin(args.viewport());
+        let c = window.gl.draw_begin(args.viewport());
 
         // Clear the screen.
-        graphics::clear(GREEN, &mut self.gl);
+        graphics::clear(GREEN, &mut window.gl);
 
         let transform = c.transform.scale(
             args.viewport().window_size[0] as f64 / RESOLUTION_W as f64,
@@ -414,7 +403,7 @@ impl PPU {
         );
 
         // Draw a box rotating around the middle of the screen.
-        graphics::image(&self.screen_texture, transform, &mut self.gl);
-        self.gl.draw_end();
+        graphics::image(&window.screen_texture, transform, &mut window.gl);
+        window.gl.draw_end();
     }
 }

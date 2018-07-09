@@ -16,18 +16,16 @@ mod address;
 mod cpu;
 mod debug_log;
 mod function_stubs;
-mod ppu;
 mod interpreter;
+mod ppu;
+mod window;
 
 use clap::{App, Arg};
 use cpu::CPU;
 use debug_log::Log;
-use glutin_window::GlutinWindow;
-use ppu::PPU;
 use opengl_graphics::OpenGL;
-use piston::event_loop::*;
 use piston::input::*;
-use piston::window::WindowSettings;
+use ppu::PPU;
 use std::fs::File;
 use std::io::Read;
 use std::io::Write;
@@ -76,6 +74,11 @@ fn main() {
                 .default_value("1")
                 .help("A clock multiplier to speed up emulation"),
         )
+        .arg(
+            Arg::with_name("headless")
+                .long("headless")
+                .help("The emulator won't create a window if true. Useful for tests"),
+        )
         .get_matches();
 
     //load the file from command line
@@ -98,67 +101,57 @@ fn main() {
     });
 
     let do_log = matches.is_present("debug_log");
-
-    // Create an Glutin window.
-    let scale = 4;
-    let gl_version = OpenGL::V3_2;
-    let mut window: GlutinWindow = WindowSettings::new(
-        "gameboii",
-        [
-            ppu::RESOLUTION_W as u32 * scale,
-            ppu::RESOLUTION_H as u32 * scale,
-        ],
-    ).opengl(gl_version)
-        .exit_on_esc(true)
-        .build()
-        .unwrap();
+    let headless = matches.is_present("headless");
 
     let mut log = if do_log { Some(Log::new()) } else { None };
-    let mut ppu = PPU::new(gl_version);
+    let mut ppu = PPU::new();
     let mut cpu = CPU::new(&rom);
-
-    let mut events = Events::new(EventSettings {
-        max_fps: 60,
-        ups: 200,
-        bench_mode: false,
-        lazy: false,
-        swap_buffers: true,
-        ups_reset: 2,
-    });
 
     let mut paused = false;
     let mut current_clock = 0;
 
-    while let Some(e) = events.next(&mut window) {
-        if let Some(ue) = e.update_args() {
-            let clocks = (cpu::MACHINE_HZ as f64 * ue.dt) as u64 * speed_mult;
-            for _ in 0..clocks {
-                cpu.tick(current_clock, &mut log);
-                ppu.tick(&mut cpu, current_clock);
+    let mut update = |cpu: &mut CPU, ppu: &mut PPU| {
+        cpu.tick(current_clock, &mut log);
+        ppu.tick(cpu, current_clock);
 
-                current_clock += 1;
+        current_clock += 1;
 
-                if cpu.should_exit {
-                    return;
+        !cpu.should_exit
+    };
+
+    if headless {
+        println!("Running headless");
+        while update(&mut cpu, &mut ppu) {}
+    } else {
+        // Create an Glutin window.
+        let mut window = window::Window::new(OpenGL::V3_2);
+
+        while let Some(e) = window.next() {
+            if let Some(ue) = e.update_args() {
+                let clocks = (cpu::MACHINE_HZ as f64 * ue.dt) as u64 * speed_mult;
+                for _ in 0..clocks {
+                    if !update(&mut cpu, &mut ppu) {
+                        return;
+                    }
                 }
             }
-        }
 
-        if let Some(r) = e.render_args() {
-            ppu.render(&r);
-        }
+            if let Some(r) = e.render_args() {
+                ppu.render(&r, &mut window);
+            }
 
-        if let Some(i) = e.button_args() {
-            if i.state == ButtonState::Press {
-                match i.button {
-                    Button::Keyboard(k) => {
-                        if k == keyboard::Key::F5 {
-                            paused = !paused;
-                        } else if k == keyboard::Key::F1 {
-                            dump_ram(&cpu.RAM).unwrap();
+            if let Some(i) = e.button_args() {
+                if i.state == ButtonState::Press {
+                    match i.button {
+                        Button::Keyboard(k) => {
+                            if k == keyboard::Key::F5 {
+                                paused = !paused;
+                            } else if k == keyboard::Key::F1 {
+                                dump_ram(&cpu.RAM).unwrap();
+                            }
                         }
+                        _ => (),
                     }
-                    _ => (),
                 }
             }
         }
