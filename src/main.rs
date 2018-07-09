@@ -137,7 +137,7 @@ fn main() {
             }
 
             if let Some(r) = e.render_args() {
-                ppu.render(&r, &mut window);
+                window.render(&r, &ppu);
             }
 
             if let Some(i) = e.button_args() {

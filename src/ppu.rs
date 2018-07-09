@@ -1,4 +1,3 @@
-extern crate graphics;
 extern crate std;
 
 use address;
@@ -7,8 +6,6 @@ use cpu::CPU;
 use image::Pixel;
 use image::Rgba;
 use image::RgbaImage;
-use piston::input::RenderArgs;
-use window::Window;
 
 const MAX_SCANLINES: u8 = 153;
 const LY_VALUES_COUNT: u8 = MAX_SCANLINES + 1;
@@ -205,8 +202,9 @@ enum State {
 
 #[allow(non_snake_case)]
 pub struct PPU {
+    pub screen_buffer: RgbaImage,
+
     next_scanline_change_clock: u64,
-    screen_buffer: RgbaImage,
     state: State,
     current_pixel_x: u8,
 }
@@ -381,29 +379,5 @@ impl PPU {
 
             self.state = new_state;
         }
-    }
-
-    pub fn render(&mut self, args: &RenderArgs, window: &mut Window) {
-        //video update
-        use graphics::*;
-
-        const GREEN: [f32; 4] = [0.0, 1.0, 0.0, 1.0];
-
-        //send the cpu-made texture to the CPU
-        window.screen_texture.update(&self.screen_buffer);
-
-        let c = window.gl.draw_begin(args.viewport());
-
-        // Clear the screen.
-        graphics::clear(GREEN, &mut window.gl);
-
-        let transform = c.transform.scale(
-            args.viewport().window_size[0] as f64 / RESOLUTION_W as f64,
-            args.viewport().window_size[1] as f64 / RESOLUTION_H as f64,
-        );
-
-        // Draw a box rotating around the middle of the screen.
-        graphics::image(&window.screen_texture, transform, &mut window.gl);
-        window.gl.draw_end();
     }
 }
