@@ -16,18 +16,7 @@ use libgameboii::ppu::PPU;
 use opengl_graphics::OpenGL;
 use piston::input::*;
 use std::fs::File;
-use std::io::Read;
 use std::io::Write;
-use std::path::Path;
-
-fn open_rom<P: AsRef<Path>>(rom_path: &P) -> std::io::Result<Vec<u8>> {
-    let mut content = vec![];
-    File::open(rom_path)?.read_to_end(&mut content)?;
-
-    //TODO unzip?
-
-    Ok(content)
-}
 
 fn dump_ram(ram: &[u8]) -> std::io::Result<()> {
     let mut file = File::create("ramdump.bin")?;
@@ -82,21 +71,23 @@ fn main() {
         }
     };
 
-    let rom = open_rom(&rom_path).unwrap_or_else(|error| {
+    let rom = libgameboii::open_rom(&rom_path).unwrap_or_else(|error| {
         println!("Cannot open file: {}", rom_path);
         println!("An error occurred:");
         println!("{}", error);
         std::process::exit(1);
     });
 
+    //TODO start from a savestate instead.
+    let boot_rom = libgameboii::open_rom(&"ROMs/DMG_ROM.bin").unwrap();
+
     let do_log = matches.is_present("debug_log");
     let headless = matches.is_present("headless");
 
     let mut log = if do_log { Some(Log::new()) } else { None };
     let mut ppu = PPU::new();
-    let mut cpu = CPU::new(&rom);
+    let mut cpu = CPU::new(&rom, &boot_rom);
 
-    let mut paused = false;
     let mut current_clock = 0;
 
     let mut update = |cpu: &mut CPU, ppu: &mut PPU| {
@@ -112,6 +103,7 @@ fn main() {
         println!("Running headless");
         while update(&mut cpu, &mut ppu) {}
     } else {
+        let mut paused = false;
         // Create an Glutin window.
         let mut window = window::Window::new(OpenGL::V3_2);
 

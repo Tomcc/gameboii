@@ -147,7 +147,7 @@ impl<'a> CPU<'a> {
         }
     }
 
-    pub fn new(rom: &'a [u8]) -> CPU<'a> {
+    pub fn new(rom: &'a [u8], boot_rom: &[u8]) -> CPU<'a> {
         let mut cpu = CPU {
             PC: 0,
             SP: 0,
@@ -185,10 +185,7 @@ impl<'a> CPU<'a> {
         cpu.setup_rom_controller(rom);
 
         // override the first 256 bytes with the Nintendo boot ROM
-        File::open("ROMs/DMG_ROM.bin")
-            .unwrap()
-            .read_exact(&mut cpu.RAM[BOOT_ROM])
-            .unwrap();
+        cpu.RAM[BOOT_ROM].copy_from_slice(boot_rom);
 
         cpu
     }
