@@ -1,31 +1,20 @@
-extern crate bit_field;
 extern crate clap;
 extern crate glutin_window;
 extern crate graphics;
 extern crate image;
+extern crate libgameboii;
 extern crate opengl_graphics;
 extern crate piston;
-extern crate regex;
 
-#[macro_use]
-extern crate serde_derive;
-extern crate serde;
-extern crate serde_json;
-
-mod address;
-mod cpu;
-mod debug_log;
-mod function_stubs;
-mod interpreter;
-mod ppu;
 mod window;
 
 use clap::{App, Arg};
-use cpu::CPU;
-use debug_log::Log;
+use libgameboii::cpu::CPU;
+use libgameboii::cpu::MACHINE_HZ;
+use libgameboii::debug_log::Log;
+use libgameboii::ppu::PPU;
 use opengl_graphics::OpenGL;
 use piston::input::*;
-use ppu::PPU;
 use std::fs::File;
 use std::io::Read;
 use std::io::Write;
@@ -128,7 +117,7 @@ fn main() {
 
         while let Some(e) = window.next() {
             if let Some(ue) = e.update_args() {
-                let clocks = (cpu::MACHINE_HZ as f64 * ue.dt) as u64 * speed_mult;
+                let clocks = (MACHINE_HZ as f64 * ue.dt) as u64 * speed_mult;
                 for _ in 0..clocks {
                     if !update(&mut cpu, &mut ppu) {
                         return;

@@ -1,0 +1,20 @@
+[package]
+name = "libgameboii"
+version = "0.1.0"
+authors = ["Tommaso Checchi <tommaso.checchi1@gmail.com>"]
+build = "build.rs"
+
+[dependencies]
+bit_field = "*"
+serde = "*"
+serde_json = "*"
+serde_derive = "*"
+regex = "*"
+image = "*"
+
+[build-dependencies]
+serde = "*"
+serde_json = "*"
+serde_derive = "*"
+itertools = "*"
+regex = "*"

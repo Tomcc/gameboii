@@ -7,3 +7,5 @@
 /map_log.txt
 /.vscode/launch.json
 disasm_file.txt
+/libgameboii/target/*
+/libgameboii/src/interpreter.rs

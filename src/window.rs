@@ -2,6 +2,7 @@ extern crate graphics;
 
 use glutin_window::GlutinWindow;
 use image::RgbaImage;
+use libgameboii::ppu::*;
 use opengl_graphics::Filter;
 use opengl_graphics::GlGraphics;
 use opengl_graphics::OpenGL;
@@ -11,7 +12,6 @@ use piston::event_loop::*;
 use piston::input::Event;
 use piston::input::RenderArgs;
 use piston::window::WindowSettings;
-use ppu::*;
 
 pub struct Window {
     pub window: GlutinWindow,
