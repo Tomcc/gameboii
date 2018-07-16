@@ -4,8 +4,6 @@ use address;
 use bit_field::BitField;
 use debug_log::Log;
 use interpreter;
-use std::fs::File;
-use std::io::Read;
 use std::ops::Range;
 
 //the RAM size is max addr + 1
@@ -415,7 +413,7 @@ impl<'a> CPU<'a> {
             //no need to do anything, it was handled
             return;
         }
-        
+
         if val != 0 {
             address::check_unimplemented(addr);
         }

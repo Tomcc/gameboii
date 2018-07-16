@@ -29,6 +29,23 @@
             "group": {
                 "kind": "build",
             }
+        },
+        {
+            "type": "shell",
+            "label": "cargo test",
+            "command": "cargo",
+            "args": [
+                "test"
+            ],
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": {
+                "kind": "test",
+            },
+            "options": {
+                "cwd": "libgameboii"
+            }
         }
     ]
 }
