@@ -90,8 +90,9 @@ fn main() {
 
     let mut current_clock = 0;
 
+    let mut serial_out = std::io::stdout();
     let mut update = |cpu: &mut CPU, ppu: &mut PPU| {
-        cpu.tick(current_clock, &mut log);
+        cpu.tick(current_clock, &mut log, &mut serial_out);
         ppu.tick(cpu, current_clock);
 
         current_clock += 1;

@@ -249,14 +249,14 @@ impl<'a> CPU<'a> {
         }
     }
 
-    fn handle_serial_transfer(&mut self) {
+    fn handle_serial_transfer<W: std::io::Write>(&mut self, sink: &mut W) {
         //for now, just copy out immediately
         if self.RAM[address::SC_REGISTER].get_bit(7) {
             let mut out = 0;
             std::mem::swap(&mut out, &mut self.RAM[address::SB_REGISTER]);
 
             //whatever the game might want to say? Let's assume it's chars
-            print!("{}", out as char);
+            write!(sink, "{}", out as char).unwrap();
 
             //and stop the transfer
             //TODO do it after a bunch of clocks
@@ -267,9 +267,14 @@ impl<'a> CPU<'a> {
         }
     }
 
-    pub fn tick(&mut self, current_clock: u64, logger: &mut Option<Log>) {
+    pub fn tick<W: std::io::Write>(
+        &mut self,
+        current_clock: u64,
+        logger: &mut Option<Log>,
+        serial_out: &mut W,
+    ) {
         self.handle_dma(current_clock);
-        self.handle_serial_transfer();
+        self.handle_serial_transfer(serial_out);
 
         if current_clock >= self.next_clock {
             if self.handle_interrupts() {

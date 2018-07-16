@@ -3,6 +3,47 @@ extern crate libgameboii;
 use libgameboii::cpu::CPU;
 use libgameboii::ppu::PPU;
 use std::path::Path;
+use std::str;
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+enum TestState {
+    Running,
+    Failed,
+    Passed,
+}
+
+struct TestOut {
+    state: TestState,
+    buffer: String,
+}
+
+impl TestOut {
+    fn new() -> Self {
+        TestOut {
+            state: TestState::Running,
+            buffer: String::new(),
+        }
+    }
+}
+
+impl std::io::Write for TestOut {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        // check if the test should stop
+        self.buffer += str::from_utf8(buf).unwrap();
+
+        if self.buffer.ends_with("Passed") {
+            self.state = TestState::Passed;
+        } else if self.buffer.ends_with("Failed") {
+            self.state = TestState::Failed;
+        }
+
+        Ok(buf.len())
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
+}
 
 fn run_test(path: &Path) {
     println!("{:?}", std::env::current_dir().unwrap());
@@ -15,14 +56,22 @@ fn run_test(path: &Path) {
 
     let mut current_clock = 0;
 
-    let mut update = |cpu: &mut CPU, ppu: &mut PPU| {
-        cpu.tick(current_clock, &mut None);
-        ppu.tick(cpu, current_clock);
+    let mut serial_out = TestOut::new();
+    {
+        let mut update = |cpu: &mut CPU, ppu: &mut PPU| {
+            cpu.tick(current_clock, &mut None, &mut serial_out);
+            ppu.tick(cpu, current_clock);
 
-        current_clock += 1;
+            current_clock += 1;
 
-        !cpu.should_exit
-    };
+            cpu.should_exit == false && serial_out.state == TestState::Running
+        };
+
+        while update(&mut cpu, &mut ppu) {}
+    }
+    println!("{}", serial_out.buffer);
+
+    assert_eq!(serial_out.state, TestState::Passed);
 }
 
 #[test]
