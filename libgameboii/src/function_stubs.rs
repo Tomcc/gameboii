@@ -130,34 +130,30 @@ unsafe fn stubs(cpu: &mut CPU, dummy: &str) {
 
 		"DAA_z_c" => {
 			//----------------
+			// taken from
+			// https://gammpei.github.io/blog/posts/2018-03-04/how-to-write-a-game-boy-emulator-part-8-blarggs-cpu-test-roms-1-3-4-5-7-8-9-10-11.html
 
-			panic!("DAA Not working");
+			let mut a = cpu.AF.r8.first;
+			if !cpu.n() {
+				if cpu.c() || a > 0x99 {
+					a += 0x60;
+					cpu.set_c(true);
+				}
+				if cpu.h() || a & 0x0f > 0x9 {
+					a += 0x06;
+				}
+			} else {
+				if cpu.c() {
+					a -= 0x60;
+				}
+				if cpu.h() {
+					a -= 0x06;
+				}
+			}
 
-			//TODO pass blargg's test 01, it only fails on this instruction
-			// this code doesn't seem to work
-			// let mut a = cpu.AF.r8.first;
-			// let mut correction = if cpu.c() { 0x60 } else { 0x00 };
-
-			// if (cpu.h()) {
-			// 	correction |= 0x06;
-			// }
-
-			// if (!cpu.n()) {
-			// 	if ((a & 0x0F) > 0x09) {
-			// 		correction |= 0x06;
-			// 	}
-			// 	if (a > 0x99) {
-			// 		correction |= 0x60;
-			// 	}
-
-			// 	a = a.wrapping_add(correction);
-			// } else {
-			// 	a = a.wrapping_sub(correction);
-			// }
-
-			// cpu.set_c(correction > 0x6 && correction < 0xfa);
-			// cpu.set_z(a == 0);
-
+			cpu.AF.r8.first = a;
+			cpu.set_z(a == 0);
+			
 			//----------------
 		}
 
