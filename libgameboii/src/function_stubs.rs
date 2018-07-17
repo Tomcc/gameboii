@@ -28,9 +28,12 @@ unsafe fn stubs(cpu: &mut CPU, dummy: &str) {
 			let reg0 = cpu.SP;
 			let reg1 = imm0;
 			//----------------
-			let (a, c, h) = CPU::signed_offset(reg0, reg1);
+			let (out, _, _) = CPU::signed_offset(reg0, reg1);
+			cpu.SP = out;
 
-			cpu.SP = a;
+			// this function is weird you have to use the lowest byte of the 16-bit value,
+			// and use the immediate signed 8-bit value as unsigned
+			let (_, c, h) = CPU::add8(reg0 as u8, reg1 as u8);
 
 			cpu.set_c(c);
 			cpu.set_h(h);
