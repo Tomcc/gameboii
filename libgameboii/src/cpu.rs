@@ -118,7 +118,6 @@ pub struct CPU<'a> {
     interrupt_change_counter: u8,
     interrupts_master_enabled_next: u8,
     interrupts_master_enabled: u8,
-    requested_interrupts: u8,
 
     next_clock: u64,
     cartridge_ROM: &'a [u8],
@@ -168,7 +167,6 @@ impl<'a> CPU<'a> {
             interrupts_master_enabled: 0,
             interrupt_change_counter: 0,
             interrupts_master_enabled_next: 0,
-            requested_interrupts: 0,
 
             next_clock: 0,
             cartridge_ROM: rom,
@@ -203,12 +201,7 @@ impl<'a> CPU<'a> {
 
         //TODO tetris wants serial transfer?
 
-        // assert!(
-        //     enabled_interrupts <= 0x1,
-        //     "Other interrupts are not supported"
-        // );
-
-        let interrupts = self.requested_interrupts & enabled_interrupts;
+        let interrupts = self.RAM[address::IF_REGISTER] & enabled_interrupts;
 
         if interrupts != 0 {
             // interrupts are available: find the highest priority one
@@ -217,7 +210,6 @@ impl<'a> CPU<'a> {
             // disable the IME
             self.interrupts_master_enabled = 0;
             // reset the bit we handled
-            self.requested_interrupts.set_bit(current_interrupt, false);
             self.RAM[address::IF_REGISTER].set_bit(current_interrupt, false);
 
             // call the new address
@@ -366,12 +358,6 @@ impl<'a> CPU<'a> {
         };
     }
 
-    pub fn change_interrupt_flags(&mut self, new_value: u8) {
-        let old = self.RAM[address::IF_REGISTER];
-        let changed = (!old) & new_value;
-        self.requested_interrupts |= changed;
-    }
-
     fn request_interrupt_id(&mut self, idx: usize) {
         let mut new_flags = self.RAM[address::IF_REGISTER];
         new_flags.set_bit(idx, true);
@@ -446,8 +432,6 @@ impl<'a> CPU<'a> {
             //replace the Nintendo boot ROM with the first 256 bytes of the cart
             self.RAM[BOOT_ROM].copy_from_slice(&self.cartridge_ROM[BOOT_ROM]);
             self.boot_mode = false;
-        } else if addr == address::IF_REGISTER {
-            self.change_interrupt_flags(val);
         } else if addr == address::DMA_REGISTER {
             self.DMA_transfer = Some(DMATransfer::from_reg(val));
         } else if addr == address::SC_REGISTER {
