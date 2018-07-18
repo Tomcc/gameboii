@@ -128,12 +128,6 @@ pub fn check_unimplemented_read(addr: usize) {
     if addr == P1_REGISTER {
         // panic!("{:04x} address unimplemented", P1_REGISTER);
     }
-    if addr == DIV_REGISTER {
-        panic!("{:04x} address unimplemented", DIV_REGISTER);
-    }
-    if addr == TIMA_REGISTER {
-        panic!("{:04x} address unimplemented", TIMA_REGISTER);
-    }
     if addr == NR11_REGISTER {
         panic!("{:04x} address unimplemented", NR11_REGISTER);
     }
@@ -179,15 +173,6 @@ pub fn check_unimplemented(addr: usize) {
     }
     if addr == DIV_REGISTER {
         panic!("{:04x} address unimplemented", DIV_REGISTER);
-    }
-    if addr == TIMA_REGISTER {
-        panic!("{:04x} address unimplemented", TIMA_REGISTER);
-    }
-    if addr == TMA_REGISTER {
-        panic!("{:04x} address unimplemented", TMA_REGISTER);
-    }
-    if addr == TAC_REGISTER {
-        panic!("{:04x} address unimplemented", TAC_REGISTER);
     }
     if addr == NR10_REGISTER {
         // panic!("{:04x} address unimplemented", NR10_REGISTER);

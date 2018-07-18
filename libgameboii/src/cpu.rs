@@ -12,6 +12,8 @@ pub const MACHINE_HZ: u64 = 4194304;
 const BOOT_ROM: Range<usize> = 0..0x100;
 const ROM_BANK0: Range<usize> = 0..0x4000;
 const ROM_BANK1: Range<usize> = 0x4000..0x8000;
+const DIV_INCREMENT_CLOCKS: u8 = 64 / 4;
+const TIMER_INCREMENT_CLOCKS_MAP: [u16; 4] = [1024, 16, 64, 256];
 
 const DMA_BYTE_SIZE: usize = 160;
 const DMA_CYCLES: u64 = 671;
@@ -121,6 +123,9 @@ pub struct CPU<'a> {
     next_clock: u64,
     cartridge_ROM: &'a [u8],
     pub should_exit: bool,
+
+    div_counter: u8,
+    timer_counter: u16,
 }
 
 impl<'a> CPU<'a> {
@@ -167,6 +172,8 @@ impl<'a> CPU<'a> {
 
             next_clock: 0,
             cartridge_ROM: rom,
+            div_counter: 0,
+            timer_counter: 0,
 
             should_exit: false,
         };
@@ -224,6 +231,7 @@ impl<'a> CPU<'a> {
         }
         return false;
     }
+
     fn handle_dma(&mut self, current_clock: u64) {
         //assume that this is called as fast as the machine hz, not faster
         let mut end = false;
@@ -267,6 +275,34 @@ impl<'a> CPU<'a> {
         }
     }
 
+    fn handle_timers(&mut self) {
+        // increment DIV each 64 machine cycles.
+        self.div_counter += 1;
+        if self.div_counter > DIV_INCREMENT_CLOCKS {
+            self.div_counter = 0;
+            self.RAM[address::DIV_REGISTER].wrapping_add(1);
+        }
+
+        let timer_control = self.RAM[address::TAC_REGISTER];
+        let timer_enabled = timer_control.get_bit(2);
+        if timer_enabled {
+            let counter_limit_idx = timer_control.get_bits(0..2) as usize;
+            let counter_limit = TIMER_INCREMENT_CLOCKS_MAP[counter_limit_idx];
+
+            self.timer_counter += 1;
+            if self.timer_counter > counter_limit {
+                self.timer_counter = 0;
+                let (mut res, overflow) = self.RAM[address::TIMA_REGISTER].overflowing_add(1);
+                if overflow {
+                    res = self.RAM[address::TMA_REGISTER];
+                    self.request_timer_interrupt();
+                }
+
+                self.RAM[address::TIMA_REGISTER] = res;
+            }
+        }
+    }
+
     pub fn tick<W: std::io::Write>(
         &mut self,
         current_clock: u64,
@@ -275,6 +311,11 @@ impl<'a> CPU<'a> {
     ) {
         self.handle_dma(current_clock);
         self.handle_serial_transfer(serial_out);
+
+        //only on CPU clocks
+        if current_clock % 4 == 0 {
+            self.handle_timers();
+        }
 
         if current_clock >= self.next_clock {
             if self.handle_interrupts() {
@@ -331,16 +372,22 @@ impl<'a> CPU<'a> {
         self.requested_interrupts |= changed;
     }
 
+    fn request_interrupt_id(&mut self, idx: usize) {
+        let mut new_flags = self.RAM[address::IF_REGISTER];
+        new_flags.set_bit(idx, true);
+        self.set_address(address::IF_REGISTER as u16, new_flags);
+    }
+
     pub fn request_vblank(&mut self) {
-        let mut new_request = self.requested_interrupts;
-        new_request.set_bit(0, true);
-        self.change_interrupt_flags(new_request);
+        self.request_interrupt_id(0);
+    }
+
+    pub fn request_timer_interrupt(&mut self) {
+        self.request_interrupt_id(2);
     }
 
     fn request_serial_transfer_interrupt(&mut self) {
-        let mut new_request = self.requested_interrupts;
-        new_request.set_bit(3, true);
-        self.change_interrupt_flags(new_request);
+        self.request_interrupt_id(3);
     }
 
     pub fn peek_instruction(&self) -> u8 {
@@ -412,8 +459,12 @@ impl<'a> CPU<'a> {
             let echo_addr = (addr - address::ECHO_MEM_TARGET.start) + address::ECHO_MEM.start;
             self.RAM[echo_addr] = val;
         } else if addr == address::LY_REGISTER {
-            //writing to LY resets the counter
+            //writing to any of these resets the counter
             val = 0;
+        } else if addr == address::DIV_REGISTER {
+            val = 0;
+            //also reset the internal counter
+            self.div_counter = 0;
         } else if self.handle_rom_controller(addr, val) {
             //no need to do anything, it was handled
             return;
