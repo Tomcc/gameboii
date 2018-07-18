@@ -13,7 +13,7 @@ const BOOT_ROM: Range<usize> = 0..0x100;
 const ROM_BANK0: Range<usize> = 0..0x4000;
 const ROM_BANK1: Range<usize> = 0x4000..0x8000;
 const DIV_INCREMENT_CLOCKS: u8 = 64 / 4;
-const TIMER_INCREMENT_CLOCKS_MAP: [u16; 4] = [1024, 16, 64, 256];
+const TIMER_INCREMENT_CLOCKS_MAP: [u16; 4] = [64, 1, 4, 16];
 
 const DMA_BYTE_SIZE: usize = 160;
 const DMA_CYCLES: u64 = 671;
@@ -270,7 +270,7 @@ impl<'a> CPU<'a> {
     fn handle_timers(&mut self) {
         // increment DIV each 64 machine cycles.
         self.div_counter += 1;
-        if self.div_counter > DIV_INCREMENT_CLOCKS {
+        if self.div_counter == DIV_INCREMENT_CLOCKS {
             self.div_counter = 0;
             self.RAM[address::DIV_REGISTER].wrapping_add(1);
         }
@@ -282,7 +282,7 @@ impl<'a> CPU<'a> {
             let counter_limit = TIMER_INCREMENT_CLOCKS_MAP[counter_limit_idx];
 
             self.timer_counter += 1;
-            if self.timer_counter > counter_limit {
+            if self.timer_counter == counter_limit {
                 self.timer_counter = 0;
                 let (mut res, overflow) = self.RAM[address::TIMA_REGISTER].overflowing_add(1);
                 if overflow {
