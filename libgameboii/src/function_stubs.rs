@@ -136,24 +136,24 @@ unsafe fn stubs(cpu: &mut CPU, dummy: &str) {
 			let mut a = cpu.AF.r8.first;
 			if !cpu.n() {
 				if cpu.c() || a > 0x99 {
-					a += 0x60;
+					a = a.wrapping_add(0x60);
 					cpu.set_c(true);
 				}
 				if cpu.h() || a & 0x0f > 0x9 {
-					a += 0x06;
+					a = a.wrapping_add(0x06);
 				}
 			} else {
 				if cpu.c() {
-					a -= 0x60;
+					a = a.wrapping_sub(0x60);
 				}
 				if cpu.h() {
-					a -= 0x06;
+					a = a.wrapping_sub(0x06);
 				}
 			}
 
 			cpu.AF.r8.first = a;
 			cpu.set_z(a == 0);
-			
+
 			//----------------
 		}
 
