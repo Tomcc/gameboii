@@ -1,13 +1,7 @@
-[package]
-name = "gameboii"
-version = "0.1.0"
-authors = ["Tommaso Checchi <tommaso.checchi1@gmail.com>"]
+[workspace]
+members=["libgameboii","gameboii"]
 
-[dependencies]
-libgameboii = { path = "libgameboii" }
-clap = "*"
-piston = "*"
-piston2d-graphics = "*"
-pistoncore-glutin_window = "*"
-piston2d-opengl_graphics = "*"
-image = "*"
+exclude=["specs"]
+
+[profile.release]
+debug=true

@@ -5,16 +5,16 @@ authors = ["Tommaso Checchi <tommaso.checchi1@gmail.com>"]
 build = "build.rs"
 
 [dependencies]
-bit_field = "*"
-serde = "*"
-serde_json = "*"
-serde_derive = "*"
-regex = "*"
-image = "*"
+bit_field = "0.10"
+image = "0.19"
+regex = "1.1"
+serde = "1.0"
+serde_derive = "1.0"
+serde_json = "1.0"
 
 [build-dependencies]
-serde = "*"
-serde_json = "*"
-serde_derive = "*"
-itertools = "*"
-regex = "*"
+itertools = "0.8"
+regex = "1.1"
+serde = "1.0"
+serde_derive = "1.0"
+serde_json = "1.0"

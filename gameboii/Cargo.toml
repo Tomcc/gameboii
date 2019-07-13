@@ -1,0 +1,13 @@
+[package]
+name = "gameboii"
+version = "0.1.0"
+authors = ["Tommaso Checchi <tommaso.checchi1@gmail.com>"]
+
+[dependencies]
+clap = "2.33"
+image = "0.19"
+libgameboii = { path = "../libgameboii" }
+piston = "0.37"
+piston2d-graphics = "0.26"
+piston2d-opengl_graphics = "0.53"
+pistoncore-glutin_window = "0.47"
