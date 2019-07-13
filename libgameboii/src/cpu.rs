@@ -272,7 +272,7 @@ impl<'a> CPU<'a> {
         self.div_counter += 1;
         if self.div_counter == DIV_INCREMENT_CLOCKS {
             self.div_counter = 0;
-            self.RAM[address::DIV_REGISTER].wrapping_add(1);
+            self.RAM[address::DIV_REGISTER] = self.RAM[address::DIV_REGISTER].wrapping_add(1);
         }
 
         let timer_control = self.RAM[address::TAC_REGISTER];
